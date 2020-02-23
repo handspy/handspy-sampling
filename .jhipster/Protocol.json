@@ -1,0 +1,46 @@
+{
+    "name": "Protocol",
+    "fields": [
+        {
+            "fieldName": "layout",
+            "javadoc": "Layout in which the protocol has been written",
+            "fieldType": "Long"
+        },
+        {
+            "fieldName": "device",
+            "javadoc": "Device with which the protocol has been written",
+            "fieldType": "Long"
+        },
+        {
+            "fieldName": "pageNumber",
+            "javadoc": "Number of the page (if the protocol contains multiple pages)",
+            "fieldType": "Integer"
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "many-to-one",
+            "otherEntityName": "sample",
+            "otherEntityRelationshipName": "protocol",
+            "relationshipValidateRules": "required",
+            "javadoc": "A protocol belongs to a sample.",
+            "relationshipName": "sample",
+            "otherEntityField": "id"
+        }
+    ],
+    "changelogDate": "20200223180318",
+    "javadoc": "Handwritten data collected using a smartpen for analysis (part of the\\nsample).\\n\\n@author José Carlos Paiva",
+    "entityTableName": "protocol",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
+    "fluentMethods": true,
+    "readOnly": false,
+    "clientRootFolder": "",
+    "applications": [
+        "gateway",
+        "sampling"
+    ],
+    "microserviceName": "sampling"
+}

@@ -1,0 +1,50 @@
+{
+    "name": "Device",
+    "fields": [
+        {
+            "fieldName": "name",
+            "javadoc": "Name of the device",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "unique",
+                "required"
+            ]
+        },
+        {
+            "fieldName": "description",
+            "javadoc": "Details about the device",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "type",
+            "javadoc": "Type of device",
+            "fieldType": "DeviceType",
+            "fieldValues": "PEN,HEART_RATE_METER"
+        },
+        {
+            "fieldName": "plugin",
+            "javadoc": "Plugin name for conversion",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "pattern"
+            ],
+            "fieldValidateRulesPattern": "^[a-zA-Z0-9_-]*$"
+        }
+    ],
+    "relationships": [],
+    "changelogDate": "20200223175918",
+    "javadoc": "Device used to capture data.\\n\\n@author José Carlos Paiva",
+    "entityTableName": "device",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
+    "fluentMethods": true,
+    "readOnly": false,
+    "clientRootFolder": "",
+    "applications": [
+        "gateway",
+        "sampling"
+    ],
+    "microserviceName": "sampling"
+}

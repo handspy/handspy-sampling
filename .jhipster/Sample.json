@@ -1,0 +1,47 @@
+{
+    "name": "Sample",
+    "fields": [
+        {
+            "fieldName": "task",
+            "javadoc": "Task in which this sample is inserted.",
+            "fieldType": "Long",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "participant",
+            "javadoc": "Participant to which this sample belongs.",
+            "fieldType": "Long",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "timestamp",
+            "javadoc": "Timestamp of collection of the sample",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "language",
+            "javadoc": "Language of the sample",
+            "fieldType": "String"
+        }
+    ],
+    "relationships": [],
+    "changelogDate": "20200223180118",
+    "javadoc": "Sample of a participant for analysis in a task.\\n\\n@author José Carlos Paiva",
+    "entityTableName": "sample",
+    "dto": "mapstruct",
+    "pagination": "infinite-scroll",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
+    "fluentMethods": true,
+    "readOnly": false,
+    "clientRootFolder": "",
+    "applications": [
+        "gateway",
+        "sampling"
+    ],
+    "microserviceName": "sampling"
+}

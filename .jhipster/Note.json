@@ -1,0 +1,41 @@
+{
+    "name": "Note",
+    "fields": [
+        {
+            "fieldName": "text",
+            "javadoc": "Text of the note",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "self",
+            "javadoc": "Is this note private",
+            "fieldType": "Boolean"
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "many-to-one",
+            "otherEntityName": "sample",
+            "otherEntityRelationshipName": "note",
+            "relationshipValidateRules": "required",
+            "javadoc": "A note belongs to a sample.",
+            "relationshipName": "sample",
+            "otherEntityField": "id"
+        }
+    ],
+    "changelogDate": "20200223180218",
+    "javadoc": "Note taken about a sample by an analyst.\\n\\n@author José Carlos Paiva",
+    "entityTableName": "note",
+    "dto": "mapstruct",
+    "pagination": "infinite-scroll",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
+    "fluentMethods": true,
+    "readOnly": false,
+    "clientRootFolder": "",
+    "applications": [
+        "gateway",
+        "sampling"
+    ],
+    "microserviceName": "sampling"
+}

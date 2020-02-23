@@ -1,0 +1,81 @@
+{
+    "name": "Dot",
+    "fields": [
+        {
+            "fieldName": "timestamp",
+            "javadoc": "Moment at which the dot was captured",
+            "fieldType": "Instant",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "x",
+            "javadoc": "Position of dot in X axis",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "y",
+            "javadoc": "Position of dot in Y axis",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "type",
+            "javadoc": "Type of dot emitted",
+            "fieldType": "DotType",
+            "fieldValues": "DOWN,MOVE,UP"
+        },
+        {
+            "fieldName": "tiltX",
+            "javadoc": "Tilt of the pen in X axis",
+            "fieldType": "Integer"
+        },
+        {
+            "fieldName": "tiltY",
+            "javadoc": "Tilt of the pen in Y axis",
+            "fieldType": "Integer"
+        },
+        {
+            "fieldName": "twist",
+            "javadoc": "Twist angle of the pen",
+            "fieldType": "Integer"
+        },
+        {
+            "fieldName": "pressure",
+            "javadoc": "Pressure applied to the pen tip",
+            "fieldType": "Double"
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "many-to-one",
+            "otherEntityName": "protocol",
+            "otherEntityRelationshipName": "dot",
+            "relationshipValidateRules": "required",
+            "javadoc": "A dot belongs to a protocol.",
+            "relationshipName": "protocol",
+            "otherEntityField": "id"
+        }
+    ],
+    "changelogDate": "20200223180418",
+    "javadoc": "Dot represents an event of the smartpen (part of a protocol).\\n\\n@author José Carlos Paiva",
+    "entityTableName": "dot",
+    "dto": "mapstruct",
+    "pagination": "no",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
+    "fluentMethods": true,
+    "readOnly": false,
+    "clientRootFolder": "",
+    "applications": [
+        "gateway",
+        "sampling"
+    ],
+    "microserviceName": "sampling"
+}

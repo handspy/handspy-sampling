@@ -1,0 +1,92 @@
+{
+    "name": "Layout",
+    "fields": [
+        {
+            "fieldName": "name",
+            "javadoc": "Name of the layout",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "unique",
+                "required"
+            ]
+        },
+        {
+            "fieldName": "description",
+            "javadoc": "Details about the layout",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "maxlength"
+            ],
+            "fieldValidateRulesMaxlength": "500"
+        },
+        {
+            "fieldName": "width",
+            "javadoc": "Width of the layout (mm)",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "height",
+            "javadoc": "Height of the layout (mm)",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "marginLeft",
+            "javadoc": "Left margin of the layout (mm)",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "marginRight",
+            "javadoc": "Right margin of the layout (mm)",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "marginTop",
+            "javadoc": "Top margin of the layout (mm)",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "marginBottom",
+            "javadoc": "Bottom margin of the layout (mm)",
+            "fieldType": "Integer",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "url",
+            "javadoc": "URL to download the layout (mm)",
+            "fieldType": "String"
+        }
+    ],
+    "relationships": [],
+    "changelogDate": "20200223175818",
+    "javadoc": "Layout of the paper used to collect data.\\n\\n@author José Carlos Paiva",
+    "entityTableName": "layout",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
+    "fluentMethods": true,
+    "readOnly": false,
+    "clientRootFolder": "",
+    "applications": [
+        "gateway",
+        "sampling"
+    ],
+    "microserviceName": "sampling"
+}

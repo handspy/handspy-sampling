@@ -1,0 +1,67 @@
+{
+    "name": "AnnotationType",
+    "fields": [
+        {
+            "fieldName": "name",
+            "javadoc": "Name of this type of annotation",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "unique",
+                "required"
+            ]
+        },
+        {
+            "fieldName": "label",
+            "javadoc": "Label of this type of annotation",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "description",
+            "javadoc": "Details about this type of annotation",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "maxlength"
+            ],
+            "fieldValidateRulesMaxlength": "300"
+        },
+        {
+            "fieldName": "emotional",
+            "javadoc": "Is it an emotional annotation?",
+            "fieldType": "Boolean"
+        },
+        {
+            "fieldName": "weight",
+            "javadoc": "Weight of annotations of this type (e.g. an emotional annotation of sadness may have a negative weight while an emotional annotation of hapiness may have a positive weight)",
+            "fieldType": "Double"
+        },
+        {
+            "fieldName": "color",
+            "javadoc": "Color associated with this type of annotation",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required",
+                "maxlength"
+            ],
+            "fieldValidateRulesMaxlength": "20"
+        }
+    ],
+    "relationships": [],
+    "changelogDate": "20200223180018",
+    "javadoc": "Types of annotations that can be added in a text.\\n\\n@author José Carlos Paiva",
+    "entityTableName": "annotation_type",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
+    "fluentMethods": true,
+    "readOnly": false,
+    "clientRootFolder": "",
+    "applications": [
+        "gateway",
+        "sampling"
+    ],
+    "microserviceName": "sampling"
+}
