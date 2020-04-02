@@ -5,12 +5,17 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
-
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Typewritten data collected for analysis (part of the sample). It may be a\ntranscription of the protocol (automatic or manually entered by an analyst)\nor text typed by a participant using a typing device.\n\n@author José Carlos Paiva
+ * Typewritten data collected for analysis (part of the sample). It may be a
+ * transcription of the protocol (automatic or manually entered by an analyst)
+ * or text typed by a participant using a typing device.
+ *
+ * @author José Carlos Paiva
  */
 @Entity
 @Table(name = "text")
@@ -25,18 +30,30 @@ public class Text implements Serializable {
     private Long id;
 
     /**
+     * ID of the project in the Project Microservice.
+     */
+    @NotNull
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
+    /**
      * Typewritten text collected
      */
     @Column(name = "text")
     private String text;
 
-    /**
-     * A text belongs to a sample.
-     */
-    @ManyToOne(optional = false)
-    @NotNull
+    @ManyToOne
     @JsonIgnoreProperties("texts")
     private Sample sample;
+
+    @OneToMany(
+        mappedBy = "text",
+        cascade = CascadeType.ALL,
+        fetch = FetchType.LAZY,
+        orphanRemoval = true
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private Set<Annotation> annotations = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -60,6 +77,19 @@ public class Text implements Serializable {
         this.text = text;
     }
 
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public Text projectId(Long projectId) {
+        this.projectId = projectId;
+        return this;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
     public Sample getSample() {
         return sample;
     }
@@ -72,6 +102,26 @@ public class Text implements Serializable {
     public void setSample(Sample sample) {
         this.sample = sample;
     }
+
+    public Set<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    public Text annotations(Set<Annotation> annotations) {
+        this.annotations = annotations;
+        return this;
+    }
+
+    public Text addAnnotation(Annotation annotation) {
+        this.annotations.add(annotation);
+        annotation.setText(this);
+        return this;
+    }
+
+    public void setAnnotations(Set<Annotation> annotations) {
+        this.annotations = annotations;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
@@ -95,6 +145,7 @@ public class Text implements Serializable {
         return "Text{" +
             "id=" + getId() +
             ", text='" + getText() + "'" +
+            ", projectId=" + getProjectId() +
             "}";
     }
 }

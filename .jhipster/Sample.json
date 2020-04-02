@@ -26,6 +26,13 @@
             "fieldName": "language",
             "javadoc": "Language of the sample",
             "fieldType": "String"
+        },
+        {
+            "fieldName": "projectId",
+            "fieldType": "Long",
+            "fieldValidateRules": [
+                "required"
+            ]
         }
     ],
     "relationships": [],
@@ -38,10 +45,12 @@
     "jpaMetamodelFiltering": true,
     "fluentMethods": true,
     "readOnly": false,
-    "clientRootFolder": "",
+    "clientRootFolder": "sampling",
     "applications": [
         "gateway",
         "sampling"
     ],
-    "microserviceName": "sampling"
+    "microserviceName": "sampling",
+    "searchEngine": false,
+    "databaseType": "sql"
 }

@@ -25,7 +25,6 @@ public class AnnotationTypeServiceImpl implements AnnotationTypeService {
     private final Logger log = LoggerFactory.getLogger(AnnotationTypeServiceImpl.class);
 
     private final AnnotationTypeRepository annotationTypeRepository;
-
     private final AnnotationTypeMapper annotationTypeMapper;
 
     public AnnotationTypeServiceImpl(AnnotationTypeRepository annotationTypeRepository, AnnotationTypeMapper annotationTypeMapper) {
@@ -36,12 +35,14 @@ public class AnnotationTypeServiceImpl implements AnnotationTypeService {
     /**
      * Save a annotationType.
      *
+     * @param projectId ID of the project to which the annotation type belongs.
      * @param annotationTypeDTO the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public AnnotationTypeDTO save(AnnotationTypeDTO annotationTypeDTO) {
+    public AnnotationTypeDTO save(Long projectId, AnnotationTypeDTO annotationTypeDTO) {
         log.debug("Request to save AnnotationType : {}", annotationTypeDTO);
+        annotationTypeDTO.setProjectId(projectId);
         AnnotationType annotationType = annotationTypeMapper.toEntity(annotationTypeDTO);
         annotationType = annotationTypeRepository.save(annotationType);
         return annotationTypeMapper.toDto(annotationType);
@@ -50,39 +51,42 @@ public class AnnotationTypeServiceImpl implements AnnotationTypeService {
     /**
      * Get all the annotationTypes.
      *
+     * @param projectId ID of the project to which the annotation types belong.
      * @param pageable the pagination information.
      * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<AnnotationTypeDTO> findAll(Pageable pageable) {
-        log.debug("Request to get all AnnotationTypes");
-        return annotationTypeRepository.findAll(pageable)
+    public Page<AnnotationTypeDTO> findAll(Long projectId, Pageable pageable) {
+        log.debug("Request to get all AnnotationTypes in project {}", projectId);
+        return annotationTypeRepository.findAllByProjectId(projectId, pageable)
             .map(annotationTypeMapper::toDto);
     }
 
     /**
-     * Get one annotationType by id.
+     * Get the "id" annotationType.
      *
+     * @param projectId ID of the project to which the annotation type belongs.
      * @param id the id of the entity.
      * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<AnnotationTypeDTO> findOne(Long id) {
-        log.debug("Request to get AnnotationType : {}", id);
-        return annotationTypeRepository.findById(id)
+    public Optional<AnnotationTypeDTO> findOne(Long projectId, Long id) {
+        log.debug("Request to get AnnotationType {} in project {}", id, projectId);
+        return annotationTypeRepository.findByProjectIdAndId(projectId, id)
             .map(annotationTypeMapper::toDto);
     }
 
     /**
-     * Delete the annotationType by id.
+     * Delete the "id" annotationType.
      *
+     * @param projectId ID of the project to which the annotation type belongs.
      * @param id the id of the entity.
      */
     @Override
-    public void delete(Long id) {
-        log.debug("Request to delete AnnotationType : {}", id);
-        annotationTypeRepository.deleteById(id);
+    public void delete(Long projectId, Long id) {
+        log.debug("Request to delete AnnotationType {} in project {}", id, projectId);
+        annotationTypeRepository.deleteAllByProjectIdAndId(projectId, id);
     }
 }

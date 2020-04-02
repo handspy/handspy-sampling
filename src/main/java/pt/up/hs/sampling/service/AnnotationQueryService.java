@@ -34,7 +34,6 @@ public class AnnotationQueryService extends QueryService<Annotation> {
     private final Logger log = LoggerFactory.getLogger(AnnotationQueryService.class);
 
     private final AnnotationRepository annotationRepository;
-
     private final AnnotationMapper annotationMapper;
 
     public AnnotationQueryService(AnnotationRepository annotationRepository, AnnotationMapper annotationMapper) {
@@ -44,44 +43,66 @@ public class AnnotationQueryService extends QueryService<Annotation> {
 
     /**
      * Return a {@link List} of {@link AnnotationDTO} which matches the criteria from the database.
-     * @param criteria The object which holds all the filters, which the entities should match.
+     *
+     * @param projectId ID of the project to which the annotations belong.
+     * @param textId    ID of the text to which the annotations belong.
+     * @param criteria  The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<AnnotationDTO> findByCriteria(AnnotationCriteria criteria) {
-        log.debug("find by criteria : {}", criteria);
-        final Specification<Annotation> specification = createSpecification(criteria);
+    public List<AnnotationDTO> findByCriteria(
+        Long projectId, Long textId, AnnotationCriteria criteria
+    ) {
+        log.debug("find by criteria {} in text {} of project {}", criteria, textId, projectId);
+        final Specification<Annotation> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.join("text", JoinType.LEFT).get("projectId"), projectId))
+            .and(equalsSpecification(root -> root.join("text", JoinType.LEFT).get("id"), textId));
         return annotationMapper.toDto(annotationRepository.findAll(specification));
     }
 
     /**
      * Return a {@link Page} of {@link AnnotationDTO} which matches the criteria from the database.
-     * @param criteria The object which holds all the filters, which the entities should match.
-     * @param page The page, which should be returned.
+     *
+     * @param projectId ID of the project to which the annotations belong.
+     * @param textId    ID of the text to which the annotations belong.
+     * @param criteria  The object which holds all the filters, which the entities should match.
+     * @param page      The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<AnnotationDTO> findByCriteria(AnnotationCriteria criteria, Pageable page) {
-        log.debug("find by criteria : {}, page: {}", criteria, page);
-        final Specification<Annotation> specification = createSpecification(criteria);
+    public Page<AnnotationDTO> findByCriteria(
+        Long projectId, Long textId, AnnotationCriteria criteria, Pageable page
+    ) {
+        log.debug("find by criteria {}, page {} in text {} of project {}", criteria, page, textId, projectId);
+        final Specification<Annotation> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.join("text", JoinType.LEFT).get("projectId"), projectId))
+            .and(equalsSpecification(root -> root.join("text", JoinType.LEFT).get("id"), textId));
         return annotationRepository.findAll(specification, page)
             .map(annotationMapper::toDto);
     }
 
     /**
      * Return the number of matching entities in the database.
-     * @param criteria The object which holds all the filters, which the entities should match.
+     *
+     * @param projectId ID of the project to which the annotations belong.
+     * @param textId    ID of the text to which the annotations belong.
+     * @param criteria  The object which holds all the filters, which the entities should match.
      * @return the number of matching entities.
      */
     @Transactional(readOnly = true)
-    public long countByCriteria(AnnotationCriteria criteria) {
-        log.debug("count by criteria : {}", criteria);
-        final Specification<Annotation> specification = createSpecification(criteria);
+    public long countByCriteria(
+        Long projectId, Long textId, AnnotationCriteria criteria
+    ) {
+        log.debug("count by criteria {} in text {} of project {}", criteria, textId, projectId);
+        final Specification<Annotation> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.join("text", JoinType.LEFT).get("projectId"), projectId))
+            .and(equalsSpecification(root -> root.join("text", JoinType.LEFT).get("id"), textId));
         return annotationRepository.count(specification);
     }
 
     /**
      * Function to convert {@link AnnotationCriteria} to a {@link Specification}
+     *
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching {@link Specification} of the entity.
      */
@@ -91,8 +112,9 @@ public class AnnotationQueryService extends QueryService<Annotation> {
             if (criteria.getId() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getId(), Annotation_.id));
             }
-            if (criteria.getType() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getType(), Annotation_.type));
+            if (criteria.getAnnotationTypeId() != null) {
+                specification = specification.and(buildSpecification(criteria.getAnnotationTypeId(),
+                    root -> root.join(Annotation_.annotationType, JoinType.LEFT).get(AnnotationType_.id)));
             }
             if (criteria.getStart() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getStart(), Annotation_.start));
@@ -102,10 +124,6 @@ public class AnnotationQueryService extends QueryService<Annotation> {
             }
             if (criteria.getNote() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getNote(), Annotation_.note));
-            }
-            if (criteria.getTextId() != null) {
-                specification = specification.and(buildSpecification(criteria.getTextId(),
-                    root -> root.join(Annotation_.text, JoinType.LEFT).get(Text_.id)));
             }
         }
         return specification;

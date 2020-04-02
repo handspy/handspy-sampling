@@ -15,31 +15,39 @@ public interface NoteService {
     /**
      * Save a note.
      *
+     * @param projectId ID of the project to which the note belongs.
+     * @param sampleId  ID of the sample to which the note belongs.
      * @param noteDTO the entity to save.
      * @return the persisted entity.
      */
-    NoteDTO save(NoteDTO noteDTO);
+    NoteDTO save(Long projectId, Long sampleId, NoteDTO noteDTO);
 
     /**
      * Get all the notes.
      *
+     * @param projectId ID of the project to which the notes belong.
+     * @param sampleId  ID of the sample to which the notes belong.
      * @param pageable the pagination information.
      * @return the list of entities.
      */
-    Page<NoteDTO> findAll(Pageable pageable);
+    Page<NoteDTO> findAll(Long projectId, Long sampleId, Pageable pageable);
 
     /**
      * Get the "id" note.
      *
+     * @param projectId ID of the project to which the note belongs.
+     * @param sampleId  ID of the sample to which the note belongs.
      * @param id the id of the entity.
      * @return the entity.
      */
-    Optional<NoteDTO> findOne(Long id);
+    Optional<NoteDTO> findOne(Long projectId, Long sampleId, Long id);
 
     /**
      * Delete the "id" note.
      *
+     * @param projectId ID of the project to which the note belongs.
+     * @param sampleId  ID of the sample to which the note belongs.
      * @param id the id of the entity.
      */
-    void delete(Long id);
+    void delete(Long projectId, Long sampleId, Long id);
 }

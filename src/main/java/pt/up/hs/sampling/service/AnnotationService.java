@@ -15,31 +15,39 @@ public interface AnnotationService {
     /**
      * Save a annotation.
      *
+     * @param projectId     ID of the project to which the annotation belongs.
+     * @param textId        ID of the text to which the annotation belongs.
      * @param annotationDTO the entity to save.
      * @return the persisted entity.
      */
-    AnnotationDTO save(AnnotationDTO annotationDTO);
+    AnnotationDTO save(Long projectId, Long textId, AnnotationDTO annotationDTO);
 
     /**
      * Get all the annotations.
      *
-     * @param pageable the pagination information.
+     * @param projectId ID of the project to which the annotations belong.
+     * @param textId    ID of the text to which the annotations belong.
+     * @param pageable  the pagination information.
      * @return the list of entities.
      */
-    Page<AnnotationDTO> findAll(Pageable pageable);
+    Page<AnnotationDTO> findAll(Long projectId, Long textId, Pageable pageable);
 
     /**
      * Get the "id" annotation.
      *
-     * @param id the id of the entity.
+     * @param projectId ID of the project to which the annotation belongs.
+     * @param textId    ID of the text to which the annotation belongs.
+     * @param id        the id of the entity.
      * @return the entity.
      */
-    Optional<AnnotationDTO> findOne(Long id);
+    Optional<AnnotationDTO> findOne(Long projectId, Long textId, Long id);
 
     /**
      * Delete the "id" annotation.
      *
-     * @param id the id of the entity.
+     * @param projectId ID of the project to which the annotation belongs.
+     * @param textId    ID of the text to which the annotation belongs.
+     * @param id        the id of the entity.
      */
-    void delete(Long id);
+    void delete(Long projectId, Long textId, Long id);
 }

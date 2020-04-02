@@ -36,12 +36,14 @@ public class SampleServiceImpl implements SampleService {
     /**
      * Save a sample.
      *
+     * @param projectId ID of the project to which the sample belongs.
      * @param sampleDTO the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public SampleDTO save(SampleDTO sampleDTO) {
-        log.debug("Request to save Sample : {}", sampleDTO);
+    public SampleDTO save(Long projectId, SampleDTO sampleDTO) {
+        log.debug("Request to save Sample {} in project {}", sampleDTO, projectId);
+        sampleDTO.setProjectId(projectId);
         Sample sample = sampleMapper.toEntity(sampleDTO);
         sample = sampleRepository.save(sample);
         return sampleMapper.toDto(sample);
@@ -50,39 +52,42 @@ public class SampleServiceImpl implements SampleService {
     /**
      * Get all the samples.
      *
-     * @param pageable the pagination information.
+     * @param projectId ID of the project to which the samples belong.
+     * @param pageable  the pagination information.
      * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<SampleDTO> findAll(Pageable pageable) {
-        log.debug("Request to get all Samples");
-        return sampleRepository.findAll(pageable)
+    public Page<SampleDTO> findAll(Long projectId, Pageable pageable) {
+        log.debug("Request to get all Samples in project {}", projectId);
+        return sampleRepository.findAllByProjectId(projectId, pageable)
             .map(sampleMapper::toDto);
     }
 
     /**
-     * Get one sample by id.
+     * Get the "id" sample.
      *
-     * @param id the id of the entity.
+     * @param projectId ID of the project to which the sample belongs.
+     * @param id        the id of the entity.
      * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<SampleDTO> findOne(Long id) {
-        log.debug("Request to get Sample : {}", id);
-        return sampleRepository.findById(id)
+    public Optional<SampleDTO> findOne(Long projectId, Long id) {
+        log.debug("Request to get Sample {} in project {}", id, projectId);
+        return sampleRepository.findByProjectIdAndId(projectId, id)
             .map(sampleMapper::toDto);
     }
 
     /**
-     * Delete the sample by id.
+     * Delete the "id" sample.
      *
-     * @param id the id of the entity.
+     * @param projectId ID of the project to which the sample belongs.
+     * @param id        the id of the entity.
      */
     @Override
-    public void delete(Long id) {
-        log.debug("Request to delete Sample : {}", id);
-        sampleRepository.deleteById(id);
+    public void delete(Long projectId, Long id) {
+        log.debug("Request to delete Sample {} in project {}", id, projectId);
+        sampleRepository.deleteAllByProjectIdAndId(projectId, id);
     }
 }

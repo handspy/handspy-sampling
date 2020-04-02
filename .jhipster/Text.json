@@ -5,17 +5,22 @@
             "fieldName": "text",
             "javadoc": "Typewritten text collected",
             "fieldType": "String"
+        },
+        {
+            "fieldName": "projectId",
+            "fieldType": "Long",
+            "fieldValidateRules": [
+                "required"
+            ]
         }
     ],
     "relationships": [
         {
-            "relationshipType": "many-to-one",
-            "otherEntityName": "sample",
-            "otherEntityRelationshipName": "text",
-            "relationshipValidateRules": "required",
-            "javadoc": "A text belongs to a sample.",
             "relationshipName": "sample",
-            "otherEntityField": "id"
+            "otherEntityName": "sample",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id",
+            "otherEntityRelationshipName": "text"
         }
     ],
     "changelogDate": "20200223180518",
@@ -27,10 +32,12 @@
     "jpaMetamodelFiltering": true,
     "fluentMethods": true,
     "readOnly": false,
-    "clientRootFolder": "",
+    "clientRootFolder": "sampling",
     "applications": [
         "gateway",
         "sampling"
     ],
-    "microserviceName": "sampling"
+    "microserviceName": "sampling",
+    "searchEngine": false,
+    "databaseType": "sql"
 }

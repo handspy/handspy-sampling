@@ -33,6 +33,9 @@
             <column name="color" type="varchar(20)" remarks="Color associated with this type of annotation">
                 <constraints nullable="false" />
             </column>
+            <column name="project_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here, do not remove-->
         </createTable>
     </changeSet>
@@ -62,6 +65,7 @@
             <column name="emotional" type="boolean"/>
             <column name="weight" type="numeric"/>
             <column name="color" type="string"/>
+            <column name="project_id" type="numeric"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here, do not remove-->
         </loadData>
     </changeSet>

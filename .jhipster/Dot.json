@@ -32,21 +32,6 @@
             "fieldValues": "DOWN,MOVE,UP"
         },
         {
-            "fieldName": "tiltX",
-            "javadoc": "Tilt of the pen in X axis",
-            "fieldType": "Integer"
-        },
-        {
-            "fieldName": "tiltY",
-            "javadoc": "Tilt of the pen in Y axis",
-            "fieldType": "Integer"
-        },
-        {
-            "fieldName": "twist",
-            "javadoc": "Twist angle of the pen",
-            "fieldType": "Integer"
-        },
-        {
             "fieldName": "pressure",
             "javadoc": "Pressure applied to the pen tip",
             "fieldType": "Double"
@@ -72,10 +57,12 @@
     "jpaMetamodelFiltering": true,
     "fluentMethods": true,
     "readOnly": false,
-    "clientRootFolder": "",
+    "clientRootFolder": "sampling",
     "applications": [
         "gateway",
         "sampling"
     ],
-    "microserviceName": "sampling"
+    "microserviceName": "sampling",
+    "searchEngine": false,
+    "databaseType": "sql"
 }

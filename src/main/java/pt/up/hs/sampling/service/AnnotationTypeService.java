@@ -15,31 +15,35 @@ public interface AnnotationTypeService {
     /**
      * Save a annotationType.
      *
+     * @param projectId ID of the project to which the annotation type belongs.
      * @param annotationTypeDTO the entity to save.
      * @return the persisted entity.
      */
-    AnnotationTypeDTO save(AnnotationTypeDTO annotationTypeDTO);
+    AnnotationTypeDTO save(Long projectId, AnnotationTypeDTO annotationTypeDTO);
 
     /**
      * Get all the annotationTypes.
      *
+     * @param projectId ID of the project to which the annotation types belong.
      * @param pageable the pagination information.
      * @return the list of entities.
      */
-    Page<AnnotationTypeDTO> findAll(Pageable pageable);
+    Page<AnnotationTypeDTO> findAll(Long projectId, Pageable pageable);
 
     /**
      * Get the "id" annotationType.
      *
+     * @param projectId ID of the project to which the annotation type belongs.
      * @param id the id of the entity.
      * @return the entity.
      */
-    Optional<AnnotationTypeDTO> findOne(Long id);
+    Optional<AnnotationTypeDTO> findOne(Long projectId, Long id);
 
     /**
      * Delete the "id" annotationType.
      *
+     * @param projectId ID of the project to which the annotation type belongs.
      * @param id the id of the entity.
      */
-    void delete(Long id);
+    void delete(Long projectId, Long id);
 }

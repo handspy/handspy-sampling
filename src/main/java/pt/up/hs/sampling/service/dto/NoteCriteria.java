@@ -30,8 +30,6 @@ public class NoteCriteria implements Serializable, Criteria {
 
     private BooleanFilter self;
 
-    private LongFilter sampleId;
-
     public NoteCriteria() {
     }
 
@@ -39,7 +37,6 @@ public class NoteCriteria implements Serializable, Criteria {
         this.id = other.id == null ? null : other.id.copy();
         this.text = other.text == null ? null : other.text.copy();
         this.self = other.self == null ? null : other.self.copy();
-        this.sampleId = other.sampleId == null ? null : other.sampleId.copy();
     }
 
     @Override
@@ -71,14 +68,6 @@ public class NoteCriteria implements Serializable, Criteria {
         this.self = self;
     }
 
-    public LongFilter getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(LongFilter sampleId) {
-        this.sampleId = sampleId;
-    }
-
 
     @Override
     public boolean equals(Object o) {
@@ -92,8 +81,7 @@ public class NoteCriteria implements Serializable, Criteria {
         return
             Objects.equals(id, that.id) &&
             Objects.equals(text, that.text) &&
-            Objects.equals(self, that.self) &&
-            Objects.equals(sampleId, that.sampleId);
+            Objects.equals(self, that.self);
     }
 
     @Override
@@ -101,8 +89,7 @@ public class NoteCriteria implements Serializable, Criteria {
         return Objects.hash(
         id,
         text,
-        self,
-        sampleId
+        self
         );
     }
 
@@ -112,7 +99,6 @@ public class NoteCriteria implements Serializable, Criteria {
                 (id != null ? "id=" + id + ", " : "") +
                 (text != null ? "text=" + text + ", " : "") +
                 (self != null ? "self=" + self + ", " : "") +
-                (sampleId != null ? "sampleId=" + sampleId + ", " : "") +
             "}";
     }
 

@@ -15,31 +15,35 @@ public interface TextService {
     /**
      * Save a text.
      *
+     * @param projectId ID of the project to which the text belongs.
      * @param textDTO the entity to save.
      * @return the persisted entity.
      */
-    TextDTO save(TextDTO textDTO);
+    TextDTO save(Long projectId, TextDTO textDTO);
 
     /**
      * Get all the texts.
      *
+     * @param projectId ID of the project to which the texts belong.
      * @param pageable the pagination information.
      * @return the list of entities.
      */
-    Page<TextDTO> findAll(Pageable pageable);
+    Page<TextDTO> findAll(Long projectId, Pageable pageable);
 
     /**
      * Get the "id" text.
      *
+     * @param projectId ID of the project to which the text belongs.
      * @param id the id of the entity.
      * @return the entity.
      */
-    Optional<TextDTO> findOne(Long id);
+    Optional<TextDTO> findOne(Long projectId, Long id);
 
     /**
      * Delete the "id" text.
      *
+     * @param projectId ID of the project to which the text belongs.
      * @param id the id of the entity.
      */
-    void delete(Long id);
+    void delete(Long projectId, Long id);
 }

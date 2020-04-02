@@ -40,6 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
 public class TextResourceIT {
 
+    private static final Long DEFAULT_PROJECT_ID = 1L;
+    private static final Long OTHER_PROJECT_ID = 2L;
+
     private static final String DEFAULT_TEXT = "AAAAAAAAAA";
     private static final String UPDATED_TEXT = "BBBBBBBBBB";
 
@@ -93,20 +96,11 @@ public class TextResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Text createEntity(EntityManager em) {
-        Text text = new Text()
-            .text(DEFAULT_TEXT);
-        // Add required entity
-        Sample sample;
-        if (TestUtil.findAll(em, Sample.class).isEmpty()) {
-            sample = SampleResourceIT.createEntity(em);
-            em.persist(sample);
-            em.flush();
-        } else {
-            sample = TestUtil.findAll(em, Sample.class).get(0);
-        }
-        text.setSample(sample);
-        return text;
+        return new Text()
+            .text(DEFAULT_TEXT)
+            .projectId(DEFAULT_PROJECT_ID);
     }
+
     /**
      * Create an updated entity for this test.
      *
@@ -114,19 +108,9 @@ public class TextResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Text createUpdatedEntity(EntityManager em) {
-        Text text = new Text()
-            .text(UPDATED_TEXT);
-        // Add required entity
-        Sample sample;
-        if (TestUtil.findAll(em, Sample.class).isEmpty()) {
-            sample = SampleResourceIT.createUpdatedEntity(em);
-            em.persist(sample);
-            em.flush();
-        } else {
-            sample = TestUtil.findAll(em, Sample.class).get(0);
-        }
-        text.setSample(sample);
-        return text;
+        return new Text()
+            .text(UPDATED_TEXT)
+            .projectId(OTHER_PROJECT_ID);
     }
 
     @BeforeEach
@@ -141,7 +125,7 @@ public class TextResourceIT {
 
         // Create the Text
         TextDTO textDTO = textMapper.toDto(text);
-        restTextMockMvc.perform(post("/api/texts")
+        restTextMockMvc.perform(post("/api/projects/{projectId}/texts", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(textDTO)))
             .andExpect(status().isCreated());
@@ -151,6 +135,7 @@ public class TextResourceIT {
         assertThat(textList).hasSize(databaseSizeBeforeCreate + 1);
         Text testText = textList.get(textList.size() - 1);
         assertThat(testText.getText()).isEqualTo(DEFAULT_TEXT);
+        assertThat(testText.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
 
     @Test
@@ -163,7 +148,7 @@ public class TextResourceIT {
         TextDTO textDTO = textMapper.toDto(text);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restTextMockMvc.perform(post("/api/texts")
+        restTextMockMvc.perform(post("/api/projects/{projectId}/texts", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(textDTO)))
             .andExpect(status().isBadRequest());
@@ -176,18 +161,38 @@ public class TextResourceIT {
 
     @Test
     @Transactional
+    public void checkProjectIdIsRequired() throws Exception {
+        int databaseSizeBeforeTest = textRepository.findAll().size();
+        // set the field null
+        text.setProjectId(null);
+
+        // Create the Text, which fails.
+        TextDTO textDTO = textMapper.toDto(text);
+
+        restTextMockMvc.perform(post("/api/projects/{projectId}/texts", DEFAULT_PROJECT_ID)
+            .contentType(TestUtil.APPLICATION_JSON)
+            .content(TestUtil.convertObjectToJsonBytes(textDTO)))
+            .andExpect(status().isBadRequest());
+
+        List<Text> textList = textRepository.findAll();
+        assertThat(textList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     public void getAllTexts() throws Exception {
         // Initialize the database
         textRepository.saveAndFlush(text);
 
         // Get all the textList
-        restTextMockMvc.perform(get("/api/texts?sort=id,desc"))
+        restTextMockMvc.perform(get("/api/projects/{projectId}/texts?sort=id,desc", DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(text.getId().intValue())))
-            .andExpect(jsonPath("$.[*].text").value(hasItem(DEFAULT_TEXT)));
+            .andExpect(jsonPath("$.[*].text").value(hasItem(DEFAULT_TEXT)))
+            .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
     }
-    
+
     @Test
     @Transactional
     public void getText() throws Exception {
@@ -195,11 +200,12 @@ public class TextResourceIT {
         textRepository.saveAndFlush(text);
 
         // Get the text
-        restTextMockMvc.perform(get("/api/texts/{id}", text.getId()))
+        restTextMockMvc.perform(get("/api/projects/{projectId}/texts/{id}", DEFAULT_PROJECT_ID, text.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(text.getId().intValue()))
-            .andExpect(jsonPath("$.text").value(DEFAULT_TEXT));
+            .andExpect(jsonPath("$.text").value(DEFAULT_TEXT))
+            .andExpect(jsonPath("$.projectId").value(DEFAULT_PROJECT_ID.intValue()));
     }
 
 
@@ -299,12 +305,15 @@ public class TextResourceIT {
         defaultTextShouldBeFound("text.doesNotContain=" + UPDATED_TEXT);
     }
 
-
     @Test
     @Transactional
     public void getAllTextsBySampleIsEqualToSomething() throws Exception {
-        // Get already existing entity
-        Sample sample = text.getSample();
+        // Initialize the database
+        textRepository.saveAndFlush(text);
+        Sample sample = SampleResourceIT.createEntity(em);
+        em.persist(sample);
+        em.flush();
+        text.setSample(sample);
         textRepository.saveAndFlush(text);
         Long sampleId = sample.getId();
 
@@ -319,14 +328,15 @@ public class TextResourceIT {
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultTextShouldBeFound(String filter) throws Exception {
-        restTextMockMvc.perform(get("/api/texts?sort=id,desc&" + filter))
+        restTextMockMvc.perform(get("/api/projects/{projectId}/texts?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(text.getId().intValue())))
-            .andExpect(jsonPath("$.[*].text").value(hasItem(DEFAULT_TEXT)));
+            .andExpect(jsonPath("$.[*].text").value(hasItem(DEFAULT_TEXT)))
+            .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
 
         // Check, that the count call also returns 1
-        restTextMockMvc.perform(get("/api/texts/count?sort=id,desc&" + filter))
+        restTextMockMvc.perform(get("/api/projects/{projectId}/texts/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -336,14 +346,14 @@ public class TextResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultTextShouldNotBeFound(String filter) throws Exception {
-        restTextMockMvc.perform(get("/api/texts?sort=id,desc&" + filter))
+        restTextMockMvc.perform(get("/api/projects/{projectId}/texts?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restTextMockMvc.perform(get("/api/texts/count?sort=id,desc&" + filter))
+        restTextMockMvc.perform(get("/api/projects/{projectId}/texts/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -354,7 +364,7 @@ public class TextResourceIT {
     @Transactional
     public void getNonExistingText() throws Exception {
         // Get the text
-        restTextMockMvc.perform(get("/api/texts/{id}", Long.MAX_VALUE))
+        restTextMockMvc.perform(get("/api/projects/{projectId}/texts/{id}", DEFAULT_PROJECT_ID, Long.MAX_VALUE))
             .andExpect(status().isNotFound());
     }
 
@@ -374,7 +384,7 @@ public class TextResourceIT {
             .text(UPDATED_TEXT);
         TextDTO textDTO = textMapper.toDto(updatedText);
 
-        restTextMockMvc.perform(put("/api/texts")
+        restTextMockMvc.perform(put("/api/projects/{projectId}/texts", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(textDTO)))
             .andExpect(status().isOk());
@@ -384,6 +394,7 @@ public class TextResourceIT {
         assertThat(textList).hasSize(databaseSizeBeforeUpdate);
         Text testText = textList.get(textList.size() - 1);
         assertThat(testText.getText()).isEqualTo(UPDATED_TEXT);
+        assertThat(testText.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
 
     @Test
@@ -395,7 +406,7 @@ public class TextResourceIT {
         TextDTO textDTO = textMapper.toDto(text);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restTextMockMvc.perform(put("/api/texts")
+        restTextMockMvc.perform(put("/api/projects/{projectId}/texts", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(textDTO)))
             .andExpect(status().isBadRequest());
@@ -414,7 +425,7 @@ public class TextResourceIT {
         int databaseSizeBeforeDelete = textRepository.findAll().size();
 
         // Delete the text
-        restTextMockMvc.perform(delete("/api/texts/{id}", text.getId())
+        restTextMockMvc.perform(delete("/api/projects/{projectId}/texts/{id}", DEFAULT_PROJECT_ID, text.getId())
             .accept(TestUtil.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 

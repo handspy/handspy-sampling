@@ -40,13 +40,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
 public class ProtocolResourceIT {
 
+    private static final Long DEFAULT_PROJECT_ID = 1L;
+    private static final Long OTHER_PROJECT_ID = 2L;
+
     private static final Long DEFAULT_LAYOUT = 1L;
     private static final Long UPDATED_LAYOUT = 2L;
     private static final Long SMALLER_LAYOUT = 1L - 1L;
-
-    private static final Long DEFAULT_DEVICE = 1L;
-    private static final Long UPDATED_DEVICE = 2L;
-    private static final Long SMALLER_DEVICE = 1L - 1L;
 
     private static final Integer DEFAULT_PAGE_NUMBER = 1;
     private static final Integer UPDATED_PAGE_NUMBER = 2;
@@ -102,21 +101,10 @@ public class ProtocolResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Protocol createEntity(EntityManager em) {
-        Protocol protocol = new Protocol()
+        return new Protocol()
             .layout(DEFAULT_LAYOUT)
-            .device(DEFAULT_DEVICE)
-            .pageNumber(DEFAULT_PAGE_NUMBER);
-        // Add required entity
-        Sample sample;
-        if (TestUtil.findAll(em, Sample.class).isEmpty()) {
-            sample = SampleResourceIT.createEntity(em);
-            em.persist(sample);
-            em.flush();
-        } else {
-            sample = TestUtil.findAll(em, Sample.class).get(0);
-        }
-        protocol.setSample(sample);
-        return protocol;
+            .pageNumber(DEFAULT_PAGE_NUMBER)
+            .projectId(DEFAULT_PROJECT_ID);
     }
     /**
      * Create an updated entity for this test.
@@ -125,21 +113,10 @@ public class ProtocolResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Protocol createUpdatedEntity(EntityManager em) {
-        Protocol protocol = new Protocol()
+        return new Protocol()
             .layout(UPDATED_LAYOUT)
-            .device(UPDATED_DEVICE)
-            .pageNumber(UPDATED_PAGE_NUMBER);
-        // Add required entity
-        Sample sample;
-        if (TestUtil.findAll(em, Sample.class).isEmpty()) {
-            sample = SampleResourceIT.createUpdatedEntity(em);
-            em.persist(sample);
-            em.flush();
-        } else {
-            sample = TestUtil.findAll(em, Sample.class).get(0);
-        }
-        protocol.setSample(sample);
-        return protocol;
+            .pageNumber(UPDATED_PAGE_NUMBER)
+            .projectId(OTHER_PROJECT_ID);
     }
 
     @BeforeEach
@@ -154,7 +131,7 @@ public class ProtocolResourceIT {
 
         // Create the Protocol
         ProtocolDTO protocolDTO = protocolMapper.toDto(protocol);
-        restProtocolMockMvc.perform(post("/api/protocols")
+        restProtocolMockMvc.perform(post("/api/projects/{projectId}/protocols", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(protocolDTO)))
             .andExpect(status().isCreated());
@@ -164,8 +141,8 @@ public class ProtocolResourceIT {
         assertThat(protocolList).hasSize(databaseSizeBeforeCreate + 1);
         Protocol testProtocol = protocolList.get(protocolList.size() - 1);
         assertThat(testProtocol.getLayout()).isEqualTo(DEFAULT_LAYOUT);
-        assertThat(testProtocol.getDevice()).isEqualTo(DEFAULT_DEVICE);
         assertThat(testProtocol.getPageNumber()).isEqualTo(DEFAULT_PAGE_NUMBER);
+        assertThat(testProtocol.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
 
     @Test
@@ -178,7 +155,7 @@ public class ProtocolResourceIT {
         ProtocolDTO protocolDTO = protocolMapper.toDto(protocol);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restProtocolMockMvc.perform(post("/api/protocols")
+        restProtocolMockMvc.perform(post("/api/projects/{projectId}/protocols", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(protocolDTO)))
             .andExpect(status().isBadRequest());
@@ -191,20 +168,39 @@ public class ProtocolResourceIT {
 
     @Test
     @Transactional
+    public void checkProjectIdIsRequired() throws Exception {
+        int databaseSizeBeforeTest = protocolRepository.findAll().size();
+        // set the field null
+        protocol.setProjectId(null);
+
+        // Create the Protocol, which fails.
+        ProtocolDTO protocolDTO = protocolMapper.toDto(protocol);
+
+        restProtocolMockMvc.perform(post("/api/projects/{projectId}/protocols", DEFAULT_PROJECT_ID)
+            .contentType(TestUtil.APPLICATION_JSON)
+            .content(TestUtil.convertObjectToJsonBytes(protocolDTO)))
+            .andExpect(status().isBadRequest());
+
+        List<Protocol> protocolList = protocolRepository.findAll();
+        assertThat(protocolList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     public void getAllProtocols() throws Exception {
         // Initialize the database
         protocolRepository.saveAndFlush(protocol);
 
         // Get all the protocolList
-        restProtocolMockMvc.perform(get("/api/protocols?sort=id,desc"))
+        restProtocolMockMvc.perform(get("/api/projects/{projectId}/protocols?sort=id,desc", DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(protocol.getId().intValue())))
             .andExpect(jsonPath("$.[*].layout").value(hasItem(DEFAULT_LAYOUT.intValue())))
-            .andExpect(jsonPath("$.[*].device").value(hasItem(DEFAULT_DEVICE.intValue())))
-            .andExpect(jsonPath("$.[*].pageNumber").value(hasItem(DEFAULT_PAGE_NUMBER)));
+            .andExpect(jsonPath("$.[*].pageNumber").value(hasItem(DEFAULT_PAGE_NUMBER)))
+            .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
     }
-    
+
     @Test
     @Transactional
     public void getProtocol() throws Exception {
@@ -212,13 +208,13 @@ public class ProtocolResourceIT {
         protocolRepository.saveAndFlush(protocol);
 
         // Get the protocol
-        restProtocolMockMvc.perform(get("/api/protocols/{id}", protocol.getId()))
+        restProtocolMockMvc.perform(get("/api/projects/{projectId}/protocols/{id}", DEFAULT_PROJECT_ID, protocol.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(protocol.getId().intValue()))
             .andExpect(jsonPath("$.layout").value(DEFAULT_LAYOUT.intValue()))
-            .andExpect(jsonPath("$.device").value(DEFAULT_DEVICE.intValue()))
-            .andExpect(jsonPath("$.pageNumber").value(DEFAULT_PAGE_NUMBER));
+            .andExpect(jsonPath("$.pageNumber").value(DEFAULT_PAGE_NUMBER))
+            .andExpect(jsonPath("$.projectId").value(DEFAULT_PROJECT_ID.intValue()));
     }
 
 
@@ -348,111 +344,6 @@ public class ProtocolResourceIT {
 
     @Test
     @Transactional
-    public void getAllProtocolsByDeviceIsEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where device equals to DEFAULT_DEVICE
-        defaultProtocolShouldBeFound("device.equals=" + DEFAULT_DEVICE);
-
-        // Get all the protocolList where device equals to UPDATED_DEVICE
-        defaultProtocolShouldNotBeFound("device.equals=" + UPDATED_DEVICE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByDeviceIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where device not equals to DEFAULT_DEVICE
-        defaultProtocolShouldNotBeFound("device.notEquals=" + DEFAULT_DEVICE);
-
-        // Get all the protocolList where device not equals to UPDATED_DEVICE
-        defaultProtocolShouldBeFound("device.notEquals=" + UPDATED_DEVICE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByDeviceIsInShouldWork() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where device in DEFAULT_DEVICE or UPDATED_DEVICE
-        defaultProtocolShouldBeFound("device.in=" + DEFAULT_DEVICE + "," + UPDATED_DEVICE);
-
-        // Get all the protocolList where device equals to UPDATED_DEVICE
-        defaultProtocolShouldNotBeFound("device.in=" + UPDATED_DEVICE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByDeviceIsNullOrNotNull() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where device is not null
-        defaultProtocolShouldBeFound("device.specified=true");
-
-        // Get all the protocolList where device is null
-        defaultProtocolShouldNotBeFound("device.specified=false");
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByDeviceIsGreaterThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where device is greater than or equal to DEFAULT_DEVICE
-        defaultProtocolShouldBeFound("device.greaterThanOrEqual=" + DEFAULT_DEVICE);
-
-        // Get all the protocolList where device is greater than or equal to UPDATED_DEVICE
-        defaultProtocolShouldNotBeFound("device.greaterThanOrEqual=" + UPDATED_DEVICE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByDeviceIsLessThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where device is less than or equal to DEFAULT_DEVICE
-        defaultProtocolShouldBeFound("device.lessThanOrEqual=" + DEFAULT_DEVICE);
-
-        // Get all the protocolList where device is less than or equal to SMALLER_DEVICE
-        defaultProtocolShouldNotBeFound("device.lessThanOrEqual=" + SMALLER_DEVICE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByDeviceIsLessThanSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where device is less than DEFAULT_DEVICE
-        defaultProtocolShouldNotBeFound("device.lessThan=" + DEFAULT_DEVICE);
-
-        // Get all the protocolList where device is less than UPDATED_DEVICE
-        defaultProtocolShouldBeFound("device.lessThan=" + UPDATED_DEVICE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByDeviceIsGreaterThanSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where device is greater than DEFAULT_DEVICE
-        defaultProtocolShouldNotBeFound("device.greaterThan=" + DEFAULT_DEVICE);
-
-        // Get all the protocolList where device is greater than SMALLER_DEVICE
-        defaultProtocolShouldBeFound("device.greaterThan=" + SMALLER_DEVICE);
-    }
-
-
-    @Test
-    @Transactional
     public void getAllProtocolsByPageNumberIsEqualToSomething() throws Exception {
         // Initialize the database
         protocolRepository.saveAndFlush(protocol);
@@ -555,12 +446,15 @@ public class ProtocolResourceIT {
         defaultProtocolShouldBeFound("pageNumber.greaterThan=" + SMALLER_PAGE_NUMBER);
     }
 
-
     @Test
     @Transactional
     public void getAllProtocolsBySampleIsEqualToSomething() throws Exception {
-        // Get already existing entity
-        Sample sample = protocol.getSample();
+        // Initialize the database
+        protocolRepository.saveAndFlush(protocol);
+        Sample sample = SampleResourceIT.createEntity(em);
+        em.persist(sample);
+        em.flush();
+        protocol.setSample(sample);
         protocolRepository.saveAndFlush(protocol);
         Long sampleId = sample.getId();
 
@@ -575,16 +469,16 @@ public class ProtocolResourceIT {
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultProtocolShouldBeFound(String filter) throws Exception {
-        restProtocolMockMvc.perform(get("/api/protocols?sort=id,desc&" + filter))
+        restProtocolMockMvc.perform(get("/api/projects/{projectId}/protocols?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(protocol.getId().intValue())))
             .andExpect(jsonPath("$.[*].layout").value(hasItem(DEFAULT_LAYOUT.intValue())))
-            .andExpect(jsonPath("$.[*].device").value(hasItem(DEFAULT_DEVICE.intValue())))
-            .andExpect(jsonPath("$.[*].pageNumber").value(hasItem(DEFAULT_PAGE_NUMBER)));
+            .andExpect(jsonPath("$.[*].pageNumber").value(hasItem(DEFAULT_PAGE_NUMBER)))
+            .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
 
         // Check, that the count call also returns 1
-        restProtocolMockMvc.perform(get("/api/protocols/count?sort=id,desc&" + filter))
+        restProtocolMockMvc.perform(get("/api/projects/{projectId}/protocols/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -594,14 +488,14 @@ public class ProtocolResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultProtocolShouldNotBeFound(String filter) throws Exception {
-        restProtocolMockMvc.perform(get("/api/protocols?sort=id,desc&" + filter))
+        restProtocolMockMvc.perform(get("/api/projects/{projectId}/protocols?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restProtocolMockMvc.perform(get("/api/protocols/count?sort=id,desc&" + filter))
+        restProtocolMockMvc.perform(get("/api/projects/{projectId}/protocols/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -612,7 +506,7 @@ public class ProtocolResourceIT {
     @Transactional
     public void getNonExistingProtocol() throws Exception {
         // Get the protocol
-        restProtocolMockMvc.perform(get("/api/protocols/{id}", Long.MAX_VALUE))
+        restProtocolMockMvc.perform(get("/api/projects/{projectId}/protocols/{id}", DEFAULT_PROJECT_ID, Long.MAX_VALUE))
             .andExpect(status().isNotFound());
     }
 
@@ -630,11 +524,11 @@ public class ProtocolResourceIT {
         em.detach(updatedProtocol);
         updatedProtocol
             .layout(UPDATED_LAYOUT)
-            .device(UPDATED_DEVICE)
-            .pageNumber(UPDATED_PAGE_NUMBER);
+            .pageNumber(UPDATED_PAGE_NUMBER)
+            .projectId(OTHER_PROJECT_ID);
         ProtocolDTO protocolDTO = protocolMapper.toDto(updatedProtocol);
 
-        restProtocolMockMvc.perform(put("/api/protocols")
+        restProtocolMockMvc.perform(put("/api/projects/{projectId}/protocols", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(protocolDTO)))
             .andExpect(status().isOk());
@@ -644,8 +538,8 @@ public class ProtocolResourceIT {
         assertThat(protocolList).hasSize(databaseSizeBeforeUpdate);
         Protocol testProtocol = protocolList.get(protocolList.size() - 1);
         assertThat(testProtocol.getLayout()).isEqualTo(UPDATED_LAYOUT);
-        assertThat(testProtocol.getDevice()).isEqualTo(UPDATED_DEVICE);
         assertThat(testProtocol.getPageNumber()).isEqualTo(UPDATED_PAGE_NUMBER);
+        assertThat(testProtocol.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
 
     @Test
@@ -657,7 +551,7 @@ public class ProtocolResourceIT {
         ProtocolDTO protocolDTO = protocolMapper.toDto(protocol);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restProtocolMockMvc.perform(put("/api/protocols")
+        restProtocolMockMvc.perform(put("/api/projects/{projectId}/protocols", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(protocolDTO)))
             .andExpect(status().isBadRequest());
@@ -676,7 +570,7 @@ public class ProtocolResourceIT {
         int databaseSizeBeforeDelete = protocolRepository.findAll().size();
 
         // Delete the protocol
-        restProtocolMockMvc.perform(delete("/api/protocols/{id}", protocol.getId())
+        restProtocolMockMvc.perform(delete("/api/projects/{projectId}/protocols/{id}", DEFAULT_PROJECT_ID, protocol.getId())
             .accept(TestUtil.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 

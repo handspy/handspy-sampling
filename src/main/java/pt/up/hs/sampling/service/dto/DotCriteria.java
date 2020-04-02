@@ -1,17 +1,11 @@
 package pt.up.hs.sampling.service.dto;
 
+import io.github.jhipster.service.Criteria;
+import io.github.jhipster.service.filter.*;
+import pt.up.hs.sampling.domain.enumeration.DotType;
+
 import java.io.Serializable;
 import java.util.Objects;
-import io.github.jhipster.service.Criteria;
-import pt.up.hs.sampling.domain.enumeration.DotType;
-import io.github.jhipster.service.filter.BooleanFilter;
-import io.github.jhipster.service.filter.DoubleFilter;
-import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.FloatFilter;
-import io.github.jhipster.service.filter.IntegerFilter;
-import io.github.jhipster.service.filter.LongFilter;
-import io.github.jhipster.service.filter.StringFilter;
-import io.github.jhipster.service.filter.InstantFilter;
 
 /**
  * Criteria class for the {@link pt.up.hs.sampling.domain.Dot} entity. This class is used
@@ -54,15 +48,7 @@ public class DotCriteria implements Serializable, Criteria {
 
     private DotTypeFilter type;
 
-    private IntegerFilter tiltX;
-
-    private IntegerFilter tiltY;
-
-    private IntegerFilter twist;
-
     private DoubleFilter pressure;
-
-    private LongFilter protocolId;
 
     public DotCriteria() {
     }
@@ -73,11 +59,7 @@ public class DotCriteria implements Serializable, Criteria {
         this.x = other.x == null ? null : other.x.copy();
         this.y = other.y == null ? null : other.y.copy();
         this.type = other.type == null ? null : other.type.copy();
-        this.tiltX = other.tiltX == null ? null : other.tiltX.copy();
-        this.tiltY = other.tiltY == null ? null : other.tiltY.copy();
-        this.twist = other.twist == null ? null : other.twist.copy();
         this.pressure = other.pressure == null ? null : other.pressure.copy();
-        this.protocolId = other.protocolId == null ? null : other.protocolId.copy();
     }
 
     @Override
@@ -125,44 +107,12 @@ public class DotCriteria implements Serializable, Criteria {
         this.type = type;
     }
 
-    public IntegerFilter getTiltX() {
-        return tiltX;
-    }
-
-    public void setTiltX(IntegerFilter tiltX) {
-        this.tiltX = tiltX;
-    }
-
-    public IntegerFilter getTiltY() {
-        return tiltY;
-    }
-
-    public void setTiltY(IntegerFilter tiltY) {
-        this.tiltY = tiltY;
-    }
-
-    public IntegerFilter getTwist() {
-        return twist;
-    }
-
-    public void setTwist(IntegerFilter twist) {
-        this.twist = twist;
-    }
-
     public DoubleFilter getPressure() {
         return pressure;
     }
 
     public void setPressure(DoubleFilter pressure) {
         this.pressure = pressure;
-    }
-
-    public LongFilter getProtocolId() {
-        return protocolId;
-    }
-
-    public void setProtocolId(LongFilter protocolId) {
-        this.protocolId = protocolId;
     }
 
 
@@ -177,46 +127,34 @@ public class DotCriteria implements Serializable, Criteria {
         final DotCriteria that = (DotCriteria) o;
         return
             Objects.equals(id, that.id) &&
-            Objects.equals(timestamp, that.timestamp) &&
-            Objects.equals(x, that.x) &&
-            Objects.equals(y, that.y) &&
-            Objects.equals(type, that.type) &&
-            Objects.equals(tiltX, that.tiltX) &&
-            Objects.equals(tiltY, that.tiltY) &&
-            Objects.equals(twist, that.twist) &&
-            Objects.equals(pressure, that.pressure) &&
-            Objects.equals(protocolId, that.protocolId);
+                Objects.equals(timestamp, that.timestamp) &&
+                Objects.equals(x, that.x) &&
+                Objects.equals(y, that.y) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(pressure, that.pressure);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-        id,
-        timestamp,
-        x,
-        y,
-        type,
-        tiltX,
-        tiltY,
-        twist,
-        pressure,
-        protocolId
+            id,
+            timestamp,
+            x,
+            y,
+            type,
+            pressure
         );
     }
 
     @Override
     public String toString() {
         return "DotCriteria{" +
-                (id != null ? "id=" + id + ", " : "") +
-                (timestamp != null ? "timestamp=" + timestamp + ", " : "") +
-                (x != null ? "x=" + x + ", " : "") +
-                (y != null ? "y=" + y + ", " : "") +
-                (type != null ? "type=" + type + ", " : "") +
-                (tiltX != null ? "tiltX=" + tiltX + ", " : "") +
-                (tiltY != null ? "tiltY=" + tiltY + ", " : "") +
-                (twist != null ? "twist=" + twist + ", " : "") +
-                (pressure != null ? "pressure=" + pressure + ", " : "") +
-                (protocolId != null ? "protocolId=" + protocolId + ", " : "") +
+            (id != null ? "id=" + id + ", " : "") +
+            (timestamp != null ? "timestamp=" + timestamp + ", " : "") +
+            (x != null ? "x=" + x + ", " : "") +
+            (y != null ? "y=" + y + ", " : "") +
+            (type != null ? "type=" + type + ", " : "") +
+            (pressure != null ? "pressure=" + pressure + ", " : "") +
             "}";
     }
 

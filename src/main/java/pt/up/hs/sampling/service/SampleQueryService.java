@@ -2,8 +2,6 @@ package pt.up.hs.sampling.service;
 
 import java.util.List;
 
-import javax.persistence.criteria.JoinType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -44,39 +42,48 @@ public class SampleQueryService extends QueryService<Sample> {
 
     /**
      * Return a {@link List} of {@link SampleDTO} which matches the criteria from the database.
+     *
+     * @param projectId the ID of the project the samples belongs to.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<SampleDTO> findByCriteria(SampleCriteria criteria) {
-        log.debug("find by criteria : {}", criteria);
-        final Specification<Sample> specification = createSpecification(criteria);
+    public List<SampleDTO> findByCriteria(Long projectId, SampleCriteria criteria) {
+        log.debug("find by criteria {} in project {}", criteria, projectId);
+        final Specification<Sample> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return sampleMapper.toDto(sampleRepository.findAll(specification));
     }
 
     /**
      * Return a {@link Page} of {@link SampleDTO} which matches the criteria from the database.
+     *
+     * @param projectId the ID of the project the samples belongs to.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<SampleDTO> findByCriteria(SampleCriteria criteria, Pageable page) {
-        log.debug("find by criteria : {}, page: {}", criteria, page);
-        final Specification<Sample> specification = createSpecification(criteria);
+    public Page<SampleDTO> findByCriteria(Long projectId, SampleCriteria criteria, Pageable page) {
+        log.debug("find by criteria {}, page {} in project {}", criteria, page, projectId);
+        final Specification<Sample> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return sampleRepository.findAll(specification, page)
             .map(sampleMapper::toDto);
     }
 
     /**
      * Return the number of matching entities in the database.
+     *
+     * @param projectId the ID of the project the samples belongs to.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the number of matching entities.
      */
     @Transactional(readOnly = true)
-    public long countByCriteria(SampleCriteria criteria) {
-        log.debug("count by criteria : {}", criteria);
-        final Specification<Sample> specification = createSpecification(criteria);
+    public long countByCriteria(Long projectId, SampleCriteria criteria) {
+        log.debug("count by criteria {} in project {}", criteria, projectId);
+        final Specification<Sample> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return sampleRepository.count(specification);
     }
 

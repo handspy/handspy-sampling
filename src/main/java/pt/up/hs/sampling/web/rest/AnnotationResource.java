@@ -1,5 +1,6 @@
 package pt.up.hs.sampling.web.rest;
 
+import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.AnnotationService;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 import pt.up.hs.sampling.service.dto.AnnotationDTO;
@@ -15,10 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.up.hs.sampling.constants.ErrorKeys;
 
 import javax.validation.Valid;
 import java.net.URI;
@@ -30,18 +31,15 @@ import java.util.Optional;
  * REST controller for managing {@link pt.up.hs.sampling.domain.Annotation}.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/projects/{projectId}/texts/{textId}")
 public class AnnotationResource {
 
     private final Logger log = LoggerFactory.getLogger(AnnotationResource.class);
-
-    private static final String ENTITY_NAME = "samplingAnnotation";
 
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
     private final AnnotationService annotationService;
-
     private final AnnotationQueryService annotationQueryService;
 
     public AnnotationResource(AnnotationService annotationService, AnnotationQueryService annotationQueryService) {
@@ -52,54 +50,74 @@ public class AnnotationResource {
     /**
      * {@code POST  /annotations} : Create a new annotation.
      *
+     * @param projectId     ID of the project to which the annotation belongs.
+     * @param textId        ID of the text to which the annotation belongs.
      * @param annotationDTO the annotationDTO to create.
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new annotationDTO, or with status {@code 400 (Bad Request)} if the annotation has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/annotations")
-    public ResponseEntity<AnnotationDTO> createAnnotation(@Valid @RequestBody AnnotationDTO annotationDTO) throws URISyntaxException {
-        log.debug("REST request to save Annotation : {}", annotationDTO);
+    public ResponseEntity<AnnotationDTO> createAnnotation(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("textId") Long textId,
+        @Valid @RequestBody AnnotationDTO annotationDTO
+    ) throws URISyntaxException {
+        log.debug("REST request to save Annotation {} in text {} of project {}", annotationDTO, textId, projectId);
         if (annotationDTO.getId() != null) {
-            throw new BadRequestAlertException("A new annotation cannot already have an ID", ENTITY_NAME, "idexists");
+            throw new BadRequestAlertException(
+                "A new annotation cannot already have an ID",
+                EntityNames.ANNOTATION, ErrorKeys.ERR_ID_EXISTS);
         }
-        AnnotationDTO result = annotationService.save(annotationDTO);
-        return ResponseEntity.created(new URI("/api/annotations/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+        AnnotationDTO result = annotationService.save(projectId, textId, annotationDTO);
+        return ResponseEntity.created(new URI("/api/projects/" + projectId + "/texts/" + textId + "/annotations/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, EntityNames.ANNOTATION, result.getId().toString()))
             .body(result);
     }
 
     /**
      * {@code PUT  /annotations} : Updates an existing annotation.
      *
+     * @param projectId     ID of the project to which the annotation belongs.
+     * @param textId        ID of the text to which the annotation belongs.
      * @param annotationDTO the annotationDTO to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated annotationDTO,
      * or with status {@code 400 (Bad Request)} if the annotationDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the annotationDTO couldn't be updated.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/annotations")
-    public ResponseEntity<AnnotationDTO> updateAnnotation(@Valid @RequestBody AnnotationDTO annotationDTO) throws URISyntaxException {
-        log.debug("REST request to update Annotation : {}", annotationDTO);
+    public ResponseEntity<AnnotationDTO> updateAnnotation(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("textId") Long textId,
+        @Valid @RequestBody AnnotationDTO annotationDTO
+    ) {
+        log.debug("REST request to update Annotation {} in text {} of project {}", annotationDTO, textId, projectId);
         if (annotationDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+            throw new BadRequestAlertException("Invalid id", EntityNames.ANNOTATION, ErrorKeys.ERR_ID_NULL);
         }
-        AnnotationDTO result = annotationService.save(annotationDTO);
+        AnnotationDTO result = annotationService.save(projectId, textId, annotationDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, annotationDTO.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, EntityNames.ANNOTATION, annotationDTO.getId().toString()))
             .body(result);
     }
 
     /**
      * {@code GET  /annotations} : get all the annotations.
      *
-     * @param pageable the pagination information.
-     * @param criteria the criteria which the requested entities should match.
+     * @param projectId ID of the project to which the annotations belong.
+     * @param textId    ID of the text to which the annotations belong.
+     * @param pageable  the pagination information.
+     * @param criteria  the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of annotations in body.
      */
     @GetMapping("/annotations")
-    public ResponseEntity<List<AnnotationDTO>> getAllAnnotations(AnnotationCriteria criteria, Pageable pageable) {
-        log.debug("REST request to get Annotations by criteria: {}", criteria);
-        Page<AnnotationDTO> page = annotationQueryService.findByCriteria(criteria, pageable);
+    public ResponseEntity<List<AnnotationDTO>> getAllAnnotations(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("textId") Long textId,
+        AnnotationCriteria criteria,
+        Pageable pageable
+    ) {
+        log.debug("REST request to get Annotations by criteria {} in text {} of project {}", criteria, textId, projectId);
+        Page<AnnotationDTO> page = annotationQueryService.findByCriteria(projectId, textId, criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -107,38 +125,58 @@ public class AnnotationResource {
     /**
      * {@code GET  /annotations/count} : count all the annotations.
      *
-     * @param criteria the criteria which the requested entities should match.
+     * @param projectId ID of the project to which the annotations belong.
+     * @param textId    ID of the text to which the annotations belong.
+     * @param criteria  the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/annotations/count")
-    public ResponseEntity<Long> countAnnotations(AnnotationCriteria criteria) {
-        log.debug("REST request to count Annotations by criteria: {}", criteria);
-        return ResponseEntity.ok().body(annotationQueryService.countByCriteria(criteria));
+    public ResponseEntity<Long> countAnnotations(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("textId") Long textId,
+        AnnotationCriteria criteria
+    ) {
+        log.debug("REST request to count Annotations by criteria {} in text {} of project {}", criteria, textId, projectId);
+        return ResponseEntity.ok().body(annotationQueryService.countByCriteria(projectId, textId, criteria));
     }
 
     /**
      * {@code GET  /annotations/:id} : get the "id" annotation.
      *
-     * @param id the id of the annotationDTO to retrieve.
+     * @param projectId ID of the project to which the annotation belongs.
+     * @param textId    ID of the text to which the annotation belongs.
+     * @param id        the id of the annotationDTO to retrieve.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the annotationDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/annotations/{id}")
-    public ResponseEntity<AnnotationDTO> getAnnotation(@PathVariable Long id) {
-        log.debug("REST request to get Annotation : {}", id);
-        Optional<AnnotationDTO> annotationDTO = annotationService.findOne(id);
+    public ResponseEntity<AnnotationDTO> getAnnotation(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("textId") Long textId,
+        @PathVariable Long id
+    ) {
+        log.debug("REST request to get Annotation {} in text {} of project {}", id, textId, projectId);
+        Optional<AnnotationDTO> annotationDTO = annotationService.findOne(projectId, textId, id);
         return ResponseUtil.wrapOrNotFound(annotationDTO);
     }
 
     /**
      * {@code DELETE  /annotations/:id} : delete the "id" annotation.
      *
-     * @param id the id of the annotationDTO to delete.
+     * @param projectId ID of the project to which the annotation belongs.
+     * @param textId    ID of the text to which the annotation belongs.
+     * @param id        the id of the annotationDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/annotations/{id}")
-    public ResponseEntity<Void> deleteAnnotation(@PathVariable Long id) {
-        log.debug("REST request to delete Annotation : {}", id);
-        annotationService.delete(id);
-        return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build();
+    public ResponseEntity<Void> deleteAnnotation(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("textId") Long textId,
+        @PathVariable Long id
+    ) {
+        log.debug("REST request to delete Annotation {} in text {} of project {}", id, textId, projectId);
+        annotationService.delete(projectId, textId, id);
+        return ResponseEntity.noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, EntityNames.ANNOTATION, id.toString()))
+            .build();
     }
 }

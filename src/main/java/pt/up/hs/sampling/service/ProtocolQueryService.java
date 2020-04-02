@@ -34,7 +34,6 @@ public class ProtocolQueryService extends QueryService<Protocol> {
     private final Logger log = LoggerFactory.getLogger(ProtocolQueryService.class);
 
     private final ProtocolRepository protocolRepository;
-
     private final ProtocolMapper protocolMapper;
 
     public ProtocolQueryService(ProtocolRepository protocolRepository, ProtocolMapper protocolMapper) {
@@ -44,39 +43,48 @@ public class ProtocolQueryService extends QueryService<Protocol> {
 
     /**
      * Return a {@link List} of {@link ProtocolDTO} which matches the criteria from the database.
+     *
+     * @param projectId the ID of the project the protocols belongs to.v
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<ProtocolDTO> findByCriteria(ProtocolCriteria criteria) {
-        log.debug("find by criteria : {}", criteria);
-        final Specification<Protocol> specification = createSpecification(criteria);
+    public List<ProtocolDTO> findByCriteria(Long projectId, ProtocolCriteria criteria) {
+        log.debug("find by criteria {} in project {}", criteria, projectId);
+        final Specification<Protocol> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return protocolMapper.toDto(protocolRepository.findAll(specification));
     }
 
     /**
      * Return a {@link Page} of {@link ProtocolDTO} which matches the criteria from the database.
+     *
+     * @param projectId the ID of the project the protocols belongs to.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<ProtocolDTO> findByCriteria(ProtocolCriteria criteria, Pageable page) {
-        log.debug("find by criteria : {}, page: {}", criteria, page);
-        final Specification<Protocol> specification = createSpecification(criteria);
+    public Page<ProtocolDTO> findByCriteria(Long projectId, ProtocolCriteria criteria, Pageable page) {
+        log.debug("find by criteria {}, page {} in project {}", criteria, page, projectId);
+        final Specification<Protocol> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return protocolRepository.findAll(specification, page)
             .map(protocolMapper::toDto);
     }
 
     /**
      * Return the number of matching entities in the database.
+     *
+     * @param projectId the ID of the project the protocols belongs to.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the number of matching entities.
      */
     @Transactional(readOnly = true)
-    public long countByCriteria(ProtocolCriteria criteria) {
-        log.debug("count by criteria : {}", criteria);
-        final Specification<Protocol> specification = createSpecification(criteria);
+    public long countByCriteria(Long projectId, ProtocolCriteria criteria) {
+        log.debug("count by criteria {} in project {}", criteria, projectId);
+        final Specification<Protocol> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return protocolRepository.count(specification);
     }
 
@@ -93,9 +101,6 @@ public class ProtocolQueryService extends QueryService<Protocol> {
             }
             if (criteria.getLayout() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getLayout(), Protocol_.layout));
-            }
-            if (criteria.getDevice() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getDevice(), Protocol_.device));
             }
             if (criteria.getPageNumber() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getPageNumber(), Protocol_.pageNumber));

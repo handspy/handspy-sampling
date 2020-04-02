@@ -1,5 +1,6 @@
 package pt.up.hs.sampling.web.rest;
 
+import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.LayoutService;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 import pt.up.hs.sampling.service.dto.LayoutDTO;
@@ -15,10 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.up.hs.sampling.constants.ErrorKeys;
 
 import javax.validation.Valid;
 import java.net.URI;
@@ -34,8 +35,6 @@ import java.util.Optional;
 public class LayoutResource {
 
     private final Logger log = LoggerFactory.getLogger(LayoutResource.class);
-
-    private static final String ENTITY_NAME = "samplingLayout";
 
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
@@ -60,11 +59,11 @@ public class LayoutResource {
     public ResponseEntity<LayoutDTO> createLayout(@Valid @RequestBody LayoutDTO layoutDTO) throws URISyntaxException {
         log.debug("REST request to save Layout : {}", layoutDTO);
         if (layoutDTO.getId() != null) {
-            throw new BadRequestAlertException("A new layout cannot already have an ID", ENTITY_NAME, "idexists");
+            throw new BadRequestAlertException("A new layout cannot already have an ID", EntityNames.LAYOUT, ErrorKeys.ERR_ID_EXISTS);
         }
         LayoutDTO result = layoutService.save(layoutDTO);
         return ResponseEntity.created(new URI("/api/layouts/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, EntityNames.LAYOUT, result.getId().toString()))
             .body(result);
     }
 
@@ -75,17 +74,16 @@ public class LayoutResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated layoutDTO,
      * or with status {@code 400 (Bad Request)} if the layoutDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the layoutDTO couldn't be updated.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/layouts")
-    public ResponseEntity<LayoutDTO> updateLayout(@Valid @RequestBody LayoutDTO layoutDTO) throws URISyntaxException {
+    public ResponseEntity<LayoutDTO> updateLayout(@Valid @RequestBody LayoutDTO layoutDTO) {
         log.debug("REST request to update Layout : {}", layoutDTO);
         if (layoutDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+            throw new BadRequestAlertException("Invalid id", EntityNames.LAYOUT, ErrorKeys.ERR_ID_NULL);
         }
         LayoutDTO result = layoutService.save(layoutDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, layoutDTO.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, EntityNames.LAYOUT, layoutDTO.getId().toString()))
             .body(result);
     }
 
@@ -139,6 +137,8 @@ public class LayoutResource {
     public ResponseEntity<Void> deleteLayout(@PathVariable Long id) {
         log.debug("REST request to delete Layout : {}", id);
         layoutService.delete(id);
-        return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build();
+        return ResponseEntity.noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, EntityNames.LAYOUT, id.toString()))
+            .build();
     }
 }

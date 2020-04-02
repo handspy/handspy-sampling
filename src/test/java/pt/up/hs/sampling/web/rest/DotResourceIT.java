@@ -43,6 +43,9 @@ import pt.up.hs.sampling.domain.enumeration.DotType;
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
 public class DotResourceIT {
 
+    private static final Long DEFAULT_PROJECT_ID = 1L;
+    private static final Long OTHER_PROJECT_ID = 2L;
+
     private static final Instant DEFAULT_TIMESTAMP = Instant.ofEpochMilli(0L);
     private static final Instant UPDATED_TIMESTAMP = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 
@@ -56,18 +59,6 @@ public class DotResourceIT {
 
     private static final DotType DEFAULT_TYPE = DotType.DOWN;
     private static final DotType UPDATED_TYPE = DotType.MOVE;
-
-    private static final Integer DEFAULT_TILT_X = 1;
-    private static final Integer UPDATED_TILT_X = 2;
-    private static final Integer SMALLER_TILT_X = 1 - 1;
-
-    private static final Integer DEFAULT_TILT_Y = 1;
-    private static final Integer UPDATED_TILT_Y = 2;
-    private static final Integer SMALLER_TILT_Y = 1 - 1;
-
-    private static final Integer DEFAULT_TWIST = 1;
-    private static final Integer UPDATED_TWIST = 2;
-    private static final Integer SMALLER_TWIST = 1 - 1;
 
     private static final Double DEFAULT_PRESSURE = 1D;
     private static final Double UPDATED_PRESSURE = 2D;
@@ -102,6 +93,8 @@ public class DotResourceIT {
 
     private MockMvc restDotMockMvc;
 
+    private static Protocol defaultProtocol;
+
     private Dot dot;
 
     @BeforeEach
@@ -123,16 +116,32 @@ public class DotResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Dot createEntity(EntityManager em) {
-        Dot dot = new Dot()
+        return new Dot()
             .timestamp(DEFAULT_TIMESTAMP)
             .x(DEFAULT_X)
             .y(DEFAULT_Y)
             .type(DEFAULT_TYPE)
-            .tiltX(DEFAULT_TILT_X)
-            .tiltY(DEFAULT_TILT_Y)
-            .twist(DEFAULT_TWIST)
-            .pressure(DEFAULT_PRESSURE);
-        // Add required entity
+            .pressure(DEFAULT_PRESSURE)
+            .protocol(defaultProtocol);
+    }
+
+    /**
+     * Create an updated entity for this test.
+     *
+     * This is a static method, as tests for other entities might also need it,
+     * if they test an entity which requires the current entity.
+     */
+    public static Dot createUpdatedEntity(EntityManager em) {
+        return new Dot()
+            .timestamp(UPDATED_TIMESTAMP)
+            .x(UPDATED_X)
+            .y(UPDATED_Y)
+            .type(UPDATED_TYPE)
+            .pressure(UPDATED_PRESSURE)
+            .protocol(defaultProtocol);
+    }
+
+    public static Protocol getProtocol(EntityManager em) {
         Protocol protocol;
         if (TestUtil.findAll(em, Protocol.class).isEmpty()) {
             protocol = ProtocolResourceIT.createEntity(em);
@@ -141,40 +150,12 @@ public class DotResourceIT {
         } else {
             protocol = TestUtil.findAll(em, Protocol.class).get(0);
         }
-        dot.setProtocol(protocol);
-        return dot;
-    }
-    /**
-     * Create an updated entity for this test.
-     *
-     * This is a static method, as tests for other entities might also need it,
-     * if they test an entity which requires the current entity.
-     */
-    public static Dot createUpdatedEntity(EntityManager em) {
-        Dot dot = new Dot()
-            .timestamp(UPDATED_TIMESTAMP)
-            .x(UPDATED_X)
-            .y(UPDATED_Y)
-            .type(UPDATED_TYPE)
-            .tiltX(UPDATED_TILT_X)
-            .tiltY(UPDATED_TILT_Y)
-            .twist(UPDATED_TWIST)
-            .pressure(UPDATED_PRESSURE);
-        // Add required entity
-        Protocol protocol;
-        if (TestUtil.findAll(em, Protocol.class).isEmpty()) {
-            protocol = ProtocolResourceIT.createUpdatedEntity(em);
-            em.persist(protocol);
-            em.flush();
-        } else {
-            protocol = TestUtil.findAll(em, Protocol.class).get(0);
-        }
-        dot.setProtocol(protocol);
-        return dot;
+        return protocol;
     }
 
     @BeforeEach
     public void initTest() {
+        defaultProtocol = getProtocol(em);
         dot = createEntity(em);
     }
 
@@ -185,7 +166,7 @@ public class DotResourceIT {
 
         // Create the Dot
         DotDTO dotDTO = dotMapper.toDto(dot);
-        restDotMockMvc.perform(post("/api/dots")
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isCreated());
@@ -198,9 +179,6 @@ public class DotResourceIT {
         assertThat(testDot.getX()).isEqualTo(DEFAULT_X);
         assertThat(testDot.getY()).isEqualTo(DEFAULT_Y);
         assertThat(testDot.getType()).isEqualTo(DEFAULT_TYPE);
-        assertThat(testDot.getTiltX()).isEqualTo(DEFAULT_TILT_X);
-        assertThat(testDot.getTiltY()).isEqualTo(DEFAULT_TILT_Y);
-        assertThat(testDot.getTwist()).isEqualTo(DEFAULT_TWIST);
         assertThat(testDot.getPressure()).isEqualTo(DEFAULT_PRESSURE);
     }
 
@@ -214,7 +192,7 @@ public class DotResourceIT {
         DotDTO dotDTO = dotMapper.toDto(dot);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restDotMockMvc.perform(post("/api/dots")
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -235,7 +213,7 @@ public class DotResourceIT {
         // Create the Dot, which fails.
         DotDTO dotDTO = dotMapper.toDto(dot);
 
-        restDotMockMvc.perform(post("/api/dots")
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -254,7 +232,7 @@ public class DotResourceIT {
         // Create the Dot, which fails.
         DotDTO dotDTO = dotMapper.toDto(dot);
 
-        restDotMockMvc.perform(post("/api/dots")
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -273,7 +251,7 @@ public class DotResourceIT {
         // Create the Dot, which fails.
         DotDTO dotDTO = dotMapper.toDto(dot);
 
-        restDotMockMvc.perform(post("/api/dots")
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -289,7 +267,7 @@ public class DotResourceIT {
         dotRepository.saveAndFlush(dot);
 
         // Get all the dotList
-        restDotMockMvc.perform(get("/api/dots?sort=id,desc"))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots?sort=id,desc", defaultProtocol.getProjectId(), defaultProtocol.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(dot.getId().intValue())))
@@ -297,12 +275,9 @@ public class DotResourceIT {
             .andExpect(jsonPath("$.[*].x").value(hasItem(DEFAULT_X)))
             .andExpect(jsonPath("$.[*].y").value(hasItem(DEFAULT_Y)))
             .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
-            .andExpect(jsonPath("$.[*].tiltX").value(hasItem(DEFAULT_TILT_X)))
-            .andExpect(jsonPath("$.[*].tiltY").value(hasItem(DEFAULT_TILT_Y)))
-            .andExpect(jsonPath("$.[*].twist").value(hasItem(DEFAULT_TWIST)))
-            .andExpect(jsonPath("$.[*].pressure").value(hasItem(DEFAULT_PRESSURE.doubleValue())));
+            .andExpect(jsonPath("$.[*].pressure").value(hasItem(DEFAULT_PRESSURE)));
     }
-    
+
     @Test
     @Transactional
     public void getDot() throws Exception {
@@ -310,7 +285,7 @@ public class DotResourceIT {
         dotRepository.saveAndFlush(dot);
 
         // Get the dot
-        restDotMockMvc.perform(get("/api/dots/{id}", dot.getId()))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots/{id}", defaultProtocol.getProjectId(), defaultProtocol.getId(), dot.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(dot.getId().intValue()))
@@ -318,10 +293,7 @@ public class DotResourceIT {
             .andExpect(jsonPath("$.x").value(DEFAULT_X))
             .andExpect(jsonPath("$.y").value(DEFAULT_Y))
             .andExpect(jsonPath("$.type").value(DEFAULT_TYPE.toString()))
-            .andExpect(jsonPath("$.tiltX").value(DEFAULT_TILT_X))
-            .andExpect(jsonPath("$.tiltY").value(DEFAULT_TILT_Y))
-            .andExpect(jsonPath("$.twist").value(DEFAULT_TWIST))
-            .andExpect(jsonPath("$.pressure").value(DEFAULT_PRESSURE.doubleValue()));
+            .andExpect(jsonPath("$.pressure").value(DEFAULT_PRESSURE));
     }
 
 
@@ -660,321 +632,6 @@ public class DotResourceIT {
 
     @Test
     @Transactional
-    public void getAllDotsByTiltXIsEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltX equals to DEFAULT_TILT_X
-        defaultDotShouldBeFound("tiltX.equals=" + DEFAULT_TILT_X);
-
-        // Get all the dotList where tiltX equals to UPDATED_TILT_X
-        defaultDotShouldNotBeFound("tiltX.equals=" + UPDATED_TILT_X);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltXIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltX not equals to DEFAULT_TILT_X
-        defaultDotShouldNotBeFound("tiltX.notEquals=" + DEFAULT_TILT_X);
-
-        // Get all the dotList where tiltX not equals to UPDATED_TILT_X
-        defaultDotShouldBeFound("tiltX.notEquals=" + UPDATED_TILT_X);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltXIsInShouldWork() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltX in DEFAULT_TILT_X or UPDATED_TILT_X
-        defaultDotShouldBeFound("tiltX.in=" + DEFAULT_TILT_X + "," + UPDATED_TILT_X);
-
-        // Get all the dotList where tiltX equals to UPDATED_TILT_X
-        defaultDotShouldNotBeFound("tiltX.in=" + UPDATED_TILT_X);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltXIsNullOrNotNull() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltX is not null
-        defaultDotShouldBeFound("tiltX.specified=true");
-
-        // Get all the dotList where tiltX is null
-        defaultDotShouldNotBeFound("tiltX.specified=false");
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltXIsGreaterThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltX is greater than or equal to DEFAULT_TILT_X
-        defaultDotShouldBeFound("tiltX.greaterThanOrEqual=" + DEFAULT_TILT_X);
-
-        // Get all the dotList where tiltX is greater than or equal to UPDATED_TILT_X
-        defaultDotShouldNotBeFound("tiltX.greaterThanOrEqual=" + UPDATED_TILT_X);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltXIsLessThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltX is less than or equal to DEFAULT_TILT_X
-        defaultDotShouldBeFound("tiltX.lessThanOrEqual=" + DEFAULT_TILT_X);
-
-        // Get all the dotList where tiltX is less than or equal to SMALLER_TILT_X
-        defaultDotShouldNotBeFound("tiltX.lessThanOrEqual=" + SMALLER_TILT_X);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltXIsLessThanSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltX is less than DEFAULT_TILT_X
-        defaultDotShouldNotBeFound("tiltX.lessThan=" + DEFAULT_TILT_X);
-
-        // Get all the dotList where tiltX is less than UPDATED_TILT_X
-        defaultDotShouldBeFound("tiltX.lessThan=" + UPDATED_TILT_X);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltXIsGreaterThanSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltX is greater than DEFAULT_TILT_X
-        defaultDotShouldNotBeFound("tiltX.greaterThan=" + DEFAULT_TILT_X);
-
-        // Get all the dotList where tiltX is greater than SMALLER_TILT_X
-        defaultDotShouldBeFound("tiltX.greaterThan=" + SMALLER_TILT_X);
-    }
-
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltYIsEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltY equals to DEFAULT_TILT_Y
-        defaultDotShouldBeFound("tiltY.equals=" + DEFAULT_TILT_Y);
-
-        // Get all the dotList where tiltY equals to UPDATED_TILT_Y
-        defaultDotShouldNotBeFound("tiltY.equals=" + UPDATED_TILT_Y);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltYIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltY not equals to DEFAULT_TILT_Y
-        defaultDotShouldNotBeFound("tiltY.notEquals=" + DEFAULT_TILT_Y);
-
-        // Get all the dotList where tiltY not equals to UPDATED_TILT_Y
-        defaultDotShouldBeFound("tiltY.notEquals=" + UPDATED_TILT_Y);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltYIsInShouldWork() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltY in DEFAULT_TILT_Y or UPDATED_TILT_Y
-        defaultDotShouldBeFound("tiltY.in=" + DEFAULT_TILT_Y + "," + UPDATED_TILT_Y);
-
-        // Get all the dotList where tiltY equals to UPDATED_TILT_Y
-        defaultDotShouldNotBeFound("tiltY.in=" + UPDATED_TILT_Y);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltYIsNullOrNotNull() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltY is not null
-        defaultDotShouldBeFound("tiltY.specified=true");
-
-        // Get all the dotList where tiltY is null
-        defaultDotShouldNotBeFound("tiltY.specified=false");
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltYIsGreaterThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltY is greater than or equal to DEFAULT_TILT_Y
-        defaultDotShouldBeFound("tiltY.greaterThanOrEqual=" + DEFAULT_TILT_Y);
-
-        // Get all the dotList where tiltY is greater than or equal to UPDATED_TILT_Y
-        defaultDotShouldNotBeFound("tiltY.greaterThanOrEqual=" + UPDATED_TILT_Y);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltYIsLessThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltY is less than or equal to DEFAULT_TILT_Y
-        defaultDotShouldBeFound("tiltY.lessThanOrEqual=" + DEFAULT_TILT_Y);
-
-        // Get all the dotList where tiltY is less than or equal to SMALLER_TILT_Y
-        defaultDotShouldNotBeFound("tiltY.lessThanOrEqual=" + SMALLER_TILT_Y);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltYIsLessThanSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltY is less than DEFAULT_TILT_Y
-        defaultDotShouldNotBeFound("tiltY.lessThan=" + DEFAULT_TILT_Y);
-
-        // Get all the dotList where tiltY is less than UPDATED_TILT_Y
-        defaultDotShouldBeFound("tiltY.lessThan=" + UPDATED_TILT_Y);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTiltYIsGreaterThanSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where tiltY is greater than DEFAULT_TILT_Y
-        defaultDotShouldNotBeFound("tiltY.greaterThan=" + DEFAULT_TILT_Y);
-
-        // Get all the dotList where tiltY is greater than SMALLER_TILT_Y
-        defaultDotShouldBeFound("tiltY.greaterThan=" + SMALLER_TILT_Y);
-    }
-
-
-    @Test
-    @Transactional
-    public void getAllDotsByTwistIsEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where twist equals to DEFAULT_TWIST
-        defaultDotShouldBeFound("twist.equals=" + DEFAULT_TWIST);
-
-        // Get all the dotList where twist equals to UPDATED_TWIST
-        defaultDotShouldNotBeFound("twist.equals=" + UPDATED_TWIST);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTwistIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where twist not equals to DEFAULT_TWIST
-        defaultDotShouldNotBeFound("twist.notEquals=" + DEFAULT_TWIST);
-
-        // Get all the dotList where twist not equals to UPDATED_TWIST
-        defaultDotShouldBeFound("twist.notEquals=" + UPDATED_TWIST);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTwistIsInShouldWork() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where twist in DEFAULT_TWIST or UPDATED_TWIST
-        defaultDotShouldBeFound("twist.in=" + DEFAULT_TWIST + "," + UPDATED_TWIST);
-
-        // Get all the dotList where twist equals to UPDATED_TWIST
-        defaultDotShouldNotBeFound("twist.in=" + UPDATED_TWIST);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTwistIsNullOrNotNull() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where twist is not null
-        defaultDotShouldBeFound("twist.specified=true");
-
-        // Get all the dotList where twist is null
-        defaultDotShouldNotBeFound("twist.specified=false");
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTwistIsGreaterThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where twist is greater than or equal to DEFAULT_TWIST
-        defaultDotShouldBeFound("twist.greaterThanOrEqual=" + DEFAULT_TWIST);
-
-        // Get all the dotList where twist is greater than or equal to UPDATED_TWIST
-        defaultDotShouldNotBeFound("twist.greaterThanOrEqual=" + UPDATED_TWIST);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTwistIsLessThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where twist is less than or equal to DEFAULT_TWIST
-        defaultDotShouldBeFound("twist.lessThanOrEqual=" + DEFAULT_TWIST);
-
-        // Get all the dotList where twist is less than or equal to SMALLER_TWIST
-        defaultDotShouldNotBeFound("twist.lessThanOrEqual=" + SMALLER_TWIST);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTwistIsLessThanSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where twist is less than DEFAULT_TWIST
-        defaultDotShouldNotBeFound("twist.lessThan=" + DEFAULT_TWIST);
-
-        // Get all the dotList where twist is less than UPDATED_TWIST
-        defaultDotShouldBeFound("twist.lessThan=" + UPDATED_TWIST);
-    }
-
-    @Test
-    @Transactional
-    public void getAllDotsByTwistIsGreaterThanSomething() throws Exception {
-        // Initialize the database
-        dotRepository.saveAndFlush(dot);
-
-        // Get all the dotList where twist is greater than DEFAULT_TWIST
-        defaultDotShouldNotBeFound("twist.greaterThan=" + DEFAULT_TWIST);
-
-        // Get all the dotList where twist is greater than SMALLER_TWIST
-        defaultDotShouldBeFound("twist.greaterThan=" + SMALLER_TWIST);
-    }
-
-
-    @Test
-    @Transactional
     public void getAllDotsByPressureIsEqualToSomething() throws Exception {
         // Initialize the database
         dotRepository.saveAndFlush(dot);
@@ -1077,27 +734,11 @@ public class DotResourceIT {
         defaultDotShouldBeFound("pressure.greaterThan=" + SMALLER_PRESSURE);
     }
 
-
-    @Test
-    @Transactional
-    public void getAllDotsByProtocolIsEqualToSomething() throws Exception {
-        // Get already existing entity
-        Protocol protocol = dot.getProtocol();
-        dotRepository.saveAndFlush(dot);
-        Long protocolId = protocol.getId();
-
-        // Get all the dotList where protocol equals to protocolId
-        defaultDotShouldBeFound("protocolId.equals=" + protocolId);
-
-        // Get all the dotList where protocol equals to protocolId + 1
-        defaultDotShouldNotBeFound("protocolId.equals=" + (protocolId + 1));
-    }
-
     /**
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultDotShouldBeFound(String filter) throws Exception {
-        restDotMockMvc.perform(get("/api/dots?sort=id,desc&" + filter))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots?sort=id,desc&" + filter, defaultProtocol.getProjectId(), defaultProtocol.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(dot.getId().intValue())))
@@ -1105,13 +746,10 @@ public class DotResourceIT {
             .andExpect(jsonPath("$.[*].x").value(hasItem(DEFAULT_X)))
             .andExpect(jsonPath("$.[*].y").value(hasItem(DEFAULT_Y)))
             .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
-            .andExpect(jsonPath("$.[*].tiltX").value(hasItem(DEFAULT_TILT_X)))
-            .andExpect(jsonPath("$.[*].tiltY").value(hasItem(DEFAULT_TILT_Y)))
-            .andExpect(jsonPath("$.[*].twist").value(hasItem(DEFAULT_TWIST)))
-            .andExpect(jsonPath("$.[*].pressure").value(hasItem(DEFAULT_PRESSURE.doubleValue())));
+            .andExpect(jsonPath("$.[*].pressure").value(hasItem(DEFAULT_PRESSURE)));
 
         // Check, that the count call also returns 1
-        restDotMockMvc.perform(get("/api/dots/count?sort=id,desc&" + filter))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots/count?sort=id,desc&" + filter, defaultProtocol.getProjectId(), defaultProtocol.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -1121,14 +759,14 @@ public class DotResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultDotShouldNotBeFound(String filter) throws Exception {
-        restDotMockMvc.perform(get("/api/dots?sort=id,desc&" + filter))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots?sort=id,desc&" + filter, defaultProtocol.getProjectId(), defaultProtocol.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restDotMockMvc.perform(get("/api/dots/count?sort=id,desc&" + filter))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots/count?sort=id,desc&" + filter, defaultProtocol.getProjectId(), defaultProtocol.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -1139,7 +777,7 @@ public class DotResourceIT {
     @Transactional
     public void getNonExistingDot() throws Exception {
         // Get the dot
-        restDotMockMvc.perform(get("/api/dots/{id}", Long.MAX_VALUE))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots/{id}", defaultProtocol.getProjectId(), defaultProtocol.getId(), Long.MAX_VALUE))
             .andExpect(status().isNotFound());
     }
 
@@ -1160,13 +798,10 @@ public class DotResourceIT {
             .x(UPDATED_X)
             .y(UPDATED_Y)
             .type(UPDATED_TYPE)
-            .tiltX(UPDATED_TILT_X)
-            .tiltY(UPDATED_TILT_Y)
-            .twist(UPDATED_TWIST)
             .pressure(UPDATED_PRESSURE);
         DotDTO dotDTO = dotMapper.toDto(updatedDot);
 
-        restDotMockMvc.perform(put("/api/dots")
+        restDotMockMvc.perform(put("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isOk());
@@ -1179,9 +814,6 @@ public class DotResourceIT {
         assertThat(testDot.getX()).isEqualTo(UPDATED_X);
         assertThat(testDot.getY()).isEqualTo(UPDATED_Y);
         assertThat(testDot.getType()).isEqualTo(UPDATED_TYPE);
-        assertThat(testDot.getTiltX()).isEqualTo(UPDATED_TILT_X);
-        assertThat(testDot.getTiltY()).isEqualTo(UPDATED_TILT_Y);
-        assertThat(testDot.getTwist()).isEqualTo(UPDATED_TWIST);
         assertThat(testDot.getPressure()).isEqualTo(UPDATED_PRESSURE);
     }
 
@@ -1194,7 +826,7 @@ public class DotResourceIT {
         DotDTO dotDTO = dotMapper.toDto(dot);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restDotMockMvc.perform(put("/api/dots")
+        restDotMockMvc.perform(put("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -1213,7 +845,7 @@ public class DotResourceIT {
         int databaseSizeBeforeDelete = dotRepository.findAll().size();
 
         // Delete the dot
-        restDotMockMvc.perform(delete("/api/dots/{id}", dot.getId())
+        restDotMockMvc.perform(delete("/api/projects/{projectId}/protocols/{protocolId}/dots/{id}", defaultProtocol.getProjectId(), defaultProtocol.getId(), dot.getId())
             .accept(TestUtil.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 

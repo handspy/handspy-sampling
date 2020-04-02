@@ -4,28 +4,44 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Text} entity.
+ *
+ * @author José Carlos Paiva
  */
-@ApiModel(description = "Typewritten data collected for analysis (part of the sample). It may be a\ntranscription of the protocol (automatic or manually entered by an analyst)\nor text typed by a participant using a typing device.\n\n@author José Carlos Paiva")
+@ApiModel(description = "Typewritten data collected for analysis (part of th" +
+    "e sample). It may be a transcription of the protocol (automatic or manu" +
+    "ally entered by an analyst) or text typed by a participant using a typi" +
+    "ng device.")
 public class TextDTO implements Serializable {
 
     private Long id;
 
     /**
-     * Typewritten text collected
+     * ID of the project (from Projects microservice).
+     */
+    @NotNull
+    @ApiModelProperty(value = "ID of the project (from Projects microservice).")
+    private Long projectId;
+
+    /**
+     * ID of the sample to which this text is linked (if any).
+     */
+    @ApiModelProperty(value = "ID of the sample to which this text is linked" +
+        " (if any).")
+    private Long sampleId;
+
+    /**
+     * Typewritten text collected.
      */
     @ApiModelProperty(value = "Typewritten text collected")
     private String text;
 
-    /**
-     * A text belongs to a sample.
-     */
-    @ApiModelProperty(value = "A text belongs to a sample.")
-
-    private Long sampleId;
+    private Set<AnnotationDTO> annotations = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -33,6 +49,22 @@ public class TextDTO implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    public Long getSampleId() {
+        return sampleId;
+    }
+
+    public void setSampleId(Long sampleId) {
+        this.sampleId = sampleId;
     }
 
     public String getText() {
@@ -43,12 +75,12 @@ public class TextDTO implements Serializable {
         this.text = text;
     }
 
-    public Long getSampleId() {
-        return sampleId;
+    public Set<AnnotationDTO> getAnnotations() {
+        return annotations;
     }
 
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
+    public void setAnnotations(Set<AnnotationDTO> annotations) {
+        this.annotations = annotations;
     }
 
     @Override
@@ -76,8 +108,9 @@ public class TextDTO implements Serializable {
     public String toString() {
         return "TextDTO{" +
             "id=" + getId() +
-            ", text='" + getText() + "'" +
+            ", projectId=" + getProjectId() +
             ", sampleId=" + getSampleId() +
+            ", text='" + getText() + "'" +
             "}";
     }
 }

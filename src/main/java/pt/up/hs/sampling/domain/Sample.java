@@ -10,7 +10,9 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
- * Sample of a participant for analysis in a task.\n\n@author José Carlos Paiva
+ * Sample of a participant for analysis in a task.
+ *
+ * @author José Carlos Paiva
  */
 @Entity
 @Table(name = "sample")
@@ -25,14 +27,21 @@ public class Sample implements Serializable {
     private Long id;
 
     /**
-     * Task in which this sample is inserted.
+     * ID of the project from the Project Microservice.
+     */
+    @NotNull
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
+    /**
+     * Task from the Project Microservice in which this sample is inserted.
      */
     @NotNull
     @Column(name = "task", nullable = false)
     private Long task;
 
     /**
-     * Participant to which this sample belongs.
+     * Participant from the Project Microservice to which this sample belongs.
      */
     @NotNull
     @Column(name = "participant", nullable = false)
@@ -57,6 +66,19 @@ public class Sample implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public Sample projectId(Long projectId) {
+        this.projectId = projectId;
+        return this;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 
     public Long getTask() {
@@ -136,6 +158,7 @@ public class Sample implements Serializable {
             ", participant=" + getParticipant() +
             ", timestamp='" + getTimestamp() + "'" +
             ", language='" + getLanguage() + "'" +
+            ", projectId=" + getProjectId() +
             "}";
     }
 }

@@ -8,11 +8,28 @@ import java.util.Objects;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Protocol} entity.
+ *
+ * @author José Carlos Paiva
  */
-@ApiModel(description = "Handwritten data collected using a smartpen for analysis (part of the\nsample).\n\n@author José Carlos Paiva")
+@ApiModel(description = "Handwritten data collected using a smartpen for ana" +
+    "lysis (part of the sample).")
 public class ProtocolDTO implements Serializable {
 
     private Long id;
+
+    /**
+     * ID of the project (from Projects microservice).
+     */
+    @NotNull
+    @ApiModelProperty(value = "ID of the project (from Projects microservice).")
+    private Long projectId;
+
+    /**
+     * ID of the sample to which this text is linked (if any).
+     */
+    @ApiModelProperty(value = "ID of the sample to which this text is linked" +
+        " (if any).")
+    private Long sampleId;
 
     /**
      * Layout in which the protocol has been written
@@ -21,23 +38,11 @@ public class ProtocolDTO implements Serializable {
     private Long layout;
 
     /**
-     * Device with which the protocol has been written
-     */
-    @ApiModelProperty(value = "Device with which the protocol has been written")
-    private Long device;
-
-    /**
      * Number of the page (if the protocol contains multiple pages)
      */
     @ApiModelProperty(value = "Number of the page (if the protocol contains multiple pages)")
     private Integer pageNumber;
 
-    /**
-     * A protocol belongs to a sample.
-     */
-    @ApiModelProperty(value = "A protocol belongs to a sample.")
-
-    private Long sampleId;
 
     public Long getId() {
         return id;
@@ -55,20 +60,20 @@ public class ProtocolDTO implements Serializable {
         this.layout = layout;
     }
 
-    public Long getDevice() {
-        return device;
-    }
-
-    public void setDevice(Long device) {
-        this.device = device;
-    }
-
     public Integer getPageNumber() {
         return pageNumber;
     }
 
     public void setPageNumber(Integer pageNumber) {
         this.pageNumber = pageNumber;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 
     public Long getSampleId() {
@@ -104,10 +109,10 @@ public class ProtocolDTO implements Serializable {
     public String toString() {
         return "ProtocolDTO{" +
             "id=" + getId() +
-            ", layout=" + getLayout() +
-            ", device=" + getDevice() +
-            ", pageNumber=" + getPageNumber() +
+            ", projectId=" + getProjectId() +
             ", sampleId=" + getSampleId() +
+            ", layout=" + getLayout() +
+            ", pageNumber=" + getPageNumber() +
             "}";
     }
 }

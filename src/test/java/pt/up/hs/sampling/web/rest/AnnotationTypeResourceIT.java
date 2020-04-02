@@ -39,6 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
 public class AnnotationTypeResourceIT {
 
+    private static final Long DEFAULT_PROJECT_ID = 1L;
+    private static final Long OTHER_PROJECT_ID = 2L;
+
     private static final String DEFAULT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_NAME = "BBBBBBBBBB";
 
@@ -103,40 +106,41 @@ public class AnnotationTypeResourceIT {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
-    public static AnnotationType createEntity(EntityManager em) {
-        AnnotationType annotationType = new AnnotationType()
+    public static AnnotationType createEntity() {
+        return new AnnotationType()
             .name(DEFAULT_NAME)
             .label(DEFAULT_LABEL)
             .description(DEFAULT_DESCRIPTION)
             .emotional(DEFAULT_EMOTIONAL)
             .weight(DEFAULT_WEIGHT)
-            .color(DEFAULT_COLOR);
-        return annotationType;
+            .color(DEFAULT_COLOR)
+            .projectId(DEFAULT_PROJECT_ID);
     }
+
     /**
      * Create an updated entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
-    public static AnnotationType createUpdatedEntity(EntityManager em) {
-        AnnotationType annotationType = new AnnotationType()
+    public static AnnotationType createUpdatedEntity() {
+        return new AnnotationType()
             .name(UPDATED_NAME)
             .label(UPDATED_LABEL)
             .description(UPDATED_DESCRIPTION)
             .emotional(UPDATED_EMOTIONAL)
             .weight(UPDATED_WEIGHT)
-            .color(UPDATED_COLOR);
-        return annotationType;
+            .color(UPDATED_COLOR)
+            .projectId(DEFAULT_PROJECT_ID);
     }
 
     @BeforeEach
     public void initTest() {
-        annotationType = createEntity(em);
+        annotationType = createEntity();
     }
 
     @Test
@@ -146,7 +150,7 @@ public class AnnotationTypeResourceIT {
 
         // Create the AnnotationType
         AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(annotationType);
-        restAnnotationTypeMockMvc.perform(post("/api/annotation-types")
+        restAnnotationTypeMockMvc.perform(post("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
             .andExpect(status().isCreated());
@@ -161,6 +165,7 @@ public class AnnotationTypeResourceIT {
         assertThat(testAnnotationType.isEmotional()).isEqualTo(DEFAULT_EMOTIONAL);
         assertThat(testAnnotationType.getWeight()).isEqualTo(DEFAULT_WEIGHT);
         assertThat(testAnnotationType.getColor()).isEqualTo(DEFAULT_COLOR);
+        assertThat(testAnnotationType.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
 
     @Test
@@ -173,7 +178,7 @@ public class AnnotationTypeResourceIT {
         AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(annotationType);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restAnnotationTypeMockMvc.perform(post("/api/annotation-types")
+        restAnnotationTypeMockMvc.perform(post("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
             .andExpect(status().isBadRequest());
@@ -194,7 +199,7 @@ public class AnnotationTypeResourceIT {
         // Create the AnnotationType, which fails.
         AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(annotationType);
 
-        restAnnotationTypeMockMvc.perform(post("/api/annotation-types")
+        restAnnotationTypeMockMvc.perform(post("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
             .andExpect(status().isBadRequest());
@@ -213,7 +218,7 @@ public class AnnotationTypeResourceIT {
         // Create the AnnotationType, which fails.
         AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(annotationType);
 
-        restAnnotationTypeMockMvc.perform(post("/api/annotation-types")
+        restAnnotationTypeMockMvc.perform(post("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
             .andExpect(status().isBadRequest());
@@ -232,7 +237,26 @@ public class AnnotationTypeResourceIT {
         // Create the AnnotationType, which fails.
         AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(annotationType);
 
-        restAnnotationTypeMockMvc.perform(post("/api/annotation-types")
+        restAnnotationTypeMockMvc.perform(post("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
+            .contentType(TestUtil.APPLICATION_JSON)
+            .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
+            .andExpect(status().isBadRequest());
+
+        List<AnnotationType> annotationTypeList = annotationTypeRepository.findAll();
+        assertThat(annotationTypeList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    public void checkProjectIdIsRequired() throws Exception {
+        int databaseSizeBeforeTest = annotationTypeRepository.findAll().size();
+        // set the field null
+        annotationType.setProjectId(null);
+
+        // Create the AnnotationType, which fails.
+        AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(annotationType);
+
+        restAnnotationTypeMockMvc.perform(post("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
             .andExpect(status().isBadRequest());
@@ -248,18 +272,19 @@ public class AnnotationTypeResourceIT {
         annotationTypeRepository.saveAndFlush(annotationType);
 
         // Get all the annotationTypeList
-        restAnnotationTypeMockMvc.perform(get("/api/annotation-types?sort=id,desc"))
+        restAnnotationTypeMockMvc.perform(get("/api/projects/{projectId}/annotation-types?sort=id,desc", DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(annotationType.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].label").value(hasItem(DEFAULT_LABEL)))
             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].emotional").value(hasItem(DEFAULT_EMOTIONAL.booleanValue())))
-            .andExpect(jsonPath("$.[*].weight").value(hasItem(DEFAULT_WEIGHT.doubleValue())))
-            .andExpect(jsonPath("$.[*].color").value(hasItem(DEFAULT_COLOR)));
+            .andExpect(jsonPath("$.[*].emotional").value(hasItem(DEFAULT_EMOTIONAL)))
+            .andExpect(jsonPath("$.[*].weight").value(hasItem(DEFAULT_WEIGHT)))
+            .andExpect(jsonPath("$.[*].color").value(hasItem(DEFAULT_COLOR)))
+            .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
     }
-    
+
     @Test
     @Transactional
     public void getAnnotationType() throws Exception {
@@ -267,16 +292,17 @@ public class AnnotationTypeResourceIT {
         annotationTypeRepository.saveAndFlush(annotationType);
 
         // Get the annotationType
-        restAnnotationTypeMockMvc.perform(get("/api/annotation-types/{id}", annotationType.getId()))
+        restAnnotationTypeMockMvc.perform(get("/api/projects/{projectId}/annotation-types/{id}", DEFAULT_PROJECT_ID, annotationType.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(annotationType.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
             .andExpect(jsonPath("$.label").value(DEFAULT_LABEL))
             .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION))
-            .andExpect(jsonPath("$.emotional").value(DEFAULT_EMOTIONAL.booleanValue()))
-            .andExpect(jsonPath("$.weight").value(DEFAULT_WEIGHT.doubleValue()))
-            .andExpect(jsonPath("$.color").value(DEFAULT_COLOR));
+            .andExpect(jsonPath("$.emotional").value(DEFAULT_EMOTIONAL))
+            .andExpect(jsonPath("$.weight").value(DEFAULT_WEIGHT))
+            .andExpect(jsonPath("$.color").value(DEFAULT_COLOR))
+            .andExpect(jsonPath("$.projectId").value(DEFAULT_PROJECT_ID.intValue()));
     }
 
 
@@ -350,7 +376,8 @@ public class AnnotationTypeResourceIT {
         // Get all the annotationTypeList where name is null
         defaultAnnotationTypeShouldNotBeFound("name.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
     public void getAllAnnotationTypesByNameContainsSomething() throws Exception {
         // Initialize the database
@@ -428,7 +455,8 @@ public class AnnotationTypeResourceIT {
         // Get all the annotationTypeList where label is null
         defaultAnnotationTypeShouldNotBeFound("label.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
     public void getAllAnnotationTypesByLabelContainsSomething() throws Exception {
         // Initialize the database
@@ -506,7 +534,8 @@ public class AnnotationTypeResourceIT {
         // Get all the annotationTypeList where description is null
         defaultAnnotationTypeShouldNotBeFound("description.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
     public void getAllAnnotationTypesByDescriptionContainsSomething() throws Exception {
         // Initialize the database
@@ -741,7 +770,8 @@ public class AnnotationTypeResourceIT {
         // Get all the annotationTypeList where color is null
         defaultAnnotationTypeShouldNotBeFound("color.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
     public void getAllAnnotationTypesByColorContainsSomething() throws Exception {
         // Initialize the database
@@ -771,19 +801,20 @@ public class AnnotationTypeResourceIT {
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultAnnotationTypeShouldBeFound(String filter) throws Exception {
-        restAnnotationTypeMockMvc.perform(get("/api/annotation-types?sort=id,desc&" + filter))
+        restAnnotationTypeMockMvc.perform(get("/api/projects/{projectId}/annotation-types?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(annotationType.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].label").value(hasItem(DEFAULT_LABEL)))
             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].emotional").value(hasItem(DEFAULT_EMOTIONAL.booleanValue())))
-            .andExpect(jsonPath("$.[*].weight").value(hasItem(DEFAULT_WEIGHT.doubleValue())))
-            .andExpect(jsonPath("$.[*].color").value(hasItem(DEFAULT_COLOR)));
+            .andExpect(jsonPath("$.[*].emotional").value(hasItem(DEFAULT_EMOTIONAL)))
+            .andExpect(jsonPath("$.[*].weight").value(hasItem(DEFAULT_WEIGHT)))
+            .andExpect(jsonPath("$.[*].color").value(hasItem(DEFAULT_COLOR)))
+            .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
 
         // Check, that the count call also returns 1
-        restAnnotationTypeMockMvc.perform(get("/api/annotation-types/count?sort=id,desc&" + filter))
+        restAnnotationTypeMockMvc.perform(get("/api/projects/{projectId}/annotation-types/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -793,14 +824,14 @@ public class AnnotationTypeResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultAnnotationTypeShouldNotBeFound(String filter) throws Exception {
-        restAnnotationTypeMockMvc.perform(get("/api/annotation-types?sort=id,desc&" + filter))
+        restAnnotationTypeMockMvc.perform(get("/api/projects/{projectId}/annotation-types?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restAnnotationTypeMockMvc.perform(get("/api/annotation-types/count?sort=id,desc&" + filter))
+        restAnnotationTypeMockMvc.perform(get("/api/projects/{projectId}/annotation-types/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -811,7 +842,7 @@ public class AnnotationTypeResourceIT {
     @Transactional
     public void getNonExistingAnnotationType() throws Exception {
         // Get the annotationType
-        restAnnotationTypeMockMvc.perform(get("/api/annotation-types/{id}", Long.MAX_VALUE))
+        restAnnotationTypeMockMvc.perform(get("/api/projects/{projectId}/annotation-types/{id}", DEFAULT_PROJECT_ID, Long.MAX_VALUE))
             .andExpect(status().isNotFound());
     }
 
@@ -833,10 +864,11 @@ public class AnnotationTypeResourceIT {
             .description(UPDATED_DESCRIPTION)
             .emotional(UPDATED_EMOTIONAL)
             .weight(UPDATED_WEIGHT)
-            .color(UPDATED_COLOR);
+            .color(UPDATED_COLOR)
+            .projectId(DEFAULT_PROJECT_ID);
         AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(updatedAnnotationType);
 
-        restAnnotationTypeMockMvc.perform(put("/api/annotation-types")
+        restAnnotationTypeMockMvc.perform(put("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
             .andExpect(status().isOk());
@@ -851,6 +883,7 @@ public class AnnotationTypeResourceIT {
         assertThat(testAnnotationType.isEmotional()).isEqualTo(UPDATED_EMOTIONAL);
         assertThat(testAnnotationType.getWeight()).isEqualTo(UPDATED_WEIGHT);
         assertThat(testAnnotationType.getColor()).isEqualTo(UPDATED_COLOR);
+        assertThat(testAnnotationType.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
 
     @Test
@@ -862,7 +895,7 @@ public class AnnotationTypeResourceIT {
         AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(annotationType);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restAnnotationTypeMockMvc.perform(put("/api/annotation-types")
+        restAnnotationTypeMockMvc.perform(put("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
             .andExpect(status().isBadRequest());
@@ -881,7 +914,7 @@ public class AnnotationTypeResourceIT {
         int databaseSizeBeforeDelete = annotationTypeRepository.findAll().size();
 
         // Delete the annotationType
-        restAnnotationTypeMockMvc.perform(delete("/api/annotation-types/{id}", annotationType.getId())
+        restAnnotationTypeMockMvc.perform(delete("/api/projects/{projectId}/annotation-types/{id}", DEFAULT_PROJECT_ID, annotationType.getId())
             .accept(TestUtil.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 

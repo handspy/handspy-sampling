@@ -18,14 +18,14 @@
             <column name="layout" type="bigint" remarks="Layout in which the protocol has been written">
                 <constraints nullable="true" />
             </column>
-            <column name="device" type="bigint" remarks="Device with which the protocol has been written">
-                <constraints nullable="true" />
-            </column>
             <column name="page_number" type="integer" remarks="Number of the page (if the protocol contains multiple pages)">
                 <constraints nullable="true" />
             </column>
-            <column name="sample_id" type="bigint">
+            <column name="project_id" type="bigint">
                 <constraints nullable="false" />
+            </column>
+            <column name="sample_id" type="bigint">
+                <constraints nullable="true" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here, do not remove-->
         </createTable>
@@ -51,9 +51,8 @@
                   tableName="protocol">
             <column name="id" type="numeric"/>
             <column name="layout" type="numeric"/>
-            <column name="device" type="numeric"/>
             <column name="page_number" type="numeric"/>
-            <column name="sample_id" type="numeric"/>
+            <column name="project_id" type="numeric"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here, do not remove-->
         </loadData>
     </changeSet>

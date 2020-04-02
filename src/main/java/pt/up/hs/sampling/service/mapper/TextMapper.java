@@ -9,13 +9,15 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Text} and its DTO {@link TextDTO}.
  */
-@Mapper(componentModel = "spring", uses = {SampleMapper.class})
+@Mapper(componentModel = "spring", uses = {SampleMapper.class, AnnotationMapper.class})
 public interface TextMapper extends EntityMapper<TextDTO, Text> {
 
     @Mapping(source = "sample.id", target = "sampleId")
+    @Mapping(source = "annotations", target = "annotations")
     TextDTO toDto(Text text);
 
     @Mapping(source = "sampleId", target = "sample")
+    @Mapping(source = "annotations", target = "annotations")
     Text toEntity(TextDTO textDTO);
 
     default Text fromId(Long id) {

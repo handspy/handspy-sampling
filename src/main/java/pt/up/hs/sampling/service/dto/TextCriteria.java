@@ -101,5 +101,4 @@ public class TextCriteria implements Serializable, Criteria {
                 (sampleId != null ? "sampleId=" + sampleId + ", " : "") +
             "}";
     }
-
 }

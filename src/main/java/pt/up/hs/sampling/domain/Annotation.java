@@ -25,13 +25,6 @@ public class Annotation implements Serializable {
     private Long id;
 
     /**
-     * Type of this annotation
-     */
-    @NotNull
-    @Column(name = "type", nullable = false)
-    private Long type;
-
-    /**
      * Start position of the annotation
      */
     @NotNull
@@ -46,18 +39,29 @@ public class Annotation implements Serializable {
     private Integer size;
 
     /**
-     * Note about annotation
+     * Note about annotation.
      */
     @Column(name = "note")
     private String note;
 
     /**
+     * Type of this annotation.
+     */
+    @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "annotation_type_id")
+    @JsonIgnoreProperties("annotations")
+    private AnnotationType annotationType;
+
+    /**
      * An annotation is made in a text.
      */
-    @ManyToOne(optional = false)
     @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "text_id", updatable = false)
     @JsonIgnoreProperties("annotations")
     private Text text;
+
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -68,17 +72,17 @@ public class Annotation implements Serializable {
         this.id = id;
     }
 
-    public Long getType() {
-        return type;
+    public AnnotationType getAnnotationType() {
+        return annotationType;
     }
 
-    public Annotation type(Long type) {
-        this.type = type;
+    public Annotation annotationType(AnnotationType annotationType) {
+        this.annotationType = annotationType;
         return this;
     }
 
-    public void setType(Long type) {
-        this.type = type;
+    public void setAnnotationType(AnnotationType annotationType) {
+        this.annotationType = annotationType;
     }
 
     public Integer getStart() {
@@ -154,7 +158,6 @@ public class Annotation implements Serializable {
     public String toString() {
         return "Annotation{" +
             "id=" + getId() +
-            ", type=" + getType() +
             ", start=" + getStart() +
             ", size=" + getSize() +
             ", note='" + getNote() + "'" +

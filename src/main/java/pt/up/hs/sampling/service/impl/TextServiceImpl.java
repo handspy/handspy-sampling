@@ -36,12 +36,14 @@ public class TextServiceImpl implements TextService {
     /**
      * Save a text.
      *
-     * @param textDTO the entity to save.
+     * @param projectId ID of the project to which the text belongs.
+     * @param textDTO   the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public TextDTO save(TextDTO textDTO) {
-        log.debug("Request to save Text : {}", textDTO);
+    public TextDTO save(Long projectId, TextDTO textDTO) {
+        log.debug("Request to save Text {} in project {}", textDTO, projectId);
+        textDTO.setProjectId(projectId);
         Text text = textMapper.toEntity(textDTO);
         text = textRepository.save(text);
         return textMapper.toDto(text);
@@ -50,39 +52,42 @@ public class TextServiceImpl implements TextService {
     /**
      * Get all the texts.
      *
-     * @param pageable the pagination information.
+     * @param projectId ID of the project to which the texts belong.
+     * @param pageable  the pagination information.
      * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<TextDTO> findAll(Pageable pageable) {
-        log.debug("Request to get all Texts");
-        return textRepository.findAll(pageable)
+    public Page<TextDTO> findAll(Long projectId, Pageable pageable) {
+        log.debug("Request to get all Texts in project {}", projectId);
+        return textRepository.findAllByProjectId(projectId, pageable)
             .map(textMapper::toDto);
     }
 
     /**
-     * Get one text by id.
+     * Get the "id" text.
      *
-     * @param id the id of the entity.
+     * @param projectId ID of the project to which the text belongs.
+     * @param id        the id of the entity.
      * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<TextDTO> findOne(Long id) {
-        log.debug("Request to get Text : {}", id);
-        return textRepository.findById(id)
+    public Optional<TextDTO> findOne(Long projectId, Long id) {
+        log.debug("Request to get Text {} in project {}", id, projectId);
+        return textRepository.findByProjectIdAndId(projectId, id)
             .map(textMapper::toDto);
     }
 
     /**
-     * Delete the text by id.
+     * Delete the "id" text.
      *
-     * @param id the id of the entity.
+     * @param projectId ID of the project to which the text belongs.
+     * @param id        the id of the entity.
      */
     @Override
-    public void delete(Long id) {
-        log.debug("Request to delete Text : {}", id);
-        textRepository.deleteById(id);
+    public void delete(Long projectId, Long id) {
+        log.debug("Request to delete Text {} in project {}", id, projectId);
+        textRepository.deleteAllByProjectIdAndId(projectId, id);
     }
 }

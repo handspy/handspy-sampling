@@ -3,13 +3,13 @@ package pt.up.hs.sampling.web.rest;
 import pt.up.hs.sampling.SamplingApp;
 import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
 import pt.up.hs.sampling.domain.Annotation;
+import pt.up.hs.sampling.domain.AnnotationType;
 import pt.up.hs.sampling.domain.Text;
 import pt.up.hs.sampling.repository.AnnotationRepository;
 import pt.up.hs.sampling.service.AnnotationService;
 import pt.up.hs.sampling.service.dto.AnnotationDTO;
 import pt.up.hs.sampling.service.mapper.AnnotationMapper;
 import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
-import pt.up.hs.sampling.service.dto.AnnotationCriteria;
 import pt.up.hs.sampling.service.AnnotationQueryService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -40,9 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
 public class AnnotationResourceIT {
 
-    private static final Long DEFAULT_TYPE = 1L;
-    private static final Long UPDATED_TYPE = 2L;
-    private static final Long SMALLER_TYPE = 1L - 1L;
+    private static final Long DEFAULT_PROJECT_ID = 1L;
+    private static final Long OTHER_PROJECT_ID = 2L;
 
     private static final Integer DEFAULT_START = 1;
     private static final Integer UPDATED_START = 2;
@@ -86,6 +85,10 @@ public class AnnotationResourceIT {
 
     private Annotation annotation;
 
+    private static AnnotationType defaultAnnotationType;
+    private static AnnotationType updatedAnnotationType;
+    private static Text defaultText;
+
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
@@ -104,23 +107,15 @@ public class AnnotationResourceIT {
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
-    public static Annotation createEntity(EntityManager em) {
-        Annotation annotation = new Annotation()
-            .type(DEFAULT_TYPE)
+    public static Annotation createEntity() {
+        AnnotationType annotationType = new AnnotationType();
+        annotationType.setId(defaultAnnotationType.getId());
+        return new Annotation()
+            .text(defaultText)
+            .annotationType(annotationType)
             .start(DEFAULT_START)
             .size(DEFAULT_SIZE)
             .note(DEFAULT_NOTE);
-        // Add required entity
-        Text text;
-        if (TestUtil.findAll(em, Text.class).isEmpty()) {
-            text = TextResourceIT.createEntity(em);
-            em.persist(text);
-            em.flush();
-        } else {
-            text = TestUtil.findAll(em, Text.class).get(0);
-        }
-        annotation.setText(text);
-        return annotation;
     }
     /**
      * Create an updated entity for this test.
@@ -128,28 +123,51 @@ public class AnnotationResourceIT {
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
-    public static Annotation createUpdatedEntity(EntityManager em) {
-        Annotation annotation = new Annotation()
-            .type(UPDATED_TYPE)
+    public static Annotation createUpdatedEntity() {
+        AnnotationType annotationType = new AnnotationType();
+        annotationType.setId(updatedAnnotationType.getId());
+        return new Annotation()
+            .annotationType(annotationType)
+            .text(defaultText)
             .start(UPDATED_START)
             .size(UPDATED_SIZE)
             .note(UPDATED_NOTE);
-        // Add required entity
+    }
+
+    public static AnnotationType getAnnotationType(EntityManager em, boolean updated) {
+        AnnotationType annotationType;
+        if (updated) {
+            annotationType = AnnotationTypeResourceIT.createUpdatedEntity();
+        } else {
+            annotationType = AnnotationTypeResourceIT.createEntity();
+        }
+        em.persist(annotationType);
+        em.flush();
+        return annotationType;
+    }
+
+    public static Text getText(EntityManager em, boolean updated) {
         Text text;
         if (TestUtil.findAll(em, Text.class).isEmpty()) {
-            text = TextResourceIT.createUpdatedEntity(em);
+            if (updated) {
+                text = TextResourceIT.createUpdatedEntity(em);
+            } else {
+                text = TextResourceIT.createEntity(em);
+            }
             em.persist(text);
             em.flush();
         } else {
             text = TestUtil.findAll(em, Text.class).get(0);
         }
-        annotation.setText(text);
-        return annotation;
+        return text;
     }
 
     @BeforeEach
     public void initTest() {
-        annotation = createEntity(em);
+        defaultAnnotationType = getAnnotationType(em, false);
+        updatedAnnotationType = getAnnotationType(em, true);
+        defaultText = getText(em, false);
+        annotation = createEntity();
     }
 
     @Test
@@ -159,7 +177,7 @@ public class AnnotationResourceIT {
 
         // Create the Annotation
         AnnotationDTO annotationDTO = annotationMapper.toDto(annotation);
-        restAnnotationMockMvc.perform(post("/api/annotations")
+        restAnnotationMockMvc.perform(post("/api/projects/{projectId}/texts/{textId}/annotations", DEFAULT_PROJECT_ID, defaultText.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationDTO)))
             .andExpect(status().isCreated());
@@ -168,7 +186,7 @@ public class AnnotationResourceIT {
         List<Annotation> annotationList = annotationRepository.findAll();
         assertThat(annotationList).hasSize(databaseSizeBeforeCreate + 1);
         Annotation testAnnotation = annotationList.get(annotationList.size() - 1);
-        assertThat(testAnnotation.getType()).isEqualTo(DEFAULT_TYPE);
+        assertThat(testAnnotation.getAnnotationType().getId()).isEqualTo(defaultAnnotationType.getId());
         assertThat(testAnnotation.getStart()).isEqualTo(DEFAULT_START);
         assertThat(testAnnotation.getSize()).isEqualTo(DEFAULT_SIZE);
         assertThat(testAnnotation.getNote()).isEqualTo(DEFAULT_NOTE);
@@ -184,7 +202,7 @@ public class AnnotationResourceIT {
         AnnotationDTO annotationDTO = annotationMapper.toDto(annotation);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restAnnotationMockMvc.perform(post("/api/annotations")
+        restAnnotationMockMvc.perform(post("/api/projects/{projectId}/texts/{textId}/annotations", DEFAULT_PROJECT_ID, defaultText.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationDTO)))
             .andExpect(status().isBadRequest());
@@ -200,12 +218,12 @@ public class AnnotationResourceIT {
     public void checkTypeIsRequired() throws Exception {
         int databaseSizeBeforeTest = annotationRepository.findAll().size();
         // set the field null
-        annotation.setType(null);
+        annotation.setAnnotationType(null);
 
         // Create the Annotation, which fails.
         AnnotationDTO annotationDTO = annotationMapper.toDto(annotation);
 
-        restAnnotationMockMvc.perform(post("/api/annotations")
+        restAnnotationMockMvc.perform(post("/api/projects/{projectId}/texts/{textId}/annotations", DEFAULT_PROJECT_ID, defaultText.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationDTO)))
             .andExpect(status().isBadRequest());
@@ -224,7 +242,7 @@ public class AnnotationResourceIT {
         // Create the Annotation, which fails.
         AnnotationDTO annotationDTO = annotationMapper.toDto(annotation);
 
-        restAnnotationMockMvc.perform(post("/api/annotations")
+        restAnnotationMockMvc.perform(post("/api/projects/{projectId}/texts/{textId}/annotations", DEFAULT_PROJECT_ID, defaultText.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationDTO)))
             .andExpect(status().isBadRequest());
@@ -243,7 +261,7 @@ public class AnnotationResourceIT {
         // Create the Annotation, which fails.
         AnnotationDTO annotationDTO = annotationMapper.toDto(annotation);
 
-        restAnnotationMockMvc.perform(post("/api/annotations")
+        restAnnotationMockMvc.perform(post("/api/projects/{projectId}/texts/{textId}/annotations", DEFAULT_PROJECT_ID, defaultText.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationDTO)))
             .andExpect(status().isBadRequest());
@@ -259,16 +277,16 @@ public class AnnotationResourceIT {
         annotationRepository.saveAndFlush(annotation);
 
         // Get all the annotationList
-        restAnnotationMockMvc.perform(get("/api/annotations?sort=id,desc"))
+        restAnnotationMockMvc.perform(get("/api/projects/{projectId}/texts/{textId}/annotations?sort=id,desc", DEFAULT_PROJECT_ID, defaultText.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(annotation.getId().intValue())))
-            .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.intValue())))
+            .andExpect(jsonPath("$.[*].annotationTypeId").value(hasItem(defaultAnnotationType.getId().intValue())))
             .andExpect(jsonPath("$.[*].start").value(hasItem(DEFAULT_START)))
             .andExpect(jsonPath("$.[*].size").value(hasItem(DEFAULT_SIZE)))
             .andExpect(jsonPath("$.[*].note").value(hasItem(DEFAULT_NOTE)));
     }
-    
+
     @Test
     @Transactional
     public void getAnnotation() throws Exception {
@@ -276,11 +294,11 @@ public class AnnotationResourceIT {
         annotationRepository.saveAndFlush(annotation);
 
         // Get the annotation
-        restAnnotationMockMvc.perform(get("/api/annotations/{id}", annotation.getId()))
+        restAnnotationMockMvc.perform(get("/api/projects/{projectId}/texts/{textId}/annotations/{id}", DEFAULT_PROJECT_ID, defaultText.getId(), annotation.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(annotation.getId().intValue()))
-            .andExpect(jsonPath("$.type").value(DEFAULT_TYPE.intValue()))
+            .andExpect(jsonPath("$.annotationTypeId").value(defaultAnnotationType.getId().intValue()))
             .andExpect(jsonPath("$.start").value(DEFAULT_START))
             .andExpect(jsonPath("$.size").value(DEFAULT_SIZE))
             .andExpect(jsonPath("$.note").value(DEFAULT_NOTE));
@@ -313,10 +331,10 @@ public class AnnotationResourceIT {
         annotationRepository.saveAndFlush(annotation);
 
         // Get all the annotationList where type equals to DEFAULT_TYPE
-        defaultAnnotationShouldBeFound("type.equals=" + DEFAULT_TYPE);
+        defaultAnnotationShouldBeFound("annotationTypeId.equals=" + defaultAnnotationType.getId());
 
         // Get all the annotationList where type equals to UPDATED_TYPE
-        defaultAnnotationShouldNotBeFound("type.equals=" + UPDATED_TYPE);
+        defaultAnnotationShouldNotBeFound("annotationTypeId.equals=" + updatedAnnotationType.getId());
     }
 
     @Test
@@ -326,10 +344,10 @@ public class AnnotationResourceIT {
         annotationRepository.saveAndFlush(annotation);
 
         // Get all the annotationList where type not equals to DEFAULT_TYPE
-        defaultAnnotationShouldNotBeFound("type.notEquals=" + DEFAULT_TYPE);
+        defaultAnnotationShouldNotBeFound("annotationTypeId.notEquals=" + defaultAnnotationType.getId().intValue());
 
         // Get all the annotationList where type not equals to UPDATED_TYPE
-        defaultAnnotationShouldBeFound("type.notEquals=" + UPDATED_TYPE);
+        defaultAnnotationShouldBeFound("annotationTypeId.notEquals=" + updatedAnnotationType.getId());
     }
 
     @Test
@@ -339,10 +357,10 @@ public class AnnotationResourceIT {
         annotationRepository.saveAndFlush(annotation);
 
         // Get all the annotationList where type in DEFAULT_TYPE or UPDATED_TYPE
-        defaultAnnotationShouldBeFound("type.in=" + DEFAULT_TYPE + "," + UPDATED_TYPE);
+        defaultAnnotationShouldBeFound("annotationTypeId.in=" + defaultAnnotationType.getId() + "," + updatedAnnotationType.getId());
 
         // Get all the annotationList where type equals to UPDATED_TYPE
-        defaultAnnotationShouldNotBeFound("type.in=" + UPDATED_TYPE);
+        defaultAnnotationShouldNotBeFound("annotationTypeId.in=" + updatedAnnotationType.getId());
     }
 
     @Test
@@ -352,64 +370,11 @@ public class AnnotationResourceIT {
         annotationRepository.saveAndFlush(annotation);
 
         // Get all the annotationList where type is not null
-        defaultAnnotationShouldBeFound("type.specified=true");
+        defaultAnnotationShouldBeFound("annotationTypeId.specified=true");
 
         // Get all the annotationList where type is null
-        defaultAnnotationShouldNotBeFound("type.specified=false");
+        defaultAnnotationShouldNotBeFound("annotationTypeId.specified=false");
     }
-
-    @Test
-    @Transactional
-    public void getAllAnnotationsByTypeIsGreaterThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        annotationRepository.saveAndFlush(annotation);
-
-        // Get all the annotationList where type is greater than or equal to DEFAULT_TYPE
-        defaultAnnotationShouldBeFound("type.greaterThanOrEqual=" + DEFAULT_TYPE);
-
-        // Get all the annotationList where type is greater than or equal to UPDATED_TYPE
-        defaultAnnotationShouldNotBeFound("type.greaterThanOrEqual=" + UPDATED_TYPE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllAnnotationsByTypeIsLessThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        annotationRepository.saveAndFlush(annotation);
-
-        // Get all the annotationList where type is less than or equal to DEFAULT_TYPE
-        defaultAnnotationShouldBeFound("type.lessThanOrEqual=" + DEFAULT_TYPE);
-
-        // Get all the annotationList where type is less than or equal to SMALLER_TYPE
-        defaultAnnotationShouldNotBeFound("type.lessThanOrEqual=" + SMALLER_TYPE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllAnnotationsByTypeIsLessThanSomething() throws Exception {
-        // Initialize the database
-        annotationRepository.saveAndFlush(annotation);
-
-        // Get all the annotationList where type is less than DEFAULT_TYPE
-        defaultAnnotationShouldNotBeFound("type.lessThan=" + DEFAULT_TYPE);
-
-        // Get all the annotationList where type is less than UPDATED_TYPE
-        defaultAnnotationShouldBeFound("type.lessThan=" + UPDATED_TYPE);
-    }
-
-    @Test
-    @Transactional
-    public void getAllAnnotationsByTypeIsGreaterThanSomething() throws Exception {
-        // Initialize the database
-        annotationRepository.saveAndFlush(annotation);
-
-        // Get all the annotationList where type is greater than DEFAULT_TYPE
-        defaultAnnotationShouldNotBeFound("type.greaterThan=" + DEFAULT_TYPE);
-
-        // Get all the annotationList where type is greater than SMALLER_TYPE
-        defaultAnnotationShouldBeFound("type.greaterThan=" + SMALLER_TYPE);
-    }
-
 
     @Test
     @Transactional
@@ -699,36 +664,21 @@ public class AnnotationResourceIT {
     }
 
 
-    @Test
-    @Transactional
-    public void getAllAnnotationsByTextIsEqualToSomething() throws Exception {
-        // Get already existing entity
-        Text text = annotation.getText();
-        annotationRepository.saveAndFlush(annotation);
-        Long textId = text.getId();
-
-        // Get all the annotationList where text equals to textId
-        defaultAnnotationShouldBeFound("textId.equals=" + textId);
-
-        // Get all the annotationList where text equals to textId + 1
-        defaultAnnotationShouldNotBeFound("textId.equals=" + (textId + 1));
-    }
-
     /**
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultAnnotationShouldBeFound(String filter) throws Exception {
-        restAnnotationMockMvc.perform(get("/api/annotations?sort=id,desc&" + filter))
+        restAnnotationMockMvc.perform(get("/api/projects/{projectId}/texts/{textId}/annotations?sort=id,desc&" + filter, DEFAULT_PROJECT_ID, defaultText.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(annotation.getId().intValue())))
-            .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.intValue())))
+            .andExpect(jsonPath("$.[*].annotationTypeId").value(hasItem(defaultAnnotationType.getId().intValue())))
             .andExpect(jsonPath("$.[*].start").value(hasItem(DEFAULT_START)))
             .andExpect(jsonPath("$.[*].size").value(hasItem(DEFAULT_SIZE)))
             .andExpect(jsonPath("$.[*].note").value(hasItem(DEFAULT_NOTE)));
 
         // Check, that the count call also returns 1
-        restAnnotationMockMvc.perform(get("/api/annotations/count?sort=id,desc&" + filter))
+        restAnnotationMockMvc.perform(get("/api/projects/{projectId}/texts/{textId}/annotations/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID, defaultText.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -738,14 +688,14 @@ public class AnnotationResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultAnnotationShouldNotBeFound(String filter) throws Exception {
-        restAnnotationMockMvc.perform(get("/api/annotations?sort=id,desc&" + filter))
+        restAnnotationMockMvc.perform(get("/api/projects/{projectId}/texts/{textId}/annotations?sort=id,desc&" + filter, DEFAULT_PROJECT_ID, defaultText.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restAnnotationMockMvc.perform(get("/api/annotations/count?sort=id,desc&" + filter))
+        restAnnotationMockMvc.perform(get("/api/projects/{projectId}/texts/{textId}/annotations/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID, defaultText.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -756,7 +706,7 @@ public class AnnotationResourceIT {
     @Transactional
     public void getNonExistingAnnotation() throws Exception {
         // Get the annotation
-        restAnnotationMockMvc.perform(get("/api/annotations/{id}", Long.MAX_VALUE))
+        restAnnotationMockMvc.perform(get("/api/projects/{projectId}/texts/{textId}/annotations/{id}", DEFAULT_PROJECT_ID, defaultText.getId(), Long.MAX_VALUE))
             .andExpect(status().isNotFound());
     }
 
@@ -773,13 +723,13 @@ public class AnnotationResourceIT {
         // Disconnect from session so that the updates on updatedAnnotation are not directly saved in db
         em.detach(updatedAnnotation);
         updatedAnnotation
-            .type(UPDATED_TYPE)
+            .annotationType(updatedAnnotationType)
             .start(UPDATED_START)
             .size(UPDATED_SIZE)
             .note(UPDATED_NOTE);
         AnnotationDTO annotationDTO = annotationMapper.toDto(updatedAnnotation);
 
-        restAnnotationMockMvc.perform(put("/api/annotations")
+        restAnnotationMockMvc.perform(put("/api/projects/{projectId}/texts/{textId}/annotations", DEFAULT_PROJECT_ID, defaultText.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationDTO)))
             .andExpect(status().isOk());
@@ -788,7 +738,7 @@ public class AnnotationResourceIT {
         List<Annotation> annotationList = annotationRepository.findAll();
         assertThat(annotationList).hasSize(databaseSizeBeforeUpdate);
         Annotation testAnnotation = annotationList.get(annotationList.size() - 1);
-        assertThat(testAnnotation.getType()).isEqualTo(UPDATED_TYPE);
+        assertThat(testAnnotation.getAnnotationType()).isEqualTo(updatedAnnotationType);
         assertThat(testAnnotation.getStart()).isEqualTo(UPDATED_START);
         assertThat(testAnnotation.getSize()).isEqualTo(UPDATED_SIZE);
         assertThat(testAnnotation.getNote()).isEqualTo(UPDATED_NOTE);
@@ -803,7 +753,7 @@ public class AnnotationResourceIT {
         AnnotationDTO annotationDTO = annotationMapper.toDto(annotation);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restAnnotationMockMvc.perform(put("/api/annotations")
+        restAnnotationMockMvc.perform(put("/api/projects/{projectId}/texts/{textId}/annotations", DEFAULT_PROJECT_ID, defaultText.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(annotationDTO)))
             .andExpect(status().isBadRequest());
@@ -822,7 +772,7 @@ public class AnnotationResourceIT {
         int databaseSizeBeforeDelete = annotationRepository.findAll().size();
 
         // Delete the annotation
-        restAnnotationMockMvc.perform(delete("/api/annotations/{id}", annotation.getId())
+        restAnnotationMockMvc.perform(delete("/api/projects/{projectId}/texts/{textId}/annotations/{id}", DEFAULT_PROJECT_ID, defaultText.getId(), annotation.getId())
             .accept(TestUtil.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 

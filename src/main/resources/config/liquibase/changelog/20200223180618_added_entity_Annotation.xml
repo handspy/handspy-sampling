@@ -6,7 +6,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd
                         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-    
+
     <!--
         Added the entity Annotation.
     -->
@@ -15,7 +15,10 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="type" type="bigint" remarks="Type of this annotation">
+            <column name="annotation_type_id" type="bigint" remarks="Type of this annotation">
+                <constraints nullable="false" />
+            </column>
+            <column name="text_id" type="bigint">
                 <constraints nullable="false" />
             </column>
             <column name="start" type="integer" remarks="Start position of the annotation">
@@ -26,9 +29,6 @@
             </column>
             <column name="note" type="varchar(255)" remarks="Note about annotation">
                 <constraints nullable="true" />
-            </column>
-            <column name="text_id" type="bigint">
-                <constraints nullable="false" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here, do not remove-->
         </createTable>
@@ -53,11 +53,11 @@
                   separator=";"
                   tableName="annotation">
             <column name="id" type="numeric"/>
-            <column name="type" type="numeric"/>
+            <column name="text_id" type="numeric"/>
+            <column name="annotation_type_id" type="numeric"/>
             <column name="start" type="numeric"/>
             <column name="size" type="numeric"/>
             <column name="note" type="string"/>
-            <column name="text_id" type="numeric"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here, do not remove-->
         </loadData>
     </changeSet>

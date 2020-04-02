@@ -26,7 +26,6 @@ public class DotServiceImpl implements DotService {
     private final Logger log = LoggerFactory.getLogger(DotServiceImpl.class);
 
     private final DotRepository dotRepository;
-
     private final DotMapper dotMapper;
 
     public DotServiceImpl(DotRepository dotRepository, DotMapper dotMapper) {
@@ -37,12 +36,15 @@ public class DotServiceImpl implements DotService {
     /**
      * Save a dot.
      *
+     * @param projectId ID of the project to which the dot belongs.
+     * @param protocolId  ID of the protocol to which the dot belongs.
      * @param dotDTO the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public DotDTO save(DotDTO dotDTO) {
-        log.debug("Request to save Dot : {}", dotDTO);
+    public DotDTO save(Long projectId, Long protocolId, DotDTO dotDTO) {
+        log.debug("Request to save Dot {} in protocol {} of project {}", dotDTO, protocolId, projectId);
+        dotDTO.setProtocolId(protocolId);
         Dot dot = dotMapper.toEntity(dotDTO);
         dot = dotRepository.save(dot);
         return dotMapper.toDto(dot);
@@ -51,39 +53,45 @@ public class DotServiceImpl implements DotService {
     /**
      * Get all the dots.
      *
+     * @param projectId ID of the project to which the dots belong.
+     * @param protocolId  ID of the protocol to which the dots belong.
      * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
-    public List<DotDTO> findAll() {
-        log.debug("Request to get all Dots");
-        return dotRepository.findAll().stream()
+    public List<DotDTO> findAll(Long projectId, Long protocolId) {
+        log.debug("Request to get all Dots in protocol {} of project {}", protocolId, projectId);
+        return dotRepository.findAllByProjectIdAndProtocolId(projectId, protocolId).stream()
             .map(dotMapper::toDto)
             .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
-     * Get one dot by id.
+     * Get the "id" dot.
      *
+     * @param projectId ID of the project to which the dot belongs.
+     * @param protocolId  ID of the protocol to which the dot belongs.
      * @param id the id of the entity.
      * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<DotDTO> findOne(Long id) {
-        log.debug("Request to get Dot : {}", id);
-        return dotRepository.findById(id)
+    public Optional<DotDTO> findOne(Long projectId, Long protocolId, Long id) {
+        log.debug("Request to get Dot {} in protocol {} of project {}", id, protocolId, projectId);
+        return dotRepository.findByProjectIdAndProtocolIdAndId(projectId, protocolId, id)
             .map(dotMapper::toDto);
     }
 
     /**
-     * Delete the dot by id.
+     * Delete the "id" dot.
      *
+     * @param projectId ID of the project to which the dot belongs.
+     * @param protocolId  ID of the protocol to which the dot belongs.
      * @param id the id of the entity.
      */
     @Override
-    public void delete(Long id) {
-        log.debug("Request to delete Dot : {}", id);
-        dotRepository.deleteById(id);
+    public void delete(Long projectId, Long protocolId, Long id) {
+        log.debug("Request to delete Dot {} in protocol {} of project {}", id, protocolId, projectId);
+        dotRepository.deleteAllByProtocolProjectIdAndProtocolIdAndId(projectId, protocolId, id);
     }
 }

@@ -10,7 +10,10 @@ import javax.validation.constraints.*;
 import java.io.Serializable;
 
 /**
- * Handwritten data collected using a smartpen for analysis (part of the\nsample).\n\n@author José Carlos Paiva
+ * Handwritten data collected using a smartpen for analysis (part of the
+ * sample).
+ *
+ * @author José Carlos Paiva
  */
 @Entity
 @Table(name = "protocol")
@@ -25,16 +28,17 @@ public class Protocol implements Serializable {
     private Long id;
 
     /**
+     * ID of the project in the Project Microservice.
+     */
+    @NotNull
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
+    /**
      * Layout in which the protocol has been written
      */
     @Column(name = "layout")
     private Long layout;
-
-    /**
-     * Device with which the protocol has been written
-     */
-    @Column(name = "device")
-    private Long device;
 
     /**
      * Number of the page (if the protocol contains multiple pages)
@@ -42,11 +46,7 @@ public class Protocol implements Serializable {
     @Column(name = "page_number")
     private Integer pageNumber;
 
-    /**
-     * A protocol belongs to a sample.
-     */
-    @ManyToOne(optional = false)
-    @NotNull
+    @ManyToOne
     @JsonIgnoreProperties("protocols")
     private Sample sample;
 
@@ -72,19 +72,6 @@ public class Protocol implements Serializable {
         this.layout = layout;
     }
 
-    public Long getDevice() {
-        return device;
-    }
-
-    public Protocol device(Long device) {
-        this.device = device;
-        return this;
-    }
-
-    public void setDevice(Long device) {
-        this.device = device;
-    }
-
     public Integer getPageNumber() {
         return pageNumber;
     }
@@ -96,6 +83,19 @@ public class Protocol implements Serializable {
 
     public void setPageNumber(Integer pageNumber) {
         this.pageNumber = pageNumber;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public Protocol projectId(Long projectId) {
+        this.projectId = projectId;
+        return this;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 
     public Sample getSample() {
@@ -132,8 +132,8 @@ public class Protocol implements Serializable {
     public String toString() {
         return "Protocol{" +
             "id=" + getId() +
+            ", projectId=" + getProjectId() +
             ", layout=" + getLayout() +
-            ", device=" + getDevice() +
             ", pageNumber=" + getPageNumber() +
             "}";
     }

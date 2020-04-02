@@ -39,8 +39,9 @@ public class Note implements Serializable {
     /**
      * A note belongs to a sample.
      */
-    @ManyToOne(optional = false)
     @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "sample_id", updatable = false)
     @JsonIgnoreProperties("notes")
     private Sample sample;
 

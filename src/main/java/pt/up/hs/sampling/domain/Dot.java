@@ -13,7 +13,9 @@ import java.time.Instant;
 import pt.up.hs.sampling.domain.enumeration.DotType;
 
 /**
- * Dot represents an event of the smartpen (part of a protocol).\n\n@author José Carlos Paiva
+ * Dot represents an event of the smartpen (part of a protocol).
+ *
+ * @author José Carlos Paiva
  */
 @Entity
 @Table(name = "dot")
@@ -54,24 +56,6 @@ public class Dot implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private DotType type;
-
-    /**
-     * Tilt of the pen in X axis
-     */
-    @Column(name = "tilt_x")
-    private Integer tiltX;
-
-    /**
-     * Tilt of the pen in Y axis
-     */
-    @Column(name = "tilt_y")
-    private Integer tiltY;
-
-    /**
-     * Twist angle of the pen
-     */
-    @Column(name = "twist")
-    private Integer twist;
 
     /**
      * Pressure applied to the pen tip
@@ -148,45 +132,6 @@ public class Dot implements Serializable {
         this.type = type;
     }
 
-    public Integer getTiltX() {
-        return tiltX;
-    }
-
-    public Dot tiltX(Integer tiltX) {
-        this.tiltX = tiltX;
-        return this;
-    }
-
-    public void setTiltX(Integer tiltX) {
-        this.tiltX = tiltX;
-    }
-
-    public Integer getTiltY() {
-        return tiltY;
-    }
-
-    public Dot tiltY(Integer tiltY) {
-        this.tiltY = tiltY;
-        return this;
-    }
-
-    public void setTiltY(Integer tiltY) {
-        this.tiltY = tiltY;
-    }
-
-    public Integer getTwist() {
-        return twist;
-    }
-
-    public Dot twist(Integer twist) {
-        this.twist = twist;
-        return this;
-    }
-
-    public void setTwist(Integer twist) {
-        this.twist = twist;
-    }
-
     public Double getPressure() {
         return pressure;
     }
@@ -238,9 +183,6 @@ public class Dot implements Serializable {
             ", x=" + getX() +
             ", y=" + getY() +
             ", type='" + getType() + "'" +
-            ", tiltX=" + getTiltX() +
-            ", tiltY=" + getTiltY() +
-            ", twist=" + getTwist() +
             ", pressure=" + getPressure() +
             "}";
     }

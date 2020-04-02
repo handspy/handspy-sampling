@@ -15,23 +15,23 @@ public class NoteDTO implements Serializable {
     private Long id;
 
     /**
-     * Text of the note
+     * A note belongs to a sample.
      */
-    @ApiModelProperty(value = "Text of the note")
+    @NotNull
+    @ApiModelProperty(value = "A note belongs to a sample.", required = true)
+    private Long sampleId;
+
+    /**
+     * Text of the note.
+     */
+    @ApiModelProperty(value = "Text of the note.")
     private String text;
 
     /**
-     * Is this note private
+     * Is this note private.
      */
-    @ApiModelProperty(value = "Is this note private")
+    @ApiModelProperty(value = "Is this note private?")
     private Boolean self;
-
-    /**
-     * A note belongs to a sample.
-     */
-    @ApiModelProperty(value = "A note belongs to a sample.")
-
-    private Long sampleId;
 
     public Long getId() {
         return id;
@@ -39,6 +39,14 @@ public class NoteDTO implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getSampleId() {
+        return sampleId;
+    }
+
+    public void setSampleId(Long sampleId) {
+        this.sampleId = sampleId;
     }
 
     public String getText() {
@@ -55,14 +63,6 @@ public class NoteDTO implements Serializable {
 
     public void setSelf(Boolean self) {
         this.self = self;
-    }
-
-    public Long getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
     }
 
     @Override
@@ -90,9 +90,9 @@ public class NoteDTO implements Serializable {
     public String toString() {
         return "NoteDTO{" +
             "id=" + getId() +
+            ", sampleId=" + getSampleId() +
             ", text='" + getText() + "'" +
             ", self='" + isSelf() + "'" +
-            ", sampleId=" + getSampleId() +
             "}";
     }
 }

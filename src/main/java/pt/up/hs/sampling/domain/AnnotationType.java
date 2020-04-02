@@ -24,6 +24,13 @@ public class AnnotationType implements Serializable {
     private Long id;
 
     /**
+     * ID of the project in the Project Microservice.
+     */
+    @NotNull
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
+    /**
      * Name of this type of annotation
      */
     @NotNull
@@ -51,13 +58,15 @@ public class AnnotationType implements Serializable {
     private Boolean emotional;
 
     /**
-     * Weight of annotations of this type (e.g. an emotional annotation of sadness may have a negative weight while an emotional annotation of hapiness may have a positive weight)
+     * Weight of annotations of this type (e.g. an emotional annotation of
+     * sadness may have a negative weight while an emotional annotation of
+     * happiness may have a positive weight).
      */
     @Column(name = "weight")
     private Double weight;
 
     /**
-     * Color associated with this type of annotation
+     * Color associated with this type of annotation.
      */
     @NotNull
     @Size(max = 20)
@@ -150,6 +159,19 @@ public class AnnotationType implements Serializable {
     public void setColor(String color) {
         this.color = color;
     }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public AnnotationType projectId(Long projectId) {
+        this.projectId = projectId;
+        return this;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
@@ -172,6 +194,7 @@ public class AnnotationType implements Serializable {
     public String toString() {
         return "AnnotationType{" +
             "id=" + getId() +
+            ", projectId=" + getProjectId() +
             ", name='" + getName() + "'" +
             ", label='" + getLabel() + "'" +
             ", description='" + getDescription() + "'" +

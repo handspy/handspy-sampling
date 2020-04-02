@@ -1,15 +1,10 @@
 package pt.up.hs.sampling.service.dto;
 
+import io.github.jhipster.service.Criteria;
+import io.github.jhipster.service.filter.*;
+
 import java.io.Serializable;
 import java.util.Objects;
-import io.github.jhipster.service.Criteria;
-import io.github.jhipster.service.filter.BooleanFilter;
-import io.github.jhipster.service.filter.DoubleFilter;
-import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.FloatFilter;
-import io.github.jhipster.service.filter.IntegerFilter;
-import io.github.jhipster.service.filter.LongFilter;
-import io.github.jhipster.service.filter.StringFilter;
 
 /**
  * Criteria class for the {@link pt.up.hs.sampling.domain.AnnotationType} entity. This class is used
@@ -135,27 +130,27 @@ public class AnnotationTypeCriteria implements Serializable, Criteria {
     @Override
     public int hashCode() {
         return Objects.hash(
-        id,
-        name,
-        label,
-        description,
-        emotional,
-        weight,
-        color
+            id,
+            name,
+            label,
+            description,
+            emotional,
+            weight,
+            color
         );
     }
 
     @Override
     public String toString() {
         return "AnnotationTypeCriteria{" +
-                (id != null ? "id=" + id + ", " : "") +
-                (name != null ? "name=" + name + ", " : "") +
-                (label != null ? "label=" + label + ", " : "") +
-                (description != null ? "description=" + description + ", " : "") +
-                (emotional != null ? "emotional=" + emotional + ", " : "") +
-                (weight != null ? "weight=" + weight + ", " : "") +
-                (color != null ? "color=" + color + ", " : "") +
-            "}";
+            (id != null ? "id=" + id + ", " : "") +
+            (name != null ? "name=" + name + ", " : "") +
+            (label != null ? "label=" + label + ", " : "") +
+            (description != null ? "description=" + description + ", " : "") +
+            (emotional != null ? "emotional=" + emotional + ", " : "") +
+            (weight != null ? "weight=" + weight + ", " : "") +
+            (color != null ? "color=" + color + ", " : "") +
+        "}";
     }
 
 }

@@ -34,7 +34,6 @@ public class TextQueryService extends QueryService<Text> {
     private final Logger log = LoggerFactory.getLogger(TextQueryService.class);
 
     private final TextRepository textRepository;
-
     private final TextMapper textMapper;
 
     public TextQueryService(TextRepository textRepository, TextMapper textMapper) {
@@ -44,39 +43,48 @@ public class TextQueryService extends QueryService<Text> {
 
     /**
      * Return a {@link List} of {@link TextDTO} which matches the criteria from the database.
+     *
+     * @param projectId the ID of the project the texts belongs to.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<TextDTO> findByCriteria(TextCriteria criteria) {
-        log.debug("find by criteria : {}", criteria);
-        final Specification<Text> specification = createSpecification(criteria);
+    public List<TextDTO> findByCriteria(Long projectId, TextCriteria criteria) {
+        log.debug("find by criteria {} in project {}", criteria, projectId);
+        final Specification<Text> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return textMapper.toDto(textRepository.findAll(specification));
     }
 
     /**
      * Return a {@link Page} of {@link TextDTO} which matches the criteria from the database.
+     *
+     * @param projectId the ID of the project the texts belongs to.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<TextDTO> findByCriteria(TextCriteria criteria, Pageable page) {
-        log.debug("find by criteria : {}, page: {}", criteria, page);
-        final Specification<Text> specification = createSpecification(criteria);
+    public Page<TextDTO> findByCriteria(Long projectId, TextCriteria criteria, Pageable page) {
+        log.debug("find by criteria {}, page {} in project {}", criteria, page, projectId);
+        final Specification<Text> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return textRepository.findAll(specification, page)
             .map(textMapper::toDto);
     }
 
     /**
      * Return the number of matching entities in the database.
+     *
+     * @param projectId the ID of the project the texts belongs to.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the number of matching entities.
      */
     @Transactional(readOnly = true)
-    public long countByCriteria(TextCriteria criteria) {
-        log.debug("count by criteria : {}", criteria);
-        final Specification<Text> specification = createSpecification(criteria);
+    public long countByCriteria(Long projectId, TextCriteria criteria) {
+        log.debug("count by criteria {} in project {}", criteria, projectId);
+        final Specification<Text> specification = createSpecification(criteria)
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return textRepository.count(specification);
     }
 

@@ -39,6 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
 public class LayoutResourceIT {
 
+    private static final Long DEFAULT_PROJECT_ID = 1L;
+    private static final Long OTHER_PROJECT_ID = 2L;
+
     private static final String DEFAULT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_NAME = "BBBBBBBBBB";
 
@@ -361,7 +364,7 @@ public class LayoutResourceIT {
             .andExpect(jsonPath("$.[*].marginBottom").value(hasItem(DEFAULT_MARGIN_BOTTOM)))
             .andExpect(jsonPath("$.[*].url").value(hasItem(DEFAULT_URL)));
     }
-    
+
     @Test
     @Transactional
     public void getLayout() throws Exception {

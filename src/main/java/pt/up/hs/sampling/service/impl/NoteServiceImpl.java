@@ -36,12 +36,15 @@ public class NoteServiceImpl implements NoteService {
     /**
      * Save a note.
      *
-     * @param noteDTO the entity to save.
+     * @param projectId ID of the project to which the note belongs.
+     * @param sampleId  ID of the sample to which the note belongs.
+     * @param noteDTO   the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public NoteDTO save(NoteDTO noteDTO) {
-        log.debug("Request to save Note : {}", noteDTO);
+    public NoteDTO save(Long projectId, Long sampleId, NoteDTO noteDTO) {
+        log.debug("Request to save Note {} in sample {} of project {}", noteDTO, sampleId, projectId);
+        noteDTO.setSampleId(sampleId);
         Note note = noteMapper.toEntity(noteDTO);
         note = noteRepository.save(note);
         return noteMapper.toDto(note);
@@ -50,39 +53,45 @@ public class NoteServiceImpl implements NoteService {
     /**
      * Get all the notes.
      *
-     * @param pageable the pagination information.
+     * @param projectId ID of the project to which the note belongs.
+     * @param sampleId  ID of the sample to which the note belongs.
+     * @param pageable  the pagination information.
      * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<NoteDTO> findAll(Pageable pageable) {
-        log.debug("Request to get all Notes");
-        return noteRepository.findAll(pageable)
+    public Page<NoteDTO> findAll(Long projectId, Long sampleId, Pageable pageable) {
+        log.debug("Request to get all Notes in sample {} of project {}", sampleId, projectId);
+        return noteRepository.findAllByProjectIdAndSampleId(projectId, sampleId, pageable)
             .map(noteMapper::toDto);
     }
 
     /**
-     * Get one note by id.
+     * Get the "id" note.
      *
-     * @param id the id of the entity.
+     * @param projectId ID of the project to which the note belongs.
+     * @param sampleId  ID of the sample to which the note belongs.
+     * @param id        the id of the entity.
      * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<NoteDTO> findOne(Long id) {
-        log.debug("Request to get Note : {}", id);
-        return noteRepository.findById(id)
+    public Optional<NoteDTO> findOne(Long projectId, Long sampleId, Long id) {
+        log.debug("Request to get Note {} in sample {} of project {}", id, sampleId, projectId);
+        return noteRepository.findBySampleProjectIdAndSampleIdAndId(projectId, sampleId, id)
             .map(noteMapper::toDto);
     }
 
     /**
-     * Delete the note by id.
+     * Delete the "id" note.
      *
-     * @param id the id of the entity.
+     * @param projectId ID of the project to which the note belongs.
+     * @param sampleId  ID of the sample to which the note belongs.
+     * @param id        the id of the entity.
      */
     @Override
-    public void delete(Long id) {
-        log.debug("Request to delete Note : {}", id);
-        noteRepository.deleteById(id);
+    public void delete(Long projectId, Long sampleId, Long id) {
+        log.debug("Request to delete Note {} in sample {} of project {}", id, sampleId, projectId);
+        noteRepository.deleteAllBySampleProjectIdAndSampleIdAndId(projectId, sampleId, id);
     }
 }

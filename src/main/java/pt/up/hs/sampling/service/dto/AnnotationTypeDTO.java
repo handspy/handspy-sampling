@@ -8,31 +8,41 @@ import java.util.Objects;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.AnnotationType} entity.
+ *
+ * @author José Carlos Paiva
  */
-@ApiModel(description = "Types of annotations that can be added in a text.\n\n@author José Carlos Paiva")
+@ApiModel(description = "Types of annotations that can be added in a text.")
 public class AnnotationTypeDTO implements Serializable {
 
     private Long id;
 
     /**
-     * Name of this type of annotation
+     * ID of the project (from Projects microservice).
      */
     @NotNull
-    @ApiModelProperty(value = "Name of this type of annotation", required = true)
+    @ApiModelProperty(value = "ID of the project (from Projects microservice).", required = true)
+    private Long projectId;
+
+    /**
+     * Name of this type of annotation.
+     */
+    @NotNull
+    @ApiModelProperty(value = "Name of this type of annotation.", required = true)
     private String name;
 
     /**
      * Label of this type of annotation
      */
     @NotNull
-    @ApiModelProperty(value = "Label of this type of annotation", required = true)
+    @Size(max = 50)
+    @ApiModelProperty(value = "Label of this type of annotation.", required = true)
     private String label;
 
     /**
      * Details about this type of annotation
      */
     @Size(max = 300)
-    @ApiModelProperty(value = "Details about this type of annotation")
+    @ApiModelProperty(value = "Details about this type of annotation.")
     private String description;
 
     /**
@@ -42,17 +52,21 @@ public class AnnotationTypeDTO implements Serializable {
     private Boolean emotional;
 
     /**
-     * Weight of annotations of this type (e.g. an emotional annotation of sadness may have a negative weight while an emotional annotation of hapiness may have a positive weight)
+     * Weight of annotations of this type (e.g. an emotional annotation of
+     * sadness may have a negative weight while an emotional annotation of
+     * happiness may have a positive weight).
      */
-    @ApiModelProperty(value = "Weight of annotations of this type (e.g. an emotional annotation of sadness may have a negative weight while an emotional annotation of hapiness may have a positive weight)")
+    @ApiModelProperty(value = "Weight of annotations of this type (e.g. an e" +
+        "motional annotation of sadness may have a negative weight while an " +
+        "emotional annotation of happiness may have a positive weight).")
     private Double weight;
 
     /**
-     * Color associated with this type of annotation
+     * Color associated with this type of annotation.
      */
     @NotNull
     @Size(max = 20)
-    @ApiModelProperty(value = "Color associated with this type of annotation", required = true)
+    @ApiModelProperty(value = "Color associated with this type of annotation.", required = true)
     private String color;
 
 
@@ -112,6 +126,14 @@ public class AnnotationTypeDTO implements Serializable {
         this.color = color;
     }
 
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -137,6 +159,7 @@ public class AnnotationTypeDTO implements Serializable {
     public String toString() {
         return "AnnotationTypeDTO{" +
             "id=" + getId() +
+            ", projectId=" + getProjectId() +
             ", name='" + getName() + "'" +
             ", label='" + getLabel() + "'" +
             ", description='" + getDescription() + "'" +

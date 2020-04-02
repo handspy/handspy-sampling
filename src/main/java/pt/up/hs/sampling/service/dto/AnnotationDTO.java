@@ -8,45 +8,47 @@ import java.util.Objects;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Annotation} entity.
+ *
+ * @author José Carlos Paiva
  */
-@ApiModel(description = "An annotation added in a text.\n\n@author José Carlos Paiva")
+@ApiModel(description = "An annotation added in a text.\n\n")
 public class AnnotationDTO implements Serializable {
 
     private Long id;
 
     /**
-     * Type of this annotation
+     * An annotation is made in a text.
      */
     @NotNull
-    @ApiModelProperty(value = "Type of this annotation", required = true)
-    private Long type;
+    @ApiModelProperty(value = "An annotation is made in a text.", required = true)
+    private Long textId;
 
     /**
-     * Start position of the annotation
+     * Start position of the annotation.
      */
     @NotNull
-    @ApiModelProperty(value = "Start position of the annotation", required = true)
+    @ApiModelProperty(value = "Start position of the annotation.", required = true)
     private Integer start;
 
     /**
-     * Size of the annotation
+     * Size of the annotation.
      */
     @NotNull
-    @ApiModelProperty(value = "Size of the annotation", required = true)
+    @ApiModelProperty(value = "Size of the annotation.", required = true)
     private Integer size;
 
     /**
-     * Note about annotation
+     * Note about annotation.
      */
-    @ApiModelProperty(value = "Note about annotation")
+    @ApiModelProperty(value = "Note about annotation.")
     private String note;
 
     /**
-     * An annotation is made in a text.
+     * Type of this annotation.
      */
-    @ApiModelProperty(value = "An annotation is made in a text.")
-
-    private Long textId;
+    @NotNull
+    @ApiModelProperty(value = "Type of this annotation.", required = true)
+    private Long annotationTypeId;
 
     public Long getId() {
         return id;
@@ -56,12 +58,12 @@ public class AnnotationDTO implements Serializable {
         this.id = id;
     }
 
-    public Long getType() {
-        return type;
+    public Long getAnnotationTypeId() {
+        return annotationTypeId;
     }
 
-    public void setType(Long type) {
-        this.type = type;
+    public void setAnnotationTypeId(Long annotationTypeId) {
+        this.annotationTypeId = annotationTypeId;
     }
 
     public Integer getStart() {
@@ -121,10 +123,10 @@ public class AnnotationDTO implements Serializable {
     public String toString() {
         return "AnnotationDTO{" +
             "id=" + getId() +
-            ", type=" + getType() +
             ", start=" + getStart() +
             ", size=" + getSize() +
             ", note='" + getNote() + "'" +
+            ", annotationTypeId=" + getAnnotationTypeId() +
             ", textId=" + getTextId() +
             "}";
     }

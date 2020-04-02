@@ -9,11 +9,20 @@ import java.util.Objects;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Sample} entity.
+ *
+ * @author José Carlos Paiva
  */
-@ApiModel(description = "Sample of a participant for analysis in a task.\n\n@author José Carlos Paiva")
+@ApiModel(description = "Sample of a participant for analysis in a task.")
 public class SampleDTO implements Serializable {
 
     private Long id;
+
+    /**
+     * ID of the project (from Projects microservice).
+     */
+    @NotNull
+    @ApiModelProperty(value = "ID of the project (from Projects microservice).", required = true)
+    private Long projectId;
 
     /**
      * Task in which this sample is inserted.
@@ -82,6 +91,14 @@ public class SampleDTO implements Serializable {
         this.language = language;
     }
 
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -107,6 +124,7 @@ public class SampleDTO implements Serializable {
     public String toString() {
         return "SampleDTO{" +
             "id=" + getId() +
+            ", projectId=" + getProjectId() +
             ", task=" + getTask() +
             ", participant=" + getParticipant() +
             ", timestamp='" + getTimestamp() + "'" +

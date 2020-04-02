@@ -7,25 +7,25 @@
             "fieldType": "Long"
         },
         {
-            "fieldName": "device",
-            "javadoc": "Device with which the protocol has been written",
-            "fieldType": "Long"
-        },
-        {
             "fieldName": "pageNumber",
             "javadoc": "Number of the page (if the protocol contains multiple pages)",
             "fieldType": "Integer"
+        },
+        {
+            "fieldName": "projectId",
+            "fieldType": "Long",
+            "fieldValidateRules": [
+                "required"
+            ]
         }
     ],
     "relationships": [
         {
-            "relationshipType": "many-to-one",
-            "otherEntityName": "sample",
-            "otherEntityRelationshipName": "protocol",
-            "relationshipValidateRules": "required",
-            "javadoc": "A protocol belongs to a sample.",
             "relationshipName": "sample",
-            "otherEntityField": "id"
+            "otherEntityName": "sample",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id",
+            "otherEntityRelationshipName": "protocol"
         }
     ],
     "changelogDate": "20200223180318",
@@ -37,10 +37,12 @@
     "jpaMetamodelFiltering": true,
     "fluentMethods": true,
     "readOnly": false,
-    "clientRootFolder": "",
+    "clientRootFolder": "sampling",
     "applications": [
         "gateway",
         "sampling"
     ],
-    "microserviceName": "sampling"
+    "microserviceName": "sampling",
+    "searchEngine": false,
+    "databaseType": "sql"
 }

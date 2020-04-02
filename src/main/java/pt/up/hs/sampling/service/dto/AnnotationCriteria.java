@@ -2,11 +2,9 @@ package pt.up.hs.sampling.service.dto;
 
 import java.io.Serializable;
 import java.util.Objects;
+
 import io.github.jhipster.service.Criteria;
-import io.github.jhipster.service.filter.BooleanFilter;
-import io.github.jhipster.service.filter.DoubleFilter;
 import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.FloatFilter;
 import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
@@ -26,26 +24,23 @@ public class AnnotationCriteria implements Serializable, Criteria {
 
     private LongFilter id;
 
-    private LongFilter type;
-
     private IntegerFilter start;
 
     private IntegerFilter size;
 
     private StringFilter note;
 
-    private LongFilter textId;
+    private LongFilter annotationTypeId;
 
     public AnnotationCriteria() {
     }
 
     public AnnotationCriteria(AnnotationCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
-        this.type = other.type == null ? null : other.type.copy();
+        this.annotationTypeId = other.annotationTypeId == null ? null : other.annotationTypeId.copy();
         this.start = other.start == null ? null : other.start.copy();
         this.size = other.size == null ? null : other.size.copy();
         this.note = other.note == null ? null : other.note.copy();
-        this.textId = other.textId == null ? null : other.textId.copy();
     }
 
     @Override
@@ -61,12 +56,12 @@ public class AnnotationCriteria implements Serializable, Criteria {
         this.id = id;
     }
 
-    public LongFilter getType() {
-        return type;
+    public LongFilter getAnnotationTypeId() {
+        return annotationTypeId;
     }
 
-    public void setType(LongFilter type) {
-        this.type = type;
+    public void setAnnotationTypeId(LongFilter annotationTypeId) {
+        this.annotationTypeId = annotationTypeId;
     }
 
     public IntegerFilter getStart() {
@@ -93,14 +88,6 @@ public class AnnotationCriteria implements Serializable, Criteria {
         this.note = note;
     }
 
-    public LongFilter getTextId() {
-        return textId;
-    }
-
-    public void setTextId(LongFilter textId) {
-        this.textId = textId;
-    }
-
 
     @Override
     public boolean equals(Object o) {
@@ -113,35 +100,31 @@ public class AnnotationCriteria implements Serializable, Criteria {
         final AnnotationCriteria that = (AnnotationCriteria) o;
         return
             Objects.equals(id, that.id) &&
-            Objects.equals(type, that.type) &&
-            Objects.equals(start, that.start) &&
-            Objects.equals(size, that.size) &&
-            Objects.equals(note, that.note) &&
-            Objects.equals(textId, that.textId);
+                Objects.equals(annotationTypeId, that.annotationTypeId) &&
+                Objects.equals(start, that.start) &&
+                Objects.equals(size, that.size) &&
+                Objects.equals(note, that.note);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-        id,
-        type,
-        start,
-        size,
-        note,
-        textId
+            id,
+            annotationTypeId,
+            start,
+            size,
+            note
         );
     }
 
     @Override
     public String toString() {
         return "AnnotationCriteria{" +
-                (id != null ? "id=" + id + ", " : "") +
-                (type != null ? "type=" + type + ", " : "") +
-                (start != null ? "start=" + start + ", " : "") +
-                (size != null ? "size=" + size + ", " : "") +
-                (note != null ? "note=" + note + ", " : "") +
-                (textId != null ? "textId=" + textId + ", " : "") +
-            "}";
+            (id != null ? "id=" + id + ", " : "") +
+            (annotationTypeId != null ? "annotationTypeId=" + annotationTypeId + ", " : "") +
+            (start != null ? "start=" + start + ", " : "") +
+            (size != null ? "size=" + size + ", " : "") +
+            (note != null ? "note=" + note + ", " : "") +
+        "}";
     }
-
 }

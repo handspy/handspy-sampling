@@ -7,12 +7,18 @@
         Added the constraints for entity Annotation.
     -->
     <changeSet id="20200223180618-2" author="jhipster">
-        
+
         <addForeignKeyConstraint baseColumnNames="text_id"
                                  baseTableName="annotation"
                                  constraintName="fk_annotation_text_id"
                                  referencedColumnNames="id"
                                  referencedTableName="text"/>
+
+        <addForeignKeyConstraint baseColumnNames="annotation_type_id"
+                                 baseTableName="annotation"
+                                 constraintName="fk_annotation_annotation_type_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="annotation_type"/>
 
     </changeSet>
 </databaseChangeLog>

@@ -41,6 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
 public class SampleResourceIT {
 
+    private static final Long DEFAULT_PROJECT_ID = 1L;
+    private static final Long OTHER_PROJECT_ID = 2L;
+
     private static final Long DEFAULT_TASK = 1L;
     private static final Long UPDATED_TASK = 2L;
     private static final Long SMALLER_TASK = 1L - 1L;
@@ -105,12 +108,12 @@ public class SampleResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Sample createEntity(EntityManager em) {
-        Sample sample = new Sample()
+        return new Sample()
             .task(DEFAULT_TASK)
             .participant(DEFAULT_PARTICIPANT)
             .timestamp(DEFAULT_TIMESTAMP)
-            .language(DEFAULT_LANGUAGE);
-        return sample;
+            .language(DEFAULT_LANGUAGE)
+            .projectId(DEFAULT_PROJECT_ID);
     }
     /**
      * Create an updated entity for this test.
@@ -119,12 +122,12 @@ public class SampleResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Sample createUpdatedEntity(EntityManager em) {
-        Sample sample = new Sample()
+        return new Sample()
             .task(UPDATED_TASK)
             .participant(UPDATED_PARTICIPANT)
             .timestamp(UPDATED_TIMESTAMP)
-            .language(UPDATED_LANGUAGE);
-        return sample;
+            .language(UPDATED_LANGUAGE)
+            .projectId(OTHER_PROJECT_ID);
     }
 
     @BeforeEach
@@ -139,7 +142,7 @@ public class SampleResourceIT {
 
         // Create the Sample
         SampleDTO sampleDTO = sampleMapper.toDto(sample);
-        restSampleMockMvc.perform(post("/api/samples")
+        restSampleMockMvc.perform(post("/api/projects/{projectId}/samples", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(sampleDTO)))
             .andExpect(status().isCreated());
@@ -152,6 +155,7 @@ public class SampleResourceIT {
         assertThat(testSample.getParticipant()).isEqualTo(DEFAULT_PARTICIPANT);
         assertThat(testSample.getTimestamp()).isEqualTo(DEFAULT_TIMESTAMP);
         assertThat(testSample.getLanguage()).isEqualTo(DEFAULT_LANGUAGE);
+        assertThat(testSample.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
 
     @Test
@@ -164,7 +168,7 @@ public class SampleResourceIT {
         SampleDTO sampleDTO = sampleMapper.toDto(sample);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restSampleMockMvc.perform(post("/api/samples")
+        restSampleMockMvc.perform(post("/api/projects/{projectId}/samples", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(sampleDTO)))
             .andExpect(status().isBadRequest());
@@ -185,7 +189,7 @@ public class SampleResourceIT {
         // Create the Sample, which fails.
         SampleDTO sampleDTO = sampleMapper.toDto(sample);
 
-        restSampleMockMvc.perform(post("/api/samples")
+        restSampleMockMvc.perform(post("/api/projects/{projectId}/samples", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(sampleDTO)))
             .andExpect(status().isBadRequest());
@@ -204,7 +208,26 @@ public class SampleResourceIT {
         // Create the Sample, which fails.
         SampleDTO sampleDTO = sampleMapper.toDto(sample);
 
-        restSampleMockMvc.perform(post("/api/samples")
+        restSampleMockMvc.perform(post("/api/projects/{projectId}/samples", DEFAULT_PROJECT_ID)
+            .contentType(TestUtil.APPLICATION_JSON)
+            .content(TestUtil.convertObjectToJsonBytes(sampleDTO)))
+            .andExpect(status().isBadRequest());
+
+        List<Sample> sampleList = sampleRepository.findAll();
+        assertThat(sampleList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    public void checkProjectIdIsRequired() throws Exception {
+        int databaseSizeBeforeTest = sampleRepository.findAll().size();
+        // set the field null
+        sample.setProjectId(null);
+
+        // Create the Sample, which fails.
+        SampleDTO sampleDTO = sampleMapper.toDto(sample);
+
+        restSampleMockMvc.perform(post("/api/projects/{projectId}/samples", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(sampleDTO)))
             .andExpect(status().isBadRequest());
@@ -220,16 +243,17 @@ public class SampleResourceIT {
         sampleRepository.saveAndFlush(sample);
 
         // Get all the sampleList
-        restSampleMockMvc.perform(get("/api/samples?sort=id,desc"))
+        restSampleMockMvc.perform(get("/api/projects/{projectId}/samples?sort=id,desc", DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(sample.getId().intValue())))
             .andExpect(jsonPath("$.[*].task").value(hasItem(DEFAULT_TASK.intValue())))
             .andExpect(jsonPath("$.[*].participant").value(hasItem(DEFAULT_PARTICIPANT.intValue())))
             .andExpect(jsonPath("$.[*].timestamp").value(hasItem(DEFAULT_TIMESTAMP.toString())))
-            .andExpect(jsonPath("$.[*].language").value(hasItem(DEFAULT_LANGUAGE)));
+            .andExpect(jsonPath("$.[*].language").value(hasItem(DEFAULT_LANGUAGE)))
+            .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
     }
-    
+
     @Test
     @Transactional
     public void getSample() throws Exception {
@@ -237,14 +261,15 @@ public class SampleResourceIT {
         sampleRepository.saveAndFlush(sample);
 
         // Get the sample
-        restSampleMockMvc.perform(get("/api/samples/{id}", sample.getId()))
+        restSampleMockMvc.perform(get("/api/projects/{projectId}/samples/{id}", DEFAULT_PROJECT_ID, sample.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(sample.getId().intValue()))
             .andExpect(jsonPath("$.task").value(DEFAULT_TASK.intValue()))
             .andExpect(jsonPath("$.participant").value(DEFAULT_PARTICIPANT.intValue()))
             .andExpect(jsonPath("$.timestamp").value(DEFAULT_TIMESTAMP.toString()))
-            .andExpect(jsonPath("$.language").value(DEFAULT_LANGUAGE));
+            .andExpect(jsonPath("$.language").value(DEFAULT_LANGUAGE))
+            .andExpect(jsonPath("$.projectId").value(DEFAULT_PROJECT_ID.intValue()));
     }
 
 
@@ -610,17 +635,18 @@ public class SampleResourceIT {
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultSampleShouldBeFound(String filter) throws Exception {
-        restSampleMockMvc.perform(get("/api/samples?sort=id,desc&" + filter))
+        restSampleMockMvc.perform(get("/api/projects/{projectId}/samples?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(sample.getId().intValue())))
             .andExpect(jsonPath("$.[*].task").value(hasItem(DEFAULT_TASK.intValue())))
             .andExpect(jsonPath("$.[*].participant").value(hasItem(DEFAULT_PARTICIPANT.intValue())))
             .andExpect(jsonPath("$.[*].timestamp").value(hasItem(DEFAULT_TIMESTAMP.toString())))
-            .andExpect(jsonPath("$.[*].language").value(hasItem(DEFAULT_LANGUAGE)));
+            .andExpect(jsonPath("$.[*].language").value(hasItem(DEFAULT_LANGUAGE)))
+            .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
 
         // Check, that the count call also returns 1
-        restSampleMockMvc.perform(get("/api/samples/count?sort=id,desc&" + filter))
+        restSampleMockMvc.perform(get("/api/projects/{projectId}/samples/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -630,14 +656,14 @@ public class SampleResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultSampleShouldNotBeFound(String filter) throws Exception {
-        restSampleMockMvc.perform(get("/api/samples?sort=id,desc&" + filter))
+        restSampleMockMvc.perform(get("/api/projects/{projectId}/samples?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restSampleMockMvc.perform(get("/api/samples/count?sort=id,desc&" + filter))
+        restSampleMockMvc.perform(get("/api/projects/{projectId}/samples/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -648,7 +674,7 @@ public class SampleResourceIT {
     @Transactional
     public void getNonExistingSample() throws Exception {
         // Get the sample
-        restSampleMockMvc.perform(get("/api/samples/{id}", Long.MAX_VALUE))
+        restSampleMockMvc.perform(get("/api/projects/{projectId}/samples/{id}", DEFAULT_PROJECT_ID, Long.MAX_VALUE))
             .andExpect(status().isNotFound());
     }
 
@@ -668,10 +694,11 @@ public class SampleResourceIT {
             .task(UPDATED_TASK)
             .participant(UPDATED_PARTICIPANT)
             .timestamp(UPDATED_TIMESTAMP)
-            .language(UPDATED_LANGUAGE);
+            .language(UPDATED_LANGUAGE)
+            .projectId(OTHER_PROJECT_ID);
         SampleDTO sampleDTO = sampleMapper.toDto(updatedSample);
 
-        restSampleMockMvc.perform(put("/api/samples")
+        restSampleMockMvc.perform(put("/api/projects/{projectId}/samples", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(sampleDTO)))
             .andExpect(status().isOk());
@@ -684,6 +711,7 @@ public class SampleResourceIT {
         assertThat(testSample.getParticipant()).isEqualTo(UPDATED_PARTICIPANT);
         assertThat(testSample.getTimestamp()).isEqualTo(UPDATED_TIMESTAMP);
         assertThat(testSample.getLanguage()).isEqualTo(UPDATED_LANGUAGE);
+        assertThat(testSample.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
 
     @Test
@@ -695,7 +723,7 @@ public class SampleResourceIT {
         SampleDTO sampleDTO = sampleMapper.toDto(sample);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restSampleMockMvc.perform(put("/api/samples")
+        restSampleMockMvc.perform(put("/api/projects/{projectId}/samples", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(sampleDTO)))
             .andExpect(status().isBadRequest());
@@ -714,7 +742,7 @@ public class SampleResourceIT {
         int databaseSizeBeforeDelete = sampleRepository.findAll().size();
 
         // Delete the sample
-        restSampleMockMvc.perform(delete("/api/samples/{id}", sample.getId())
+        restSampleMockMvc.perform(delete("/api/projects/{projectId}/samples/{id}", DEFAULT_PROJECT_ID, sample.getId())
             .accept(TestUtil.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 

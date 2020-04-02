@@ -1,15 +1,12 @@
 package pt.up.hs.sampling.service.dto;
 
-import java.io.Serializable;
-import java.util.Objects;
 import io.github.jhipster.service.Criteria;
-import io.github.jhipster.service.filter.BooleanFilter;
-import io.github.jhipster.service.filter.DoubleFilter;
 import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.FloatFilter;
 import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
-import io.github.jhipster.service.filter.StringFilter;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Criteria class for the {@link pt.up.hs.sampling.domain.Protocol} entity. This class is used
@@ -28,8 +25,6 @@ public class ProtocolCriteria implements Serializable, Criteria {
 
     private LongFilter layout;
 
-    private LongFilter device;
-
     private IntegerFilter pageNumber;
 
     private LongFilter sampleId;
@@ -40,7 +35,6 @@ public class ProtocolCriteria implements Serializable, Criteria {
     public ProtocolCriteria(ProtocolCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
         this.layout = other.layout == null ? null : other.layout.copy();
-        this.device = other.device == null ? null : other.device.copy();
         this.pageNumber = other.pageNumber == null ? null : other.pageNumber.copy();
         this.sampleId = other.sampleId == null ? null : other.sampleId.copy();
     }
@@ -64,14 +58,6 @@ public class ProtocolCriteria implements Serializable, Criteria {
 
     public void setLayout(LongFilter layout) {
         this.layout = layout;
-    }
-
-    public LongFilter getDevice() {
-        return device;
-    }
-
-    public void setDevice(LongFilter device) {
-        this.device = device;
     }
 
     public IntegerFilter getPageNumber() {
@@ -103,7 +89,6 @@ public class ProtocolCriteria implements Serializable, Criteria {
         return
             Objects.equals(id, that.id) &&
             Objects.equals(layout, that.layout) &&
-            Objects.equals(device, that.device) &&
             Objects.equals(pageNumber, that.pageNumber) &&
             Objects.equals(sampleId, that.sampleId);
     }
@@ -113,7 +98,6 @@ public class ProtocolCriteria implements Serializable, Criteria {
         return Objects.hash(
         id,
         layout,
-        device,
         pageNumber,
         sampleId
         );
@@ -124,10 +108,8 @@ public class ProtocolCriteria implements Serializable, Criteria {
         return "ProtocolCriteria{" +
                 (id != null ? "id=" + id + ", " : "") +
                 (layout != null ? "layout=" + layout + ", " : "") +
-                (device != null ? "device=" + device + ", " : "") +
                 (pageNumber != null ? "pageNumber=" + pageNumber + ", " : "") +
                 (sampleId != null ? "sampleId=" + sampleId + ", " : "") +
             "}";
     }
-
 }
