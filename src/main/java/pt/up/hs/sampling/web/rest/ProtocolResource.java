@@ -20,6 +20,7 @@ import pt.up.hs.sampling.service.ProtocolService;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
 import pt.up.hs.sampling.service.dto.ProtocolCriteria;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
+import pt.up.hs.sampling.service.exceptions.ServiceException;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 import pt.up.hs.sampling.constants.ErrorKeys;
 
@@ -88,9 +89,8 @@ public class ProtocolResource {
         @RequestParam("file") MultipartFile file
     ) {
         log.debug("REST request to import Protocol sent in multipart/form-data in project {}", projectId);
-        return ResponseEntity.ok(
-            protocolService.importProtocol(projectId, type, file)
-        );
+        BulkImportResultDTO<ProtocolDTO> result = protocolService.importProtocol(projectId, type, file);
+        return ResponseEntity.ok(result);
     }
 
     /**

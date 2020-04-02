@@ -8,6 +8,10 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Handwritten data collected using a smartpen for analysis (part of the
@@ -46,6 +50,15 @@ public class Protocol implements Serializable {
     @Column(name = "page_number")
     private Integer pageNumber;
 
+    @OneToMany(
+        mappedBy = "protocol",
+        cascade = CascadeType.ALL,
+        fetch = FetchType.LAZY,
+        orphanRemoval = true
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<Dot> dots = new ArrayList<>();
+
     @ManyToOne
     @JsonIgnoreProperties("protocols")
     private Sample sample;
@@ -57,6 +70,19 @@ public class Protocol implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public Protocol projectId(Long projectId) {
+        this.projectId = projectId;
+        return this;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 
     public Long getLayout() {
@@ -85,17 +111,23 @@ public class Protocol implements Serializable {
         this.pageNumber = pageNumber;
     }
 
-    public Long getProjectId() {
-        return projectId;
+    public List<Dot> getDots() {
+        return dots;
     }
 
-    public Protocol projectId(Long projectId) {
-        this.projectId = projectId;
+    public Protocol dots(List<Dot> dots) {
+        this.dots = dots;
         return this;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public Protocol addDot(Dot dot) {
+        this.dots.add(dot);
+        dot.setProtocol(this);
+        return this;
+    }
+
+    public void setDots(List<Dot> dots) {
+        this.dots = dots;
     }
 
     public Sample getSample() {

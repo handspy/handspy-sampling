@@ -17,6 +17,7 @@ import org.zalando.problem.Status;
 import org.zalando.problem.spring.web.advice.ProblemHandling;
 import org.zalando.problem.spring.web.advice.security.SecurityAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
+import pt.up.hs.sampling.service.exceptions.ServiceException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -102,6 +103,18 @@ public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait
             .withStatus(Status.CONFLICT)
             .with(MESSAGE_KEY, ErrorConstants.ERR_CONCURRENCY_FAILURE)
             .build();
+        return create(ex, problem, request);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Problem> handleServiceException(ServiceException ex, NativeWebRequest request) {
+        Problem problem;
+        if (ex.getErrorKey() == null) {
+            problem = new ProblemWithoutMessageException(ex.getErrorStatus(), ex.getEntityName());
+        } else {
+            problem = new ProblemWithMessageException(
+                ex.getErrorStatus(), ex.getMessage(), ex.getEntityName(), ex.getErrorKey());
+        }
         return create(ex, problem, request);
     }
 }

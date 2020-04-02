@@ -66,8 +66,9 @@ public class Dot implements Serializable {
     /**
      * A dot belongs to a protocol.
      */
-    @ManyToOne(optional = false)
     @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "protocol_id", updatable = false)
     @JsonIgnoreProperties("dots")
     private Protocol protocol;
 

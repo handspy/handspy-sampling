@@ -6,7 +6,6 @@ import pt.up.hs.sampling.service.dto.ProtocolDTO;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.up.hs.sampling.web.rest.vm.ProtocolUploadType;
 
 import java.io.InputStream;
 import java.util.Optional;

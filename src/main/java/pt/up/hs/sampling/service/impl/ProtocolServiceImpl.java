@@ -1,20 +1,27 @@
 package pt.up.hs.sampling.service.impl;
 
-import org.springframework.web.multipart.MultipartFile;
-import pt.up.hs.sampling.service.ProtocolService;
-import pt.up.hs.sampling.domain.Protocol;
-import pt.up.hs.sampling.repository.ProtocolRepository;
-import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
-import pt.up.hs.sampling.service.dto.ProtocolDTO;
-import pt.up.hs.sampling.service.mapper.ProtocolMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import pt.up.hs.sampling.constants.EntityNames;
+import pt.up.hs.sampling.constants.ErrorKeys;
+import pt.up.hs.sampling.domain.Protocol;
+import pt.up.hs.sampling.repository.ProtocolRepository;
+import pt.up.hs.sampling.service.ProtocolService;
+import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
+import pt.up.hs.sampling.service.dto.ProtocolDTO;
+import pt.up.hs.sampling.service.exceptions.ServiceException;
+import pt.up.hs.sampling.service.mapper.ProtocolMapper;
+import pt.up.hs.uhc.UniversalHandwritingConverter;
+import pt.up.hs.uhc.models.Format;
+import pt.up.hs.uhc.models.Stroke;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -104,7 +111,55 @@ public class ProtocolServiceImpl implements ProtocolService {
     public BulkImportResultDTO<ProtocolDTO> importProtocol(
         Long projectId, String type, MultipartFile file
     ) {
-        Univ
+        List<pt.up.hs.uhc.models.Page> pages;
+        try {
+            pages = new UniversalHandwritingConverter()
+                .inputFormat(formatFromString(type))
+                .file(file.getName(), file.getInputStream())
+                .readAll()
+                .getPages();
+        } catch (IOException e) {
+            throw new ServiceException(EntityNames.PROTOCOL, ErrorKeys.ERR_READ_IMPORT, "Could not process imported file.");
+        }
+
+
+
         return null;
+    }
+
+    /* Helpers */
+
+    /**
+     * Save a {@link pt.up.hs.uhc.models.Page} page in
+     *
+     * @param page {@link pt.up.hs.uhc.models.Page} page to save.
+     * @return {@link ProtocolDTO} dto of saved protocol.
+     */
+    private ProtocolDTO savePage(pt.up.hs.uhc.models.Page page) {
+
+        ProtocolDTO protocolDTO = new ProtocolDTO();
+
+        for (Stroke stroke: page.getStrokes()) {
+            // stroke.
+        }
+
+        return null;
+    }
+
+    /**
+     * Get {@link Format} format from {@link String} string.
+     *
+     * @param str format string.
+     * @return {@link Format} format or null
+     */
+    private Format formatFromString(String str) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            return Format.valueOf(str.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

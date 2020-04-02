@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.*;
 import java.io.Serializable;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Protocol} entity.
@@ -43,6 +43,8 @@ public class ProtocolDTO implements Serializable {
     @ApiModelProperty(value = "Number of the page (if the protocol contains multiple pages)")
     private Integer pageNumber;
 
+    private List<DotDTO> dots = new ArrayList<>();
+
 
     public Long getId() {
         return id;
@@ -74,6 +76,14 @@ public class ProtocolDTO implements Serializable {
 
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+
+    public List<DotDTO> getDots() {
+        return dots;
+    }
+
+    public void setDots(List<DotDTO> dots) {
+        this.dots = dots;
     }
 
     public Long getSampleId() {
