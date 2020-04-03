@@ -46,15 +46,17 @@ public class DotQueryService extends QueryService<Dot> {
      *
      * @param projectId ID of the project to which the dots belong.
      * @param protocolId  ID of the protocol to which the dots belong.
+     * @param strokeId  ID of the stroke to which the dot belongs.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<DotDTO> findByCriteria(Long projectId, Long protocolId, DotCriteria criteria) {
-        log.debug("find by criteria {} in protocol {} of project {}", criteria, protocolId, projectId);
+    public List<DotDTO> findByCriteria(Long projectId, Long protocolId, Long strokeId, DotCriteria criteria) {
+        log.debug("find by criteria {} in stroke {} of protocol {} of project {}", criteria, strokeId, protocolId, projectId);
         final Specification<Dot> specification = createSpecification(criteria)
-            .and(equalsSpecification(root -> root.join("protocol", JoinType.LEFT).get("projectId"), projectId))
-            .and(equalsSpecification(root -> root.join("protocol", JoinType.LEFT).get("id"), protocolId));
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).get("id"), strokeId))
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).join("protocol", JoinType.LEFT).get("id"), protocolId))
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).join("protocol", JoinType.LEFT).get("projectId"), projectId));
         return dotMapper.toDto(dotRepository.findAll(specification));
     }
 
@@ -63,16 +65,18 @@ public class DotQueryService extends QueryService<Dot> {
      *
      * @param projectId ID of the project to which the dots belong.
      * @param protocolId  ID of the protocol to which the dots belong.
+     * @param strokeId  ID of the stroke to which the dot belongs.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<DotDTO> findByCriteria(Long projectId, Long protocolId, DotCriteria criteria, Pageable page) {
-        log.debug("find by criteria {}, page {} in protocol {} of project {}", criteria, page, protocolId, projectId);
+    public Page<DotDTO> findByCriteria(Long projectId, Long protocolId, Long strokeId, DotCriteria criteria, Pageable page) {
+        log.debug("find by criteria {}, page {} in stroke {} of protocol {} of project {}", criteria, page, strokeId, protocolId, projectId);
         final Specification<Dot> specification = createSpecification(criteria)
-            .and(equalsSpecification(root -> root.join("protocol", JoinType.LEFT).get("projectId"), projectId))
-            .and(equalsSpecification(root -> root.join("protocol", JoinType.LEFT).get("id"), protocolId));
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).get("id"), strokeId))
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).join("protocol", JoinType.LEFT).get("id"), protocolId))
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).join("protocol", JoinType.LEFT).get("projectId"), projectId));
         return dotRepository.findAll(specification, page)
             .map(dotMapper::toDto);
     }
@@ -82,15 +86,17 @@ public class DotQueryService extends QueryService<Dot> {
      *
      * @param projectId ID of the project to which the dots belong.
      * @param protocolId  ID of the protocol to which the dots belong.
+     * @param strokeId  ID of the stroke to which the dot belongs.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the number of matching entities.
      */
     @Transactional(readOnly = true)
-    public long countByCriteria(Long projectId, Long protocolId, DotCriteria criteria) {
-        log.debug("count by criteria {} in protocol {} of project {}", criteria, protocolId, projectId);
+    public long countByCriteria(Long projectId, Long protocolId, Long strokeId, DotCriteria criteria) {
+        log.debug("count by criteria {} in stroke {} of protocol {} of project {}", criteria, strokeId, protocolId, projectId);
         final Specification<Dot> specification = createSpecification(criteria)
-            .and(equalsSpecification(root -> root.join("protocol", JoinType.LEFT).get("projectId"), projectId))
-            .and(equalsSpecification(root -> root.join("protocol", JoinType.LEFT).get("id"), protocolId));
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).get("id"), strokeId))
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).join("protocol", JoinType.LEFT).get("id"), protocolId))
+            .and(equalsSpecification(root -> root.join("stroke", JoinType.LEFT).join("protocol", JoinType.LEFT).get("projectId"), projectId));
         return dotRepository.count(specification);
     }
 

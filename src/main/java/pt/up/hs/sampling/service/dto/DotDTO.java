@@ -2,49 +2,50 @@ package pt.up.hs.sampling.service.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.time.Instant;
-import javax.validation.constraints.*;
+import pt.up.hs.sampling.domain.enumeration.DotType;
+
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
-import pt.up.hs.sampling.domain.enumeration.DotType;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Dot} entity.
  *
  * @author José Carlos Paiva
  */
-@ApiModel(description = "Dot represents an event of the smartpen (part of a protocol).")
+@ApiModel(description = "Dot represents an event of the smartpen (part of a " +
+    "protocol).")
 public class DotDTO implements Serializable {
 
     private Long id;
 
     /**
-     * A dot belongs to a protocol.
+     * A dot belongs to a stroke.
      */
     @NotNull
-    @ApiModelProperty(value = "A dot belongs to a protocol.", required = true)
-    private Long protocolId;
+    @ApiModelProperty(value = "A dot belongs to a stroke.", required = true)
+    private Long strokeId;
 
     /**
-     * Moment at which the dot was captured.
+     * Offset at which the dot was captured.
      */
     @NotNull
-    @ApiModelProperty(value = "Moment at which the dot was captured.", required = true)
-    private Instant timestamp;
+    @ApiModelProperty(value = "Offset at which the dot was captured.", required = true)
+    private Long timestamp;
 
     /**
      * Position of dot in X axis.
      */
     @NotNull
     @ApiModelProperty(value = "Position of dot in X axis.", required = true)
-    private Integer x;
+    private Double x;
 
     /**
      * Position of dot in Y axis.
      */
     @NotNull
     @ApiModelProperty(value = "Position of dot in Y axis.", required = true)
-    private Integer y;
+    private Double y;
 
     /**
      * Type of dot emitted.
@@ -66,35 +67,35 @@ public class DotDTO implements Serializable {
         this.id = id;
     }
 
-    public Long getProtocolId() {
-        return protocolId;
+    public Long getStrokeId() {
+        return strokeId;
     }
 
-    public void setProtocolId(Long protocolId) {
-        this.protocolId = protocolId;
+    public void setStrokeId(Long strokeId) {
+        this.strokeId = strokeId;
     }
 
-    public Instant getTimestamp() {
+    public Long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 
-    public Integer getX() {
+    public Double getX() {
         return x;
     }
 
-    public void setX(Integer x) {
+    public void setX(Double x) {
         this.x = x;
     }
 
-    public Integer getY() {
+    public Double getY() {
         return y;
     }
 
-    public void setY(Integer y) {
+    public void setY(Double y) {
         this.y = y;
     }
 
@@ -139,8 +140,8 @@ public class DotDTO implements Serializable {
     public String toString() {
         return "DotDTO{" +
             "id=" + getId() +
-            ", protocolId=" + getProtocolId() +
-            ", timestamp='" + getTimestamp() + "'" +
+            ", strokeId=" + getStrokeId() +
+            ", timestamp=" + getTimestamp() +
             ", x=" + getX() +
             ", y=" + getY() +
             ", type='" + getType() + "'" +

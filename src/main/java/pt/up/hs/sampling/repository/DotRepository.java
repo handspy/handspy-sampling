@@ -19,35 +19,37 @@ import java.util.Optional;
 public interface DotRepository extends JpaRepository<Dot, Long>, JpaSpecificationExecutor<Dot> {
 
     @Query(
-        value = "select distinct dot from Dot dot where dot.protocol.id = :protocolId and dot.protocol.projectId = :projectId",
-        countQuery = "select count(distinct dot) from Dot dot where dot.protocol.id = :protocolId and dot.protocol.projectId = :projectId"
+        value = "select distinct dot from Dot dot where dot.stroke.protocol.id = :protocolId and dot.stroke.protocol.projectId = :projectId",
+        countQuery = "select count(distinct dot) from Dot dot where dot.stroke.protocol.id = :protocolId and dot.stroke.protocol.projectId = :projectId"
     )
     List<Dot> findAllByProjectIdAndProtocolId(
         @Param("projectId") @NotNull Long projectId,
         @Param("protocolId") @NotNull Long protocolId
     );
 
-    @Query("select count(distinct dot) from Dot dot where dot.protocol.id = :protocolId and dot.protocol.projectId = :projectId")
+    @Query("select count(distinct dot) from Dot dot where dot.stroke.protocol.id = :protocolId and dot.stroke.protocol.projectId = :projectId")
     long countByProjectIdAndProtocolId(
         @Param("projectId") @NotNull Long projectId,
         @Param("protocolId") @NotNull Long protocolId
     );
 
-    @Query("select dot from Dot dot where dot.id = :id and dot.protocol.id = :protocolId and dot.protocol.projectId = :projectId")
+    @Query("select dot from Dot dot where dot.id = :id and dot.stroke.protocol.id = :protocolId and dot.stroke.protocol.projectId = :projectId")
     Optional<Dot> findByProjectIdAndProtocolIdAndId(
         @Param("projectId") @NotNull Long projectId,
         @Param("protocolId") @NotNull Long protocolId,
         @Param("id") @NotNull Long id
     );
 
-    void deleteAllByProtocolProjectIdAndProtocolIdAndId(
-        @Param("projectId") @NotNull Long projectId,
-        @Param("protocolId") @NotNull Long protocolId,
-        @Param("id") @NotNull Long id
+    void deleteAllByStrokeProtocolProjectIdAndStrokeProtocolIdAndStrokeIdAndId(
+        @NotNull Long projectId,
+        @NotNull Long protocolId,
+        @NotNull Long strokeId,
+        @NotNull Long id
     );
 
-    void deleteAllByProtocolProjectIdAndProtocolId(
-        @Param("projectId") @NotNull Long projectId,
-        @Param("protocolId") @NotNull Long protocolId
+    void deleteAllByStrokeProtocolProjectIdAndStrokeProtocolIdAndStrokeId(
+        @NotNull Long projectId,
+        @NotNull Long protocolId,
+        @NotNull Long strokeId
     );
 }

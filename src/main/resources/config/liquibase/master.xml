@@ -19,6 +19,7 @@
     <include file="config/liquibase/changelog/20200223180118_added_entity_Sample.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180218_added_entity_Note.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180318_added_entity_Protocol.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20200223180418_added_entity_Stroke.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180418_added_entity_Dot.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180518_added_entity_Text.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180618_added_entity_Annotation.xml" relativeToChangelogFile="false"/>
@@ -26,6 +27,7 @@
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20200223180218_added_entity_constraints_Note.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180318_added_entity_constraints_Protocol.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20200223180418_added_entity_constraints_Stroke.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180418_added_entity_constraints_Dot.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180518_added_entity_constraints_Text.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20200223180618_added_entity_constraints_Annotation.xml" relativeToChangelogFile="false"/>

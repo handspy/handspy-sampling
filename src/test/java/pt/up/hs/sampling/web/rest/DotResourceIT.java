@@ -4,12 +4,12 @@ import pt.up.hs.sampling.SamplingApp;
 import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
 import pt.up.hs.sampling.domain.Dot;
 import pt.up.hs.sampling.domain.Protocol;
+import pt.up.hs.sampling.domain.Stroke;
 import pt.up.hs.sampling.repository.DotRepository;
 import pt.up.hs.sampling.service.DotService;
 import pt.up.hs.sampling.service.dto.DotDTO;
 import pt.up.hs.sampling.service.mapper.DotMapper;
 import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
-import pt.up.hs.sampling.service.dto.DotCriteria;
 import pt.up.hs.sampling.service.DotQueryService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
@@ -37,25 +35,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import pt.up.hs.sampling.domain.enumeration.DotType;
+
 /**
  * Integration tests for the {@link DotResource} REST controller.
  */
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
 public class DotResourceIT {
 
-    private static final Long DEFAULT_PROJECT_ID = 1L;
-    private static final Long OTHER_PROJECT_ID = 2L;
+    private static final Long DEFAULT_TIMESTAMP = 1L;
+    private static final Long UPDATED_TIMESTAMP = 2L;
 
-    private static final Instant DEFAULT_TIMESTAMP = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_TIMESTAMP = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    private static final Double DEFAULT_X = 1D;
+    private static final Double UPDATED_X = 2D;
+    private static final Double SMALLER_X = 1D - 1D;
 
-    private static final Integer DEFAULT_X = 1;
-    private static final Integer UPDATED_X = 2;
-    private static final Integer SMALLER_X = 1 - 1;
-
-    private static final Integer DEFAULT_Y = 1;
-    private static final Integer UPDATED_Y = 2;
-    private static final Integer SMALLER_Y = 1 - 1;
+    private static final Double DEFAULT_Y = 1D;
+    private static final Double UPDATED_Y = 2D;
+    private static final Double SMALLER_Y = 1D - 1D;
 
     private static final DotType DEFAULT_TYPE = DotType.DOWN;
     private static final DotType UPDATED_TYPE = DotType.MOVE;
@@ -93,7 +89,7 @@ public class DotResourceIT {
 
     private MockMvc restDotMockMvc;
 
-    private static Protocol defaultProtocol;
+    private static Stroke defaultStroke;
 
     private Dot dot;
 
@@ -111,7 +107,7 @@ public class DotResourceIT {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -122,12 +118,12 @@ public class DotResourceIT {
             .y(DEFAULT_Y)
             .type(DEFAULT_TYPE)
             .pressure(DEFAULT_PRESSURE)
-            .protocol(defaultProtocol);
+            .stroke(defaultStroke);
     }
 
     /**
      * Create an updated entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -138,7 +134,19 @@ public class DotResourceIT {
             .y(UPDATED_Y)
             .type(UPDATED_TYPE)
             .pressure(UPDATED_PRESSURE)
-            .protocol(defaultProtocol);
+            .stroke(defaultStroke);
+    }
+
+    public static Stroke getStroke(EntityManager em) {
+        Stroke stroke;
+        if (TestUtil.findAll(em, Stroke.class).isEmpty()) {
+            stroke = StrokeResourceIT.createEntity(em, getProtocol(em));
+            em.persist(stroke);
+            em.flush();
+        } else {
+            stroke = TestUtil.findAll(em, Stroke.class).get(0);
+        }
+        return stroke;
     }
 
     public static Protocol getProtocol(EntityManager em) {
@@ -155,7 +163,7 @@ public class DotResourceIT {
 
     @BeforeEach
     public void initTest() {
-        defaultProtocol = getProtocol(em);
+        defaultStroke = getStroke(em);
         dot = createEntity(em);
     }
 
@@ -166,7 +174,7 @@ public class DotResourceIT {
 
         // Create the Dot
         DotDTO dotDTO = dotMapper.toDto(dot);
-        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isCreated());
@@ -192,7 +200,7 @@ public class DotResourceIT {
         DotDTO dotDTO = dotMapper.toDto(dot);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -213,7 +221,7 @@ public class DotResourceIT {
         // Create the Dot, which fails.
         DotDTO dotDTO = dotMapper.toDto(dot);
 
-        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -232,7 +240,7 @@ public class DotResourceIT {
         // Create the Dot, which fails.
         DotDTO dotDTO = dotMapper.toDto(dot);
 
-        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -251,7 +259,7 @@ public class DotResourceIT {
         // Create the Dot, which fails.
         DotDTO dotDTO = dotMapper.toDto(dot);
 
-        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
+        restDotMockMvc.perform(post("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -267,11 +275,11 @@ public class DotResourceIT {
         dotRepository.saveAndFlush(dot);
 
         // Get all the dotList
-        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots?sort=id,desc", defaultProtocol.getProjectId(), defaultProtocol.getId()))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots?sort=id,desc", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(dot.getId().intValue())))
-            .andExpect(jsonPath("$.[*].timestamp").value(hasItem(DEFAULT_TIMESTAMP.toString())))
+            .andExpect(jsonPath("$.[*].timestamp").value(hasItem(DEFAULT_TIMESTAMP.intValue())))
             .andExpect(jsonPath("$.[*].x").value(hasItem(DEFAULT_X)))
             .andExpect(jsonPath("$.[*].y").value(hasItem(DEFAULT_Y)))
             .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
@@ -285,7 +293,7 @@ public class DotResourceIT {
         dotRepository.saveAndFlush(dot);
 
         // Get the dot
-        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots/{id}", defaultProtocol.getProjectId(), defaultProtocol.getId(), dot.getId()))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots/{id}", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId(), dot.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(dot.getId().intValue()))
@@ -295,7 +303,6 @@ public class DotResourceIT {
             .andExpect(jsonPath("$.type").value(DEFAULT_TYPE.toString()))
             .andExpect(jsonPath("$.pressure").value(DEFAULT_PRESSURE));
     }
-
 
     @Test
     @Transactional
@@ -738,18 +745,18 @@ public class DotResourceIT {
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultDotShouldBeFound(String filter) throws Exception {
-        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots?sort=id,desc&" + filter, defaultProtocol.getProjectId(), defaultProtocol.getId()))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots?sort=id,desc&" + filter, defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(dot.getId().intValue())))
-            .andExpect(jsonPath("$.[*].timestamp").value(hasItem(DEFAULT_TIMESTAMP.toString())))
+            .andExpect(jsonPath("$.[*].timestamp").value(hasItem(DEFAULT_TIMESTAMP.intValue())))
             .andExpect(jsonPath("$.[*].x").value(hasItem(DEFAULT_X)))
             .andExpect(jsonPath("$.[*].y").value(hasItem(DEFAULT_Y)))
             .andExpect(jsonPath("$.[*].type").value(hasItem(DEFAULT_TYPE.toString())))
             .andExpect(jsonPath("$.[*].pressure").value(hasItem(DEFAULT_PRESSURE)));
 
         // Check, that the count call also returns 1
-        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots/count?sort=id,desc&" + filter, defaultProtocol.getProjectId(), defaultProtocol.getId()))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots/count?sort=id,desc&" + filter, defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -759,14 +766,14 @@ public class DotResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultDotShouldNotBeFound(String filter) throws Exception {
-        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots?sort=id,desc&" + filter, defaultProtocol.getProjectId(), defaultProtocol.getId()))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots?sort=id,desc&" + filter, defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots/count?sort=id,desc&" + filter, defaultProtocol.getProjectId(), defaultProtocol.getId()))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots/count?sort=id,desc&" + filter, defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -777,7 +784,7 @@ public class DotResourceIT {
     @Transactional
     public void getNonExistingDot() throws Exception {
         // Get the dot
-        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/dots/{id}", defaultProtocol.getProjectId(), defaultProtocol.getId(), Long.MAX_VALUE))
+        restDotMockMvc.perform(get("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots/{id}", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId(), Long.MAX_VALUE))
             .andExpect(status().isNotFound());
     }
 
@@ -801,7 +808,7 @@ public class DotResourceIT {
             .pressure(UPDATED_PRESSURE);
         DotDTO dotDTO = dotMapper.toDto(updatedDot);
 
-        restDotMockMvc.perform(put("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
+        restDotMockMvc.perform(put("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isOk());
@@ -826,7 +833,7 @@ public class DotResourceIT {
         DotDTO dotDTO = dotMapper.toDto(dot);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restDotMockMvc.perform(put("/api/projects/{projectId}/protocols/{protocolId}/dots", defaultProtocol.getProjectId(), defaultProtocol.getId())
+        restDotMockMvc.perform(put("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId())
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(dotDTO)))
             .andExpect(status().isBadRequest());
@@ -845,7 +852,7 @@ public class DotResourceIT {
         int databaseSizeBeforeDelete = dotRepository.findAll().size();
 
         // Delete the dot
-        restDotMockMvc.perform(delete("/api/projects/{projectId}/protocols/{protocolId}/dots/{id}", defaultProtocol.getProjectId(), defaultProtocol.getId(), dot.getId())
+        restDotMockMvc.perform(delete("/api/projects/{projectId}/protocols/{protocolId}/strokes/{strokeId}/dots/{id}", defaultStroke.getProtocol().getProjectId(), defaultStroke.getProtocol().getId(), defaultStroke.getId(), dot.getId())
             .accept(TestUtil.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 

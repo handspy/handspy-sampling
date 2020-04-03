@@ -3,6 +3,7 @@ package pt.up.hs.sampling.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -56,8 +57,10 @@ public class Protocol implements Serializable {
         fetch = FetchType.LAZY,
         orphanRemoval = true
     )
+    //@Cascade({ org.hibernate.annotations.CascadeType.SAVE_UPDATE })
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private List<Dot> dots = new ArrayList<>();
+    @JsonIgnoreProperties("protocol")
+    private List<Stroke> strokes = new ArrayList<>();
 
     @ManyToOne
     @JsonIgnoreProperties("protocols")
@@ -111,23 +114,23 @@ public class Protocol implements Serializable {
         this.pageNumber = pageNumber;
     }
 
-    public List<Dot> getDots() {
-        return dots;
+    public List<Stroke> getStrokes() {
+        return strokes;
     }
 
-    public Protocol dots(List<Dot> dots) {
-        this.dots = dots;
+    public Protocol strokes(List<Stroke> strokes) {
+        this.strokes = strokes;
         return this;
     }
 
-    public Protocol addDot(Dot dot) {
-        this.dots.add(dot);
-        dot.setProtocol(this);
+    public Protocol addStroke(Stroke stroke) {
+        this.strokes.add(stroke);
+        stroke.setProtocol(this);
         return this;
     }
 
-    public void setDots(List<Dot> dots) {
-        this.dots = dots;
+    public void setStrokes(List<Stroke> strokes) {
+        this.strokes = strokes;
     }
 
     public Sample getSample() {

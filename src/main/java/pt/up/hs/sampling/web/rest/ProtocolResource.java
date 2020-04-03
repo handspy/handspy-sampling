@@ -59,6 +59,7 @@ public class ProtocolResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/protocols")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
     public ResponseEntity<ProtocolDTO> createProtocol(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody ProtocolDTO protocolDTO
@@ -77,19 +78,41 @@ public class ProtocolResource {
      * {@code POST /protocols/import} : import protocols sent in multipart/form-data.
      *
      * @param projectId ID of the project to which this protocol belongs.
+     * @param type      Type of protocol uploaded.
      * @param file      {@link MultipartFile} file from multipart/form-data.
      * @return {@link ResponseEntity} with status {@code 200 (OK)} and with
-     * body the {@link BulkImportResultDTO}.
+     * body the {@link List}.
      */
     @PostMapping(value = "/protocols/import", consumes = "multipart/form-data")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
-    public ResponseEntity<BulkImportResultDTO<ProtocolDTO>> importMultipart(
+    public ResponseEntity<List<ProtocolDTO>> importProtocol(
         @PathVariable("projectId") Long projectId,
         @RequestParam(value = "type", required = false) String type,
         @RequestParam("file") MultipartFile file
     ) {
         log.debug("REST request to import Protocol sent in multipart/form-data in project {}", projectId);
-        BulkImportResultDTO<ProtocolDTO> result = protocolService.importProtocol(projectId, type, file);
+        List<ProtocolDTO> result = protocolService.importProtocol(projectId, type, file);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * {@code POST /protocols/bulk-import} : import protocols sent in multipart/form-data.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param type      Type of protocols uploaded.
+     * @param files     {@link MultipartFile[]} files from multipart/form-data.
+     * @return {@link ResponseEntity} with status {@code 200 (OK)} and with
+     * body the {@link BulkImportResultDTO}.
+     */
+    @PostMapping(value = "/protocols/bulk-import", consumes = "multipart/form-data")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
+    public ResponseEntity<BulkImportResultDTO<ProtocolDTO>> bulkImportProtocols(
+        @PathVariable("projectId") Long projectId,
+        @RequestParam(value = "type", required = false) String type,
+        @RequestParam("file") MultipartFile[] files
+    ) {
+        log.debug("REST request to import Protocols sent in multipart/form-data in project {}", projectId);
+        BulkImportResultDTO<ProtocolDTO> result = protocolService.bulkImportProtocols(projectId, type, files);
         return ResponseEntity.ok(result);
     }
 
@@ -103,6 +126,7 @@ public class ProtocolResource {
      * or with status {@code 500 (Internal Server Error)} if the protocolDTO couldn't be updated.
      */
     @PutMapping("/protocols")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
     public ResponseEntity<ProtocolDTO> updateProtocol(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody ProtocolDTO protocolDTO
@@ -126,6 +150,7 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of protocols in body.
      */
     @GetMapping("/protocols")
+    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
     public ResponseEntity<List<ProtocolDTO>> getAllProtocols(
         @PathVariable("projectId") Long projectId,
         ProtocolCriteria criteria,
@@ -145,6 +170,7 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/protocols/count")
+    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
     public ResponseEntity<Long> countProtocols(
         @PathVariable("projectId") Long projectId,
         ProtocolCriteria criteria
@@ -161,6 +187,7 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the protocolDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/protocols/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
     public ResponseEntity<ProtocolDTO> getProtocol(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id
@@ -178,6 +205,7 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/protocols/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'MANAGE')")
     public ResponseEntity<Void> deleteProtocol(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id

@@ -43,7 +43,7 @@ public class ProtocolDTO implements Serializable {
     @ApiModelProperty(value = "Number of the page (if the protocol contains multiple pages)")
     private Integer pageNumber;
 
-    private List<DotDTO> dots = new ArrayList<>();
+    private List<StrokeDTO> strokes = new ArrayList<>();
 
 
     public Long getId() {
@@ -78,12 +78,12 @@ public class ProtocolDTO implements Serializable {
         this.projectId = projectId;
     }
 
-    public List<DotDTO> getDots() {
-        return dots;
+    public List<StrokeDTO> getStrokes() {
+        return strokes;
     }
 
-    public void setDots(List<DotDTO> dots) {
-        this.dots = dots;
+    public void setStrokes(List<StrokeDTO> strokes) {
+        this.strokes = strokes;
     }
 
     public Long getSampleId() {

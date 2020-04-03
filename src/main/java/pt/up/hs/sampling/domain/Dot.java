@@ -30,25 +30,25 @@ public class Dot implements Serializable {
     private Long id;
 
     /**
-     * Moment at which the dot was captured
+     * Offset at which the dot was captured.
      */
     @NotNull
     @Column(name = "timestamp", nullable = false)
-    private Instant timestamp;
+    private Long timestamp;
 
     /**
      * Position of dot in X axis
      */
     @NotNull
     @Column(name = "x", nullable = false)
-    private Integer x;
+    private Double x;
 
     /**
      * Position of dot in Y axis
      */
     @NotNull
     @Column(name = "y", nullable = false)
-    private Integer y;
+    private Double y;
 
     /**
      * Type of dot emitted
@@ -64,13 +64,13 @@ public class Dot implements Serializable {
     private Double pressure;
 
     /**
-     * A dot belongs to a protocol.
+     * A dot belongs to a stroke.
      */
     @NotNull
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "protocol_id", updatable = false)
+    @JoinColumn(name = "stroke_id", referencedColumnName = "id"/*, updatable = false*/)
     @JsonIgnoreProperties("dots")
-    private Protocol protocol;
+    private Stroke stroke;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -81,42 +81,42 @@ public class Dot implements Serializable {
         this.id = id;
     }
 
-    public Instant getTimestamp() {
+    public Long getTimestamp() {
         return timestamp;
     }
 
-    public Dot timestamp(Instant timestamp) {
+    public Dot timestamp(Long timestamp) {
         this.timestamp = timestamp;
         return this;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 
-    public Integer getX() {
+    public Double getX() {
         return x;
     }
 
-    public Dot x(Integer x) {
+    public Dot x(Double x) {
         this.x = x;
         return this;
     }
 
-    public void setX(Integer x) {
+    public void setX(Double x) {
         this.x = x;
     }
 
-    public Integer getY() {
+    public Double getY() {
         return y;
     }
 
-    public Dot y(Integer y) {
+    public Dot y(Double y) {
         this.y = y;
         return this;
     }
 
-    public void setY(Integer y) {
+    public void setY(Double y) {
         this.y = y;
     }
 
@@ -146,17 +146,17 @@ public class Dot implements Serializable {
         this.pressure = pressure;
     }
 
-    public Protocol getProtocol() {
-        return protocol;
+    public Stroke getStroke() {
+        return stroke;
     }
 
-    public Dot protocol(Protocol protocol) {
-        this.protocol = protocol;
+    public Dot stroke(Stroke stroke) {
+        this.stroke = stroke;
         return this;
     }
 
-    public void setProtocol(Protocol protocol) {
-        this.protocol = protocol;
+    public void setStroke(Stroke stroke) {
+        this.stroke = stroke;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 

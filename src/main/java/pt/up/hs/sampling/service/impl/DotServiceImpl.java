@@ -36,15 +36,16 @@ public class DotServiceImpl implements DotService {
     /**
      * Save a dot.
      *
-     * @param projectId ID of the project to which the dot belongs.
-     * @param protocolId  ID of the protocol to which the dot belongs.
-     * @param dotDTO the entity to save.
+     * @param projectId  ID of the project to which the dot belongs.
+     * @param protocolId ID of the protocol to which the dot belongs.
+     * @param strokeId   ID of the stroke to which the dot belongs.
+     * @param dotDTO     the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public DotDTO save(Long projectId, Long protocolId, DotDTO dotDTO) {
-        log.debug("Request to save Dot {} in protocol {} of project {}", dotDTO, protocolId, projectId);
-        dotDTO.setProtocolId(protocolId);
+    public DotDTO save(Long projectId, Long protocolId, Long strokeId, DotDTO dotDTO) {
+        log.debug("Request to save Dot {} in stroke {} of protocol {} of project {}", dotDTO, strokeId, protocolId, projectId);
+        dotDTO.setStrokeId(strokeId);
         Dot dot = dotMapper.toEntity(dotDTO);
         dot = dotRepository.save(dot);
         return dotMapper.toDto(dot);
@@ -53,14 +54,15 @@ public class DotServiceImpl implements DotService {
     /**
      * Get all the dots.
      *
-     * @param projectId ID of the project to which the dots belong.
-     * @param protocolId  ID of the protocol to which the dots belong.
+     * @param projectId  ID of the project to which the dots belong.
+     * @param protocolId ID of the protocol to which the dots belong.
+     * @param strokeId   ID of the stroke to which the dots belong.
      * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
-    public List<DotDTO> findAll(Long projectId, Long protocolId) {
-        log.debug("Request to get all Dots in protocol {} of project {}", protocolId, projectId);
+    public List<DotDTO> findAll(Long projectId, Long protocolId, Long strokeId) {
+        log.debug("Request to get all Dots in stroke {} of protocol {} of project {}", strokeId, protocolId, projectId);
         return dotRepository.findAllByProjectIdAndProtocolId(projectId, protocolId).stream()
             .map(dotMapper::toDto)
             .collect(Collectors.toCollection(LinkedList::new));
@@ -69,15 +71,16 @@ public class DotServiceImpl implements DotService {
     /**
      * Get the "id" dot.
      *
-     * @param projectId ID of the project to which the dot belongs.
-     * @param protocolId  ID of the protocol to which the dot belongs.
-     * @param id the id of the entity.
+     * @param projectId  ID of the project to which the dot belongs.
+     * @param protocolId ID of the protocol to which the dot belongs.
+     * @param strokeId   ID of the stroke to which the dot belongs.
+     * @param id         the id of the entity.
      * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<DotDTO> findOne(Long projectId, Long protocolId, Long id) {
-        log.debug("Request to get Dot {} in protocol {} of project {}", id, protocolId, projectId);
+    public Optional<DotDTO> findOne(Long projectId, Long protocolId, Long strokeId, Long id) {
+        log.debug("Request to get Dot {} in stroke {} of protocol {} of project {}", id, strokeId, protocolId, projectId);
         return dotRepository.findByProjectIdAndProtocolIdAndId(projectId, protocolId, id)
             .map(dotMapper::toDto);
     }
@@ -85,13 +88,14 @@ public class DotServiceImpl implements DotService {
     /**
      * Delete the "id" dot.
      *
-     * @param projectId ID of the project to which the dot belongs.
-     * @param protocolId  ID of the protocol to which the dot belongs.
-     * @param id the id of the entity.
+     * @param projectId  ID of the project to which the dot belongs.
+     * @param protocolId ID of the protocol to which the dot belongs.
+     * @param strokeId   ID of the stroke to which the dot belongs.
+     * @param id         the id of the entity.
      */
     @Override
-    public void delete(Long projectId, Long protocolId, Long id) {
-        log.debug("Request to delete Dot {} in protocol {} of project {}", id, protocolId, projectId);
-        dotRepository.deleteAllByProtocolProjectIdAndProtocolIdAndId(projectId, protocolId, id);
+    public void delete(Long projectId, Long protocolId, Long strokeId, Long id) {
+        log.debug("Request to delete Dot {} in stroke {} of protocol {} of project {}", id, strokeId, protocolId, projectId);
+        dotRepository.deleteAllByStrokeProtocolProjectIdAndStrokeProtocolIdAndStrokeIdAndId(projectId, protocolId, strokeId, id);
     }
 }

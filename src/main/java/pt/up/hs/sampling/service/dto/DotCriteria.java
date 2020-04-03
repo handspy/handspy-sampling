@@ -8,13 +8,9 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Criteria class for the {@link pt.up.hs.sampling.domain.Dot} entity. This class is used
- * in {@link pt.up.hs.sampling.web.rest.DotResource} to receive all the possible filtering options from
- * the Http GET request parameters.
- * For example the following could be a valid request:
- * {@code /dots?id.greaterThan=5&attr1.contains=something&attr2.specified=false}
- * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use
- * fix type specific filters.
+ * Criteria class for the {@link pt.up.hs.sampling.domain.Dot} entity. This
+ * class is used in {@link pt.up.hs.sampling.web.rest.DotResource} to receive
+ * all the possible filtering options from the Http GET request parameters.
  */
 public class DotCriteria implements Serializable, Criteria {
     /**
@@ -40,11 +36,11 @@ public class DotCriteria implements Serializable, Criteria {
 
     private LongFilter id;
 
-    private InstantFilter timestamp;
+    private LongFilter timestamp;
 
-    private IntegerFilter x;
+    private DoubleFilter x;
 
-    private IntegerFilter y;
+    private DoubleFilter y;
 
     private DotTypeFilter type;
 
@@ -75,27 +71,27 @@ public class DotCriteria implements Serializable, Criteria {
         this.id = id;
     }
 
-    public InstantFilter getTimestamp() {
+    public LongFilter getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(InstantFilter timestamp) {
+    public void setTimestamp(LongFilter timestamp) {
         this.timestamp = timestamp;
     }
 
-    public IntegerFilter getX() {
+    public DoubleFilter getX() {
         return x;
     }
 
-    public void setX(IntegerFilter x) {
+    public void setX(DoubleFilter x) {
         this.x = x;
     }
 
-    public IntegerFilter getY() {
+    public DoubleFilter getY() {
         return y;
     }
 
-    public void setY(IntegerFilter y) {
+    public void setY(DoubleFilter y) {
         this.y = y;
     }
 

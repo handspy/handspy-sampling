@@ -51,7 +51,9 @@ public class SamplingPermissionEvaluator implements PermissionEvaluator {
         } else if (targetDomainObject instanceof AnnotationType) {
             projectId = ((AnnotationType) targetDomainObject).getProjectId();
         } else if (targetDomainObject instanceof Dot) {
-            projectId = ((Dot) targetDomainObject).getProtocol().getProjectId();
+            projectId = ((Dot) targetDomainObject).getStroke().getProtocol().getProjectId();
+        } else if (targetDomainObject instanceof Stroke) {
+            projectId = ((Stroke) targetDomainObject).getProtocol().getProjectId();
         } else if (targetDomainObject instanceof Note) {
             projectId = ((Note) targetDomainObject).getSample().getProjectId();
         } else if (targetDomainObject instanceof Protocol) {

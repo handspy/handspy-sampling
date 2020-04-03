@@ -1,11 +1,19 @@
 package pt.up.hs.sampling.web.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pt.up.hs.sampling.SamplingApp;
 import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
 import pt.up.hs.sampling.domain.Protocol;
 import pt.up.hs.sampling.domain.Sample;
 import pt.up.hs.sampling.repository.ProtocolRepository;
 import pt.up.hs.sampling.service.ProtocolService;
+import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
 import pt.up.hs.sampling.service.mapper.ProtocolMapper;
 import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
@@ -28,9 +36,9 @@ import org.springframework.validation.Validator;
 import javax.persistence.EntityManager;
 import java.util.List;
 
+import static org.hamcrest.Matchers.*;
 import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -77,6 +85,9 @@ public class ProtocolResourceIT {
 
     @Autowired
     private Validator validator;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private MockMvc restProtocolMockMvc;
 
@@ -577,5 +588,58 @@ public class ProtocolResourceIT {
         // Validate the database contains one less item
         List<Protocol> protocolList = protocolRepository.findAll();
         assertThat(protocolList).hasSize(databaseSizeBeforeDelete - 1);
+    }
+
+    @Test
+    @Transactional
+    public void importProtocol() throws Exception {
+        // read file
+        byte[] contentPageEmpty = TestUtil.readFileFromResourcesFolder("data/protocols/page_empty.data");
+        MockMultipartFile filePageEmpty = new MockMultipartFile("file", "page_empty.data", null, contentPageEmpty);
+
+        // Import the protocols
+        restProtocolMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/protocols/import", DEFAULT_PROJECT_ID)
+                    .file(filePageEmpty)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize(1)))
+            .andExpect(jsonPath("$.[0].strokes").value(hasSize(1)))
+            .andExpect(jsonPath("$.[0].strokes[0].startTime").value(isA(Long.class)))
+            .andExpect(jsonPath("$.[0].strokes[0].endTime").value(isA(Long.class)))
+            .andExpect(jsonPath("$.[0].strokes[0].dots").value(hasSize(3)))
+            .andExpect(jsonPath("$.[0].strokes[0].dots.[*].x").value(hasItems(isA(Double.class), isA(Double.class), isA(Double.class))))
+            .andExpect(jsonPath("$.[0].strokes[0].dots.[*].y").value(hasItems(isA(Double.class), isA(Double.class), isA(Double.class))))
+            .andExpect(jsonPath("$.[0].strokes[0].dots.[*].timestamp").value(hasItems(isA(Long.class), isA(Long.class), isA(Long.class))))
+            .andExpect(jsonPath("$.[0].strokes[0].dots.[*].type").value(hasItems("DOWN", "DOWN", "DOWN")));
+    }
+
+    @Test
+    @Transactional
+    public void bulkImportProtocol() throws Exception {
+        // read file
+        byte[] contentPageEmpty = TestUtil.readFileFromResourcesFolder("data/protocols/page_empty.data");
+        byte[] contentPageFull = TestUtil.readFileFromResourcesFolder("data/protocols/page_full.data");
+        MockMultipartFile filePageEmpty = new MockMultipartFile("file", "page_empty.data", null, contentPageEmpty);
+        MockMultipartFile filePageFull = new MockMultipartFile("file", "page_full.data", null, contentPageFull);
+
+        // Import the protocols
+        restProtocolMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/protocols/bulk-import", DEFAULT_PROJECT_ID)
+                    .file(filePageEmpty)
+                    .file(filePageFull)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.total").value(2))
+            .andExpect(jsonPath("$.invalid").value(0))
+            .andExpect(jsonPath("$.data").value(hasSize(2)))
+            .andExpect(jsonPath("$.data.[*].strokes.[*].protocolId").value(everyItem(isA(Integer.class))))
+            .andExpect(jsonPath("$.data.[*].strokes.[*].dots.[*].strokeId").value(everyItem(isA(Integer.class))));
     }
 }
