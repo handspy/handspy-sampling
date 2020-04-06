@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "layout")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class Layout implements Serializable {
+public class Layout extends AbstractAuditingEntity {
 
     private static final long serialVersionUID = 1L;
 

@@ -1,7 +1,11 @@
 package pt.up.hs.sampling.web.rest;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.multipart.MultipartFile;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.TextService;
+import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
+import pt.up.hs.sampling.service.dto.ProtocolDTO;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 import pt.up.hs.sampling.service.dto.TextDTO;
 import pt.up.hs.sampling.service.dto.TextCriteria;
@@ -71,6 +75,25 @@ public class TextResource {
         return ResponseEntity.created(new URI("/api/projects/" + projectId + "/texts/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, EntityNames.TEXT, result.getId().toString()))
             .body(result);
+    }
+
+    /**
+     * {@code POST /texts/import} : import texts sent in multipart/form-data.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param files     {@link MultipartFile[]} files from multipart/form-data.
+     * @return {@link ResponseEntity} with status {@code 200 (OK)} and with
+     * body the {@link BulkImportResultDTO}.
+     */
+    @PostMapping(value = "/texts/import", consumes = "multipart/form-data")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Text', 'WRITE')")
+    public ResponseEntity<BulkImportResultDTO<TextDTO>> importTexts(
+        @PathVariable("projectId") Long projectId,
+        @RequestParam("file") MultipartFile[] files
+    ) {
+        log.debug("REST request to import Texts sent in multipart/form-data in project {}", projectId);
+        BulkImportResultDTO<TextDTO> result = textService.bulkImportTexts(projectId, files);
+        return ResponseEntity.ok(result);
     }
 
     /**

@@ -7,22 +7,25 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import pt.up.hs.sampling.config.ApplicationProperties;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.constants.ErrorKeys;
 import pt.up.hs.sampling.domain.Protocol;
-import pt.up.hs.sampling.domain.enumeration.DotType;
+import pt.up.hs.sampling.processing.preview.BatchProtocolPreviewGenerationJobLauncher;
 import pt.up.hs.sampling.repository.ProtocolRepository;
 import pt.up.hs.sampling.service.ProtocolService;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
-import pt.up.hs.sampling.service.dto.DotDTO;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
-import pt.up.hs.sampling.service.dto.StrokeDTO;
 import pt.up.hs.sampling.service.exceptions.ServiceException;
 import pt.up.hs.sampling.service.mapper.ProtocolMapper;
+import pt.up.hs.sampling.service.mapper.UhcPageMapper;
 import pt.up.hs.uhc.UniversalHandwritingConverter;
 import pt.up.hs.uhc.models.Format;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -38,12 +41,27 @@ public class ProtocolServiceImpl implements ProtocolService {
 
     private final Logger log = LoggerFactory.getLogger(ProtocolServiceImpl.class);
 
+    private final ApplicationProperties properties;
+
     private final ProtocolRepository protocolRepository;
     private final ProtocolMapper protocolMapper;
 
-    public ProtocolServiceImpl(ProtocolRepository protocolRepository, ProtocolMapper protocolMapper) {
+    private final UhcPageMapper uhcPageMapper;
+
+    private final BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher;
+
+    public ProtocolServiceImpl(
+        ApplicationProperties properties,
+        ProtocolRepository protocolRepository,
+        ProtocolMapper protocolMapper,
+        UhcPageMapper uhcPageMapper,
+        BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher
+    ) {
+        this.properties = properties;
         this.protocolRepository = protocolRepository;
         this.protocolMapper = protocolMapper;
+        this.uhcPageMapper = uhcPageMapper;
+        this.previewGenerationJobLauncher = previewGenerationJobLauncher;
     }
 
     /**
@@ -59,6 +77,7 @@ public class ProtocolServiceImpl implements ProtocolService {
         protocolDTO.setProjectId(projectId);
         Protocol protocol = protocolMapper.toEntity(protocolDTO);
         protocol = protocolRepository.save(protocol);
+        previewGenerationJobLauncher.newExecution();
         return protocolMapper.toDto(protocol);
     }
 
@@ -72,7 +91,7 @@ public class ProtocolServiceImpl implements ProtocolService {
     @Override
     public List<ProtocolDTO> saveAll(Long projectId, List<ProtocolDTO> protocolDTOs) {
         log.debug("Request to save all Protocols in project {}", projectId);
-        return protocolRepository
+        List<ProtocolDTO> savedProtocolDTOs = protocolRepository
             .saveAll(
                 protocolDTOs.parallelStream()
                     .map(protocolDTO -> {
@@ -84,6 +103,8 @@ public class ProtocolServiceImpl implements ProtocolService {
             ).parallelStream()
             .map(protocolMapper::toDto)
             .collect(Collectors.toList());
+        previewGenerationJobLauncher.newExecution();
+        return savedProtocolDTOs;
     }
 
     /**
@@ -126,40 +147,16 @@ public class ProtocolServiceImpl implements ProtocolService {
     public void delete(Long projectId, Long id) {
         log.debug("Request to delete Protocol {} in project {}", id, projectId);
         protocolRepository.deleteAllByProjectIdAndId(projectId, id);
-    }
-
-    /**
-     * Upload and import protocols.
-     *
-     * @param projectId ID of the project to which this protocol belongs.
-     * @param type      type of protocol being uploaded.
-     * @param file      {@link MultipartFile} the multipart file.
-     * @return {@link List} uploaded protocols.
-     */
-    @Override
-    public List<ProtocolDTO> importProtocol(
-        Long projectId, String type, MultipartFile file
-    ) {
-        List<pt.up.hs.uhc.models.Page> pages;
         try {
-            pages = new UniversalHandwritingConverter()
-                .inputFormat(formatFromString(type))
-                .file(file.getOriginalFilename(), file.getInputStream())
-                .readAll()
-                .getPages();
+            Files.deleteIfExists(Paths.get(
+                properties.getPreview().getPath(),
+                projectId.toString(),
+                id.toString() + ".svg"
+            ));
         } catch (IOException e) {
-            throw new ServiceException(
-                EntityNames.PROTOCOL,
-                ErrorKeys.ERR_READ_IMPORT,
-                "Could not process imported file."
-            );
+            log.error("Failed to delete protocol preview", e);
+            // ignore errors
         }
-
-        List<ProtocolDTO> protocolDTOs = pages.parallelStream()
-            .map(this::getProtocolDTO)
-            .collect(Collectors.toList());
-
-        return saveAll(projectId, protocolDTOs);
     }
 
     /**
@@ -168,12 +165,13 @@ public class ProtocolServiceImpl implements ProtocolService {
      * @param projectId ID of the project to which this protocol belongs.
      * @param type      type of protocols being uploaded.
      * @param files     {@link MultipartFile} the multipart files.
-     * @return {@link List} uploaded protocols.
+     * @return {@link BulkImportResultDTO} upload summary.
      */
     @Override
     public BulkImportResultDTO<ProtocolDTO> bulkImportProtocols(
         Long projectId, String type, MultipartFile[] files
     ) {
+        log.debug("Request to bulk import Protocols in project {}", projectId);
         BulkImportResultDTO<ProtocolDTO> importResult = new BulkImportResultDTO<>();
         importResult.setTotal(files.length);
 
@@ -199,57 +197,67 @@ public class ProtocolServiceImpl implements ProtocolService {
         return importResult;
     }
 
+    @Override
+    public Optional<byte[]> getPreview(Long projectId, Long id) {
+        log.debug("Request to get preview for Protocol {} in project {}", id, projectId);
+
+        try {
+            Path previewPath = Paths.get(
+                properties.getPreview().getPath(),
+                projectId.toString(),
+                id.toString() + ".svg"
+            );
+            if (!Files.exists(previewPath)) {
+                return Optional.empty();
+            }
+            return Optional.of(Files.readAllBytes(previewPath));
+        } catch (IOException e) {
+            throw new ServiceException(
+                EntityNames.PROTOCOL,
+                ErrorKeys.ERR_READING_PREVIEW,
+                "Failed to read protocol preview."
+            );
+        }
+    }
+
     /* Helpers */
 
     /**
-     * Get a protocol DTO from a {@link pt.up.hs.uhc.models.Page} page.
+     * Upload and import protocols.
      *
-     * @param page {@link pt.up.hs.uhc.models.Page} page to convert.
-     * @return {@link ProtocolDTO} protocol dto.
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param type      type of protocol being uploaded.
+     * @param file      {@link MultipartFile} the multipart file.
+     * @return {@link List} uploaded protocols.
      */
-    private ProtocolDTO getProtocolDTO(pt.up.hs.uhc.models.Page page) {
+    private List<ProtocolDTO> importProtocol(
+        Long projectId, String type, MultipartFile file
+    ) {
+        List<pt.up.hs.uhc.models.Page> pages;
+        try {
+            String filename;
+            if (file.getOriginalFilename() == null) {
+                filename = file.getName();
+            } else {
+                filename = file.getOriginalFilename();
+            }
+            pages = new UniversalHandwritingConverter()
+                .inputFormat(formatFromString(type))
+                .file(filename, file.getInputStream())
+                .getPages();
+        } catch (IOException e) {
+            throw new ServiceException(
+                EntityNames.PROTOCOL,
+                ErrorKeys.ERR_READ_IMPORT,
+                "Could not process imported file."
+            );
+        }
 
-        ProtocolDTO protocolDTO = new ProtocolDTO();
+        List<ProtocolDTO> protocolDTOs = pages.parallelStream()
+            .map(uhcPageMapper::uhcPageToProtocolDto)
+            .collect(Collectors.toList());
 
-        page.getStrokes().parallelStream()
-            .forEachOrdered(stroke -> protocolDTO.getStrokes().add(getStrokeDTO(stroke)));
-
-        return protocolDTO;
-    }
-
-    /**
-     * Get a stroke DTO from a {@link pt.up.hs.uhc.models.Stroke} stroke.
-     *
-     * @param stroke {@link pt.up.hs.uhc.models.Stroke} stroke to convert.
-     * @return {@link StrokeDTO} stroke dto.
-     */
-    private StrokeDTO getStrokeDTO(pt.up.hs.uhc.models.Stroke stroke) {
-
-        StrokeDTO strokeDTO = new StrokeDTO();
-
-        strokeDTO.setStartTime(stroke.getStartTime());
-        strokeDTO.setEndTime(stroke.getEndTime());
-
-        stroke.getDots().parallelStream()
-            .forEachOrdered(dot -> strokeDTO.getDots().add(getDotDTO(dot)));
-
-        return strokeDTO;
-    }
-
-    /**
-     * Get a dot DTO from a {@link pt.up.hs.uhc.models.Dot} dot.
-     *
-     * @param dot {@link pt.up.hs.uhc.models.Dot} dot to convert.
-     * @return {@link DotDTO} dot dto.
-     */
-    private DotDTO getDotDTO(pt.up.hs.uhc.models.Dot dot) {
-        DotDTO dotDTO = new DotDTO();
-        dotDTO.setX(dot.getX());
-        dotDTO.setY(dot.getY());
-        dotDTO.setTimestamp(dot.getTimestamp());
-        dotDTO.setType(DotType.valueOf(dot.getType().toString()));
-        dotDTO.setPressure(dot.getPressure());
-        return dotDTO;
+        return saveAll(projectId, protocolDTOs);
     }
 
     /**

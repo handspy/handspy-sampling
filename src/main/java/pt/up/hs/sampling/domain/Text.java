@@ -20,7 +20,7 @@ import java.util.Set;
 @Entity
 @Table(name = "text")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class Text implements Serializable {
+public class Text extends AbstractAuditingEntity {
 
     private static final long serialVersionUID = 1L;
 

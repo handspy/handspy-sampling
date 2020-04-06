@@ -61,22 +61,21 @@ public interface ProtocolService {
     void delete(Long projectId, Long id);
 
     /**
-     * Upload and import protocols.
-     *
-     * @param projectId ID of the project to which this protocol belongs.
-     * @param type      type of protocol being uploaded.
-     * @param file      {@link InputStream} the file input stream.
-     * @return {@link List} uploaded protocols.
-     */
-    List<ProtocolDTO> importProtocol(Long projectId, String type, MultipartFile file);
-
-    /**
      * Upload and import protocols in bulk.
      *
      * @param projectId ID of the project to which this protocol belongs.
      * @param type      type of protocols being uploaded.
      * @param files     {@link MultipartFile} the multipart files.
-     * @return {@link List} uploaded protocols.
+     * @return {@link BulkImportResultDTO} upload summary.
      */
     BulkImportResultDTO<ProtocolDTO> bulkImportProtocols(Long projectId, String type, MultipartFile[] files);
+
+    /**
+     * Get an {@link InputStream} to the image preview.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param id        the id of the entity.
+     * @return {@link InputStream} to the image preview.
+     */
+    Optional<byte[]> getPreview(Long projectId, Long id);
 }

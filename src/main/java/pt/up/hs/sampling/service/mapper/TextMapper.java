@@ -1,6 +1,5 @@
 package pt.up.hs.sampling.service.mapper;
 
-
 import pt.up.hs.sampling.domain.*;
 import pt.up.hs.sampling.service.dto.TextDTO;
 

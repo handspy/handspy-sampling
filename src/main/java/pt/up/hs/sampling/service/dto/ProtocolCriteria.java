@@ -1,6 +1,7 @@
 package pt.up.hs.sampling.service.dto;
 
 import io.github.jhipster.service.Criteria;
+import io.github.jhipster.service.filter.DoubleFilter;
 import io.github.jhipster.service.filter.Filter;
 import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
@@ -23,7 +24,9 @@ public class ProtocolCriteria implements Serializable, Criteria {
 
     private LongFilter id;
 
-    private LongFilter layout;
+    private DoubleFilter width;
+
+    private DoubleFilter height;
 
     private IntegerFilter pageNumber;
 
@@ -34,7 +37,8 @@ public class ProtocolCriteria implements Serializable, Criteria {
 
     public ProtocolCriteria(ProtocolCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
-        this.layout = other.layout == null ? null : other.layout.copy();
+        this.width = other.width == null ? null : other.width.copy();
+        this.height = other.height == null ? null : other.height.copy();
         this.pageNumber = other.pageNumber == null ? null : other.pageNumber.copy();
         this.sampleId = other.sampleId == null ? null : other.sampleId.copy();
     }
@@ -52,12 +56,20 @@ public class ProtocolCriteria implements Serializable, Criteria {
         this.id = id;
     }
 
-    public LongFilter getLayout() {
-        return layout;
+    public DoubleFilter getWidth() {
+        return width;
     }
 
-    public void setLayout(LongFilter layout) {
-        this.layout = layout;
+    public void setWidth(DoubleFilter width) {
+        this.width = width;
+    }
+
+    public DoubleFilter getHeight() {
+        return height;
+    }
+
+    public void setHeight(DoubleFilter height) {
+        this.height = height;
     }
 
     public IntegerFilter getPageNumber() {
@@ -88,7 +100,8 @@ public class ProtocolCriteria implements Serializable, Criteria {
         final ProtocolCriteria that = (ProtocolCriteria) o;
         return
             Objects.equals(id, that.id) &&
-            Objects.equals(layout, that.layout) &&
+            Objects.equals(width, that.width) &&
+            Objects.equals(height, that.height) &&
             Objects.equals(pageNumber, that.pageNumber) &&
             Objects.equals(sampleId, that.sampleId);
     }
@@ -96,10 +109,11 @@ public class ProtocolCriteria implements Serializable, Criteria {
     @Override
     public int hashCode() {
         return Objects.hash(
-        id,
-        layout,
-        pageNumber,
-        sampleId
+            id,
+            width,
+            height,
+            pageNumber,
+            sampleId
         );
     }
 
@@ -107,7 +121,8 @@ public class ProtocolCriteria implements Serializable, Criteria {
     public String toString() {
         return "ProtocolCriteria{" +
                 (id != null ? "id=" + id + ", " : "") +
-                (layout != null ? "layout=" + layout + ", " : "") +
+                (width != null ? "width=" + width + ", " : "") +
+                (height != null ? "height=" + height + ", " : "") +
                 (pageNumber != null ? "pageNumber=" + pageNumber + ", " : "") +
                 (sampleId != null ? "sampleId=" + sampleId + ", " : "") +
             "}";

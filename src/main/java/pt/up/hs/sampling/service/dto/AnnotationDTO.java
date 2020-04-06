@@ -11,8 +11,8 @@ import java.util.Objects;
  *
  * @author José Carlos Paiva
  */
-@ApiModel(description = "An annotation added in a text.\n\n")
-public class AnnotationDTO implements Serializable {
+@ApiModel(description = "An annotation added in a text.")
+public class AnnotationDTO extends AbstractAuditingDTO {
 
     private Long id;
 

@@ -1,5 +1,7 @@
 package pt.up.hs.sampling;
 
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import pt.up.hs.sampling.client.OAuth2InterceptedFeignConfiguration;
 import pt.up.hs.sampling.config.ApplicationProperties;
 
@@ -30,6 +32,8 @@ import java.util.Collection;
 @SpringBootApplication
 @EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
 @EnableDiscoveryClient
+@EnableScheduling
+@EnableBatchProcessing
 public class SamplingApp {
 
     private static final Logger log = LoggerFactory.getLogger(SamplingApp.class);

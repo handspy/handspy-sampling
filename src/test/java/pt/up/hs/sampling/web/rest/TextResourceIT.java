@@ -1,17 +1,5 @@
 package pt.up.hs.sampling.web.rest;
 
-import pt.up.hs.sampling.SamplingApp;
-import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
-import pt.up.hs.sampling.domain.Text;
-import pt.up.hs.sampling.domain.Sample;
-import pt.up.hs.sampling.repository.TextRepository;
-import pt.up.hs.sampling.service.TextService;
-import pt.up.hs.sampling.service.dto.TextDTO;
-import pt.up.hs.sampling.service.mapper.TextMapper;
-import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
-import pt.up.hs.sampling.service.dto.TextCriteria;
-import pt.up.hs.sampling.service.TextQueryService;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -20,19 +8,32 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
+import pt.up.hs.sampling.SamplingApp;
+import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
+import pt.up.hs.sampling.domain.Sample;
+import pt.up.hs.sampling.domain.Text;
+import pt.up.hs.sampling.repository.TextRepository;
+import pt.up.hs.sampling.service.TextQueryService;
+import pt.up.hs.sampling.service.TextService;
+import pt.up.hs.sampling.service.dto.TextDTO;
+import pt.up.hs.sampling.service.mapper.TextMapper;
+import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
 
 import javax.persistence.EntityManager;
 import java.util.List;
 
-import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.isA;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
 
 /**
  * Integration tests for the {@link TextResource} REST controller.
@@ -45,6 +46,21 @@ public class TextResourceIT {
 
     private static final String DEFAULT_TEXT = "AAAAAAAAAA";
     private static final String UPDATED_TEXT = "BBBBBBBBBB";
+
+    private static final String SAMPLE_TEXT = "Re: Preciso conversar com alg" +
+        "uém\nEu não sei por onde começar, minha vida ta uma bagunça, me sin" +
+        "to só sem rumo. Meu pai usa drogas, minha mãe é uma egoísta, disse " +
+        "que vai embora, que vai ser melhor assim, quer q eu more de favor n" +
+        "a casa dos outros e quer seguir a vida dela, e eu? Eu fico pra trás" +
+        ", eu fico por minha total e própria conta, acabei de me formar no e" +
+        "nsino médio, ainda não achei emprego, e to com medo, tinha tantos p" +
+        "lanos para o futuro, eu queria ser tanta coisa, mas não tenho apoio" +
+        " de ninguém, ninguém pra me ajudar, eu sei que eu já deveria saber " +
+        "me virar, sei que ela não tem obrigação de me da um teto e tudo mai" +
+        "s...mas me sinto sendo jogada pra fora...além disso não só tem eu, " +
+        "tenho mais duas irmãs mais nova e ela quer fazer o mesmo com as out" +
+        "ras duas, desde pequena  cuido da minhas irmãs, e agora me sinto im" +
+        "potente não tenho um teto pra dar a elas, me sinto um fracasso.";
 
     @Autowired
     private TextRepository textRepository;
@@ -432,5 +448,90 @@ public class TextResourceIT {
         // Validate the database contains one less item
         List<Text> textList = textRepository.findAll();
         assertThat(textList).hasSize(databaseSizeBeforeDelete - 1);
+    }
+
+    @Test
+    @Transactional
+    public void bulkImportEmptyTexts() throws Exception {
+        // read file
+        byte[] docxContentEmpty = TestUtil.readFileFromResourcesFolder("data/texts/empty.docx");
+        MockMultipartFile docxFileEmpty = new MockMultipartFile("file", "empty.docx", null, docxContentEmpty);
+        byte[] odtContentEmpty = TestUtil.readFileFromResourcesFolder("data/texts/empty.odt");
+        MockMultipartFile odtFileEmpty = new MockMultipartFile("file", "empty.odt", null, odtContentEmpty);
+        byte[] txtContentEmpty = TestUtil.readFileFromResourcesFolder("data/texts/empty.txt");
+        MockMultipartFile txtFileEmpty = new MockMultipartFile("file", "empty.txt", null, txtContentEmpty);
+
+        // Import the texts
+        restTextMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/texts/import", DEFAULT_PROJECT_ID)
+                    .file(docxFileEmpty)
+                    .file(odtFileEmpty)
+                    .file(txtFileEmpty)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.total").value(3))
+            .andExpect(jsonPath("$.invalid").value(3))
+            .andExpect(jsonPath("$.data").value(hasSize(0)));
+    }
+
+    @Test
+    @Transactional
+    public void bulkImportTexts() throws Exception {
+        // read files
+        byte[] docxContent = TestUtil.readFileFromResourcesFolder("data/texts/sample.docx");
+        MockMultipartFile docxFile = new MockMultipartFile("file", "sample.docx", null, docxContent);
+        byte[] odtContent = TestUtil.readFileFromResourcesFolder("data/texts/sample.odt");
+        MockMultipartFile odtFile = new MockMultipartFile("file", "sample.odt", null, odtContent);
+        byte[] txtContent = TestUtil.readFileFromResourcesFolder("data/texts/sample.txt");
+        MockMultipartFile txtFile = new MockMultipartFile("file", "sample.txt", null, txtContent);
+
+        // Import the protocols
+        restTextMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/texts/import", DEFAULT_PROJECT_ID)
+                    .file(docxFile)
+                    .file(odtFile)
+                    .file(txtFile)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.total").value(3))
+            .andExpect(jsonPath("$.invalid").value(0))
+            .andExpect(jsonPath("$.data").value(hasSize(3)))
+            .andExpect(jsonPath("$.data.[*].projectId").value(everyItem(is(DEFAULT_PROJECT_ID.intValue()))))
+            .andExpect(jsonPath("$.data.[*].text").value(everyItem(is(SAMPLE_TEXT))));
+    }
+
+    @Test
+    @Transactional
+    public void bulkImportTextsWithEmpty() throws Exception {
+        // read files
+        byte[] docxContent = TestUtil.readFileFromResourcesFolder("data/texts/sample.docx");
+        MockMultipartFile docxFile = new MockMultipartFile("file", "sample.docx", null, docxContent);
+        byte[] odtContent = TestUtil.readFileFromResourcesFolder("data/texts/sample.odt");
+        MockMultipartFile odtFile = new MockMultipartFile("file", "sample.odt", null, odtContent);
+        byte[] txtContent = TestUtil.readFileFromResourcesFolder("data/texts/empty.txt");
+        MockMultipartFile txtFile = new MockMultipartFile("file", "empty.txt", null, txtContent);
+
+        // Import the protocols
+        restTextMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/texts/import", DEFAULT_PROJECT_ID)
+                    .file(docxFile)
+                    .file(odtFile)
+                    .file(txtFile)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.total").value(3))
+            .andExpect(jsonPath("$.invalid").value(1))
+            .andExpect(jsonPath("$.data").value(hasSize(2)))
+            .andExpect(jsonPath("$.data.[*].projectId").value(everyItem(is(DEFAULT_PROJECT_ID.intValue()))))
+            .andExpect(jsonPath("$.data.[*].text").value(everyItem(is(SAMPLE_TEXT))));
     }
 }

@@ -17,7 +17,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "sample")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class Sample implements Serializable {
+public class Sample extends AbstractAuditingEntity {
 
     private static final long serialVersionUID = 1L;
 

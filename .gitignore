@@ -3,6 +3,7 @@
 ######################
 /build/resources/main/static/**
 /src/test/javascript/coverage/
+previews/
 
 ######################
 # Node

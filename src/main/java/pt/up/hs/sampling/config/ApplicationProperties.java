@@ -10,4 +10,33 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 public class ApplicationProperties {
+
+    private final Preview preview = new Preview();
+
+    public Preview getPreview() {
+        return preview;
+    }
+
+    public static class Preview {
+        private String cron = "0 0 * * * *";
+        private String path = "previews/";
+
+        public String getPath() {
+            return path;
+        }
+
+        public Preview setPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public String getCron() {
+            return cron;
+        }
+
+        public Preview setCron(String cron) {
+            this.cron = cron;
+            return this;
+        }
+    }
 }

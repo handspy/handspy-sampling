@@ -8,9 +8,11 @@ import java.util.Objects;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Layout} entity.
+ *
+ * @author José Carlos Paiva
  */
-@ApiModel(description = "Layout of the paper used to collect data.\n\n@author José Carlos Paiva")
-public class LayoutDTO implements Serializable {
+@ApiModel(description = "Layout of the paper used to collect data.")
+public class LayoutDTO extends AbstractAuditingDTO {
 
     private Long id;
 

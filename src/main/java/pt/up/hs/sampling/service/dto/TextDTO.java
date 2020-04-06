@@ -17,7 +17,7 @@ import java.util.Set;
     "e sample). It may be a transcription of the protocol (automatic or manu" +
     "ally entered by an analyst) or text typed by a participant using a typi" +
     "ng device.")
-public class TextDTO implements Serializable {
+public class TextDTO extends AbstractAuditingDTO {
 
     private Long id;
 

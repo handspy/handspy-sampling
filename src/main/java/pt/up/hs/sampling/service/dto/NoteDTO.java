@@ -8,9 +8,11 @@ import java.util.Objects;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Note} entity.
+ *
+ * @author José Carlos Paiva
  */
-@ApiModel(description = "Note taken about a sample by an analyst.\n\n@author José Carlos Paiva")
-public class NoteDTO implements Serializable {
+@ApiModel(description = "Note taken about a sample by an analyst.")
+public class NoteDTO extends AbstractAuditingDTO {
 
     private Long id;
 

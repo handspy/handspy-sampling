@@ -2,9 +2,11 @@ package pt.up.hs.sampling.service.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import javax.validation.constraints.*;
-import java.io.Serializable;
-import java.util.*;
+
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Protocol} entity.
@@ -13,7 +15,7 @@ import java.util.*;
  */
 @ApiModel(description = "Handwritten data collected using a smartpen for ana" +
     "lysis (part of the sample).")
-public class ProtocolDTO implements Serializable {
+public class ProtocolDTO extends AbstractAuditingDTO {
 
     private Long id;
 
@@ -32,10 +34,18 @@ public class ProtocolDTO implements Serializable {
     private Long sampleId;
 
     /**
-     * Layout in which the protocol has been written
+     * Width of the layout in which the protocol has been written.
      */
-    @ApiModelProperty(value = "Layout in which the protocol has been written")
-    private Long layout;
+    @ApiModelProperty(value = "Width of the layout in which the protocol has" +
+        " been written.")
+    private Double width;
+
+    /**
+     * Height of the layout in which the protocol has been written.
+     */
+    @ApiModelProperty(value = "Height of the layout in which the protocol ha" +
+        "s been written.")
+    private Double height;
 
     /**
      * Number of the page (if the protocol contains multiple pages)
@@ -54,12 +64,36 @@ public class ProtocolDTO implements Serializable {
         this.id = id;
     }
 
-    public Long getLayout() {
-        return layout;
+    public Long getProjectId() {
+        return projectId;
     }
 
-    public void setLayout(Long layout) {
-        this.layout = layout;
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    public Long getSampleId() {
+        return sampleId;
+    }
+
+    public void setSampleId(Long sampleId) {
+        this.sampleId = sampleId;
+    }
+
+    public Double getWidth() {
+        return width;
+    }
+
+    public void setWidth(Double width) {
+        this.width = width;
+    }
+
+    public Double getHeight() {
+        return height;
+    }
+
+    public void setHeight(Double height) {
+        this.height = height;
     }
 
     public Integer getPageNumber() {
@@ -70,28 +104,12 @@ public class ProtocolDTO implements Serializable {
         this.pageNumber = pageNumber;
     }
 
-    public Long getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
-    }
-
     public List<StrokeDTO> getStrokes() {
         return strokes;
     }
 
     public void setStrokes(List<StrokeDTO> strokes) {
         this.strokes = strokes;
-    }
-
-    public Long getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
     }
 
     @Override
@@ -121,7 +139,8 @@ public class ProtocolDTO implements Serializable {
             "id=" + getId() +
             ", projectId=" + getProjectId() +
             ", sampleId=" + getSampleId() +
-            ", layout=" + getLayout() +
+            ", width=" + getWidth() +
+            ", height=" + getHeight() +
             ", pageNumber=" + getPageNumber() +
             "}";
     }

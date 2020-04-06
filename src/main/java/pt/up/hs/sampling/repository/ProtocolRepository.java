@@ -34,4 +34,16 @@ public interface ProtocolRepository extends JpaRepository<Protocol, Long>, JpaSp
     @Nonnull <S extends Protocol> List<S> saveAll(@Nonnull Iterable<S> entities);
 
     void deleteAllByProjectIdAndId(@NotNull Long projectId, @NotNull Long id);
+
+    @Modifying
+    @Query("update Protocol protocol set protocol.dirtyPreview = false where protocol.projectId = :projectId and protocol.id = :id")
+    void cleanPreview(@Param("projectId") @NotNull Long projectId, @Param("id") @NotNull Long id);
+
+    @Modifying
+    @Query("update Protocol protocol set protocol.dirtyPreview = true")
+    void markAllForPreviewRegenerate();
+
+    Optional<Protocol> findFirstByDirtyPreviewTrue();
+
+    Page<Protocol> findAllByDirtyPreviewTrue(Pageable pageable);
 }

@@ -40,7 +40,7 @@ public class ProblemWithMessageException extends AbstractThrowableProblem {
 
     private static Map<String, Object> getParameters(String entityName, String errorKey) {
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("message", "error." + errorKey);
+        parameters.put("message", errorKey);
         parameters.put("params", entityName);
         return parameters;
     }

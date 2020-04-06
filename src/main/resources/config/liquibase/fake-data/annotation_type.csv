@@ -1,11 +1,11 @@
-id;name;label;description;emotional;weight;color;project_id
-1;Bahraini Dinar European Unit of Account 17(E.U.A.-17) Bacon;hack North Carolina;Uzbekistan Sum;false;28568;grey;71395
-2;Home Loan Account transitional;Integration;bandwidth interface;false;20788;turquoise;70546
-3;Louisiana customized Plastic;Knoll Wisconsin white;Berkshire;true;71498;sky blue;10014
-4;Arizona Cambridgeshire;Keyboard blue JBOD;Orchestrator;true;51202;cyan;64119
-5;overriding SMS;Garden scale;turn-key sensor communities;true;23462;ivory;35446
-6;Intelligent Legacy Lakes;Self-enabling;fuchsia front-end;false;43073;grey;97116
-7;Future Incredible withdrawal;1080p SSL;Licensed Direct solutions;true;75508;fuchsia;36556
-8;Lebanese Pound Credit Card Account;even-keeled;Bedfordshire Fresh extranet;false;60624;mint green;23721
-9;bypass GB Brand;Home Loan Account black;platforms Money Market Account Wooden;true;42743;green;57817
-10;systems Nebraska Infrastructure;Branding wireless time-frame;capability payment Grocery;false;44154;violet;53714
+id;name;label;description;emotional;weight;color;project_id;created_by
+1;Bahraini Dinar European Unit of Account 17(E.U.A.-17) Bacon;hack North Carolina;Uzbekistan Sum;false;28568;grey;71395;system
+2;Home Loan Account transitional;Integration;bandwidth interface;false;20788;turquoise;70546;system
+3;Louisiana customized Plastic;Knoll Wisconsin white;Berkshire;true;71498;sky blue;10014;system
+4;Arizona Cambridgeshire;Keyboard blue JBOD;Orchestrator;true;51202;cyan;64119;system
+5;overriding SMS;Garden scale;turn-key sensor communities;true;23462;ivory;35446;system
+6;Intelligent Legacy Lakes;Self-enabling;fuchsia front-end;false;43073;grey;97116;system
+7;Future Incredible withdrawal;1080p SSL;Licensed Direct solutions;true;75508;fuchsia;36556;system
+8;Lebanese Pound Credit Card Account;even-keeled;Bedfordshire Fresh extranet;false;60624;mint green;23721;system
+9;bypass GB Brand;Home Loan Account black;platforms Money Market Account Wooden;true;42743;green;57817;system
+10;systems Nebraska Infrastructure;Branding wireless time-frame;capability payment Grocery;false;44154;violet;53714;system

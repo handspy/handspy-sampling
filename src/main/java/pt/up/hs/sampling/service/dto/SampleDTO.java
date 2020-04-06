@@ -13,7 +13,7 @@ import java.util.Objects;
  * @author José Carlos Paiva
  */
 @ApiModel(description = "Sample of a participant for analysis in a task.")
-public class SampleDTO implements Serializable {
+public class SampleDTO extends AbstractAuditingDTO {
 
     private Long id;
 

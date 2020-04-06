@@ -157,6 +157,7 @@ oauth2:
     #keep in sync with UAA configuration
     client-id: web_app
     secret: changeit
+
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class
@@ -166,4 +167,7 @@ oauth2:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  preview:
+    cron: 0 0 */30 * * *
+    path: tmp/previews/

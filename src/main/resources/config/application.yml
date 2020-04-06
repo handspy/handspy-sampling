@@ -147,6 +147,9 @@ spring:
   output:
     ansi:
       console-available: true
+  batch:
+    job:
+      enabled: false
 security:
   oauth2:
     client:
@@ -210,6 +213,7 @@ kafka:
   producer:
     key.serializer: org.apache.kafka.common.serialization.StringSerializer
     value.serializer: org.apache.kafka.common.serialization.StringSerializer
+
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class

@@ -12,7 +12,7 @@ import java.util.Objects;
  * @author José Carlos Paiva
  */
 @ApiModel(description = "Types of annotations that can be added in a text.")
-public class AnnotationTypeDTO implements Serializable {
+public class AnnotationTypeDTO extends AbstractAuditingDTO {
 
     private Long id;
 

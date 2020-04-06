@@ -15,6 +15,7 @@ public interface ProtocolMapper extends EntityMapper<ProtocolDTO, Protocol> {
     @Mapping(source = "strokes", target = "strokes")
     ProtocolDTO toDto(Protocol protocol);
 
+    @Mapping(target = "dirtyPreview", constant = "true")
     @Mapping(source = "sampleId", target = "sample")
     @Mapping(source = "strokes", target = "strokes")
     Protocol toEntity(ProtocolDTO protocolDTO);

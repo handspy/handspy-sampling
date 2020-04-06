@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "annotation_type")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class AnnotationType implements Serializable {
+public class AnnotationType extends AbstractAuditingEntity {
 
     private static final long serialVersionUID = 1L;
 

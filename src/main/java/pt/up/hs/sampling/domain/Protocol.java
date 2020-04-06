@@ -1,18 +1,15 @@
 package pt.up.hs.sampling.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
-
-import java.io.Serializable;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Handwritten data collected using a smartpen for analysis (part of the
@@ -23,7 +20,7 @@ import java.util.Set;
 @Entity
 @Table(name = "protocol")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class Protocol implements Serializable {
+public class Protocol extends AbstractAuditingEntity {
 
     private static final long serialVersionUID = 1L;
 
@@ -40,10 +37,16 @@ public class Protocol implements Serializable {
     private Long projectId;
 
     /**
-     * Layout in which the protocol has been written
+     * Width of the layout in which the protocol has been written.
      */
-    @Column(name = "layout")
-    private Long layout;
+    @Column(name = "width", nullable = false)
+    private Double width;
+
+    /**
+     * Height of the layout in which the protocol has been written.
+     */
+    @Column(name = "height", nullable = false)
+    private Double height;
 
     /**
      * Number of the page (if the protocol contains multiple pages)
@@ -57,7 +60,6 @@ public class Protocol implements Serializable {
         fetch = FetchType.LAZY,
         orphanRemoval = true
     )
-    //@Cascade({ org.hibernate.annotations.CascadeType.SAVE_UPDATE })
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @JsonIgnoreProperties("protocol")
     private List<Stroke> strokes = new ArrayList<>();
@@ -65,6 +67,10 @@ public class Protocol implements Serializable {
     @ManyToOne
     @JsonIgnoreProperties("protocols")
     private Sample sample;
+
+    @Column(name = "dirty_preview")
+    @JsonIgnore
+    private boolean dirtyPreview = true;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -88,17 +94,30 @@ public class Protocol implements Serializable {
         this.projectId = projectId;
     }
 
-    public Long getLayout() {
-        return layout;
+    public Double getWidth() {
+        return width;
     }
 
-    public Protocol layout(Long layout) {
-        this.layout = layout;
+    public Protocol width(Double width) {
+        this.width = width;
         return this;
     }
 
-    public void setLayout(Long layout) {
-        this.layout = layout;
+    public void setWidth(Double width) {
+        this.width = width;
+    }
+
+    public Double getHeight() {
+        return height;
+    }
+
+    public Protocol height(Double height) {
+        this.height = height;
+        return this;
+    }
+
+    public void setHeight(Double height) {
+        this.height = height;
     }
 
     public Integer getPageNumber() {
@@ -145,6 +164,20 @@ public class Protocol implements Serializable {
     public void setSample(Sample sample) {
         this.sample = sample;
     }
+
+    public boolean isDirtyPreview() {
+        return dirtyPreview;
+    }
+
+    public Protocol dirtyPreview(boolean dirtyPreview) {
+        this.dirtyPreview = dirtyPreview;
+        return this;
+    }
+
+    public void setDirtyPreview(boolean dirtyPreview) {
+        this.dirtyPreview = dirtyPreview;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
@@ -168,7 +201,8 @@ public class Protocol implements Serializable {
         return "Protocol{" +
             "id=" + getId() +
             ", projectId=" + getProjectId() +
-            ", layout=" + getLayout() +
+            ", width=" + getWidth() +
+            ", height=" + getHeight() +
             ", pageNumber=" + getPageNumber() +
             "}";
     }

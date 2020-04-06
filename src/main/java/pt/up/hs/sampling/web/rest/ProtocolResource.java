@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,6 @@ import pt.up.hs.sampling.service.ProtocolService;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
 import pt.up.hs.sampling.service.dto.ProtocolCriteria;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
-import pt.up.hs.sampling.service.exceptions.ServiceException;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 import pt.up.hs.sampling.constants.ErrorKeys;
 
@@ -78,40 +78,19 @@ public class ProtocolResource {
      * {@code POST /protocols/import} : import protocols sent in multipart/form-data.
      *
      * @param projectId ID of the project to which this protocol belongs.
-     * @param type      Type of protocol uploaded.
-     * @param file      {@link MultipartFile} file from multipart/form-data.
-     * @return {@link ResponseEntity} with status {@code 200 (OK)} and with
-     * body the {@link List}.
-     */
-    @PostMapping(value = "/protocols/import", consumes = "multipart/form-data")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
-    public ResponseEntity<List<ProtocolDTO>> importProtocol(
-        @PathVariable("projectId") Long projectId,
-        @RequestParam(value = "type", required = false) String type,
-        @RequestParam("file") MultipartFile file
-    ) {
-        log.debug("REST request to import Protocol sent in multipart/form-data in project {}", projectId);
-        List<ProtocolDTO> result = protocolService.importProtocol(projectId, type, file);
-        return ResponseEntity.ok(result);
-    }
-
-    /**
-     * {@code POST /protocols/bulk-import} : import protocols sent in multipart/form-data.
-     *
-     * @param projectId ID of the project to which this protocol belongs.
      * @param type      Type of protocols uploaded.
      * @param files     {@link MultipartFile[]} files from multipart/form-data.
      * @return {@link ResponseEntity} with status {@code 200 (OK)} and with
      * body the {@link BulkImportResultDTO}.
      */
-    @PostMapping(value = "/protocols/bulk-import", consumes = "multipart/form-data")
+    @PostMapping(value = "/protocols/import", consumes = "multipart/form-data")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
-    public ResponseEntity<BulkImportResultDTO<ProtocolDTO>> bulkImportProtocols(
+    public ResponseEntity<BulkImportResultDTO<ProtocolDTO>> importProtocols(
         @PathVariable("projectId") Long projectId,
         @RequestParam(value = "type", required = false) String type,
         @RequestParam("file") MultipartFile[] files
     ) {
-        log.debug("REST request to import Protocols sent in multipart/form-data in project {}", projectId);
+        log.debug("REST request to import Protocol sent in multipart/form-data in project {}", projectId);
         BulkImportResultDTO<ProtocolDTO> result = protocolService.bulkImportProtocols(projectId, type, files);
         return ResponseEntity.ok(result);
     }
@@ -195,6 +174,26 @@ public class ProtocolResource {
         log.debug("REST request to get Protocol {} in project {}", id, projectId);
         Optional<ProtocolDTO> protocolDTO = protocolService.findOne(projectId, id);
         return ResponseUtil.wrapOrNotFound(protocolDTO);
+    }
+
+    /**
+     * {@code GET  /protocols/:id/preview} : get the "id" protocol's preview.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param id        the id of the protocolDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the protocolDTO, or with status {@code 404 (Not Found)}.
+     */
+    @GetMapping(value = "/protocols/{id}/preview", produces = {
+        "image/svg+xml",
+        MediaType.APPLICATION_OCTET_STREAM_VALUE
+    })
+    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
+    public ResponseEntity<byte[]> getProtocolPreview(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable Long id
+    ) {
+        log.debug("REST request to get preview for Protocol {} in project {}", id, projectId);
+        return ResponseUtil.wrapOrNotFound(protocolService.getPreview(projectId, id));
     }
 
     /**
