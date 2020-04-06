@@ -1,0 +1,53 @@
+os:
+- linux
+services:
+- docker
+language: node_js
+node_js:
+- 12.14.0
+cache:
+  directories:
+  - node
+  - node_modules
+  - "$HOME/.gradle"
+env:
+  global:
+  - NODE_VERSION=12.14.0
+  - SPRING_OUTPUT_ANSI_ENABLED=ALWAYS
+  - SPRING_JPA_SHOW_SQL=false
+  - JHI_DISABLE_WEBPACK_LOGS=true
+  - NG_CLI_ANALYTICS="false"
+  - secure: XpO/aicM0q22J8X22TG7wb6K7I4fK4Cz//eerpC2cA5NUsKyCHyqRnRyHgNDUMMqh2rEOAJIOEBPhFOU0917IHNEIjiTSVySL7EeckIEI/udPZ1GsLJxxCvJznFHGgy98yDmgUWP1n9h2kyVNapwgjJSBf7XAbU1FPAfp1pyd0483u98xUeJfn0N6iKU86KwYsd6kMG5hoPVJBjMryb0mecSJgM5JG/WvCFU6up0TOBfOwE+GZAOQiEDoaLQUcgIcjjNI159+XnBegNp6klzjfGNgRyGtqHBHxK5wnZhUHPSO0lC1SryTinuBgcCS498Rt89Cj7td3t/H4EDAtrGO1oJHW/oyF6CLygscQF+Kd+oR7Qvy9uEbFtVO9D3NCFQa7FntYCxot7jRwvOrxf0nNemPm9r4qET2o9LcTl3B6du64+x40b2b4Er5B/Yjvk2tdtLpYOkigcr/PrXMdWkGfLTDISuMjbiExxX2KjOICdnkJaEvq/wZhJTn8QHt3vooA2AAoR5DFNjRLSw38/TttW4xVNAk3HlCPuFZS0mBO16mNo+BbJ2wLPLzwq6R/AR32avlMo1O8ch+/MQYMOlTsKsKjnuBpgO5RlmVXbtu+8RE0RqzxXmV7NKjt+t0HEi/ni2b/FN3DJAQjqtuC2njTrpfzQJ2ZPk0yLoiAXpsn0=
+before_install:
+- |
+  if [[ $JHI_JDK = '8' ]]; then
+    echo '*** Using OpenJDK 8'
+  else
+    echo '*** Using OpenJDK 11 by default'
+    sudo add-apt-repository ppa:openjdk-r/ppa -y
+    sudo apt-get update -q
+    sudo apt-get install -y openjdk-11-jdk -y
+    sudo update-java-alternatives -s java-1.11.0-openjdk-amd64
+    java -version
+  fi
+- java -version
+- sudo /etc/init.d/mysql stop
+- sudo /etc/init.d/postgresql stop
+- nvm install $NODE_VERSION
+- npm install -g npm
+- node -v
+- npm -v
+install:
+- npm install
+script:
+- chmod +x gradlew
+- "./gradlew checkstyleNohttp"
+- "./gradlew clean test integrationTest"
+- if [ $TRAVIS_PULL_REQUEST == "false" ]; then ./gradlew sonarqube --no-daemon -Dsonar.organization=handspy
+  -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN; fi
+- "./gradlew bootJar -Pprod -x test"
+notifications:
+  webhooks:
+    on_success: change
+    on_failure: always
+    on_start: never
