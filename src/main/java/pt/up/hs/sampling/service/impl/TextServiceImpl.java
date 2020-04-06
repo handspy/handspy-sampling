@@ -1,6 +1,7 @@
 package pt.up.hs.sampling.service.impl;
 
 import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,7 @@ import pt.up.hs.sampling.service.dto.TextDTO;
 import pt.up.hs.sampling.service.exceptions.ServiceException;
 import pt.up.hs.sampling.service.mapper.TextMapper;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -181,9 +183,9 @@ public class TextServiceImpl implements TextService {
             Tika tika = new Tika();
             text = tika.parseToString(file.getInputStream()).trim();
             if (text.isEmpty()) {
-                throw new Exception("Unparseable text.");
+                throw new IOException("Unparseable text.");
             }
-        } catch (Exception e) {
+        } catch (IOException | TikaException e) {
             throw new ServiceException(
                 EntityNames.TEXT,
                 ErrorKeys.ERR_READ_IMPORT,
