@@ -4,7 +4,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.test.JobLauncherTestUtils;
@@ -30,6 +29,7 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static pt.up.hs.sampling.processing.preview.ProtocolPreviewGenerationConstants.PROTOCOL_PREVIEW_GENERATION_STEP;
+
 
 @SpringBootTest(classes = {
     SamplingApp.class,
@@ -99,7 +99,7 @@ public class BatchProtocolPreviewGenerationConfigIT {
                 Paths.get(
                     properties.getPreview().getPath(),
                     protocol.getProjectId().toString(),
-                    protocol.getId().toString() + ".svg"
+                    protocol.getId().toString() + ".png"
                 ).toFile()));
         }
     }
@@ -116,7 +116,7 @@ public class BatchProtocolPreviewGenerationConfigIT {
                 Paths.get(
                     properties.getPreview().getPath(),
                     protocol.getProjectId().toString(),
-                    protocol.getId().toString() + ".svg"
+                    protocol.getId().toString() + ".png"
                 ).toFile()));
         }
     }

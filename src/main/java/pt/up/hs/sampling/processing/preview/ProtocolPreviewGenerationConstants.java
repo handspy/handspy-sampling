@@ -13,4 +13,7 @@ public interface ProtocolPreviewGenerationConstants {
     String PROTOCOL_PREVIEW_GENERATION_PROJECT_ID_PARAMETER = "projectId";
     String PROTOCOL_PREVIEW_GENERATION_ID_PARAMETER = "id";
     String PROTOCOL_PREVIEW_GENERATION_UNIQUENESS_PARAMETER = "uniqueness";
+
+    int PROTOCOL_PREVIEW_WIDTH = 300;
+    int PROTOCOL_PREVIEW_HEIGHT = 300;
 }
