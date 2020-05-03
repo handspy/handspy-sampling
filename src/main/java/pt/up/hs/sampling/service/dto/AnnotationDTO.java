@@ -24,6 +24,13 @@ public class AnnotationDTO extends AbstractAuditingDTO {
     private Long textId;
 
     /**
+     * Type of this annotation.
+     */
+    @NotNull
+    @ApiModelProperty(value = "Type of this annotation.", required = true)
+    private Long annotationTypeId;
+
+    /**
      * Start position of the annotation.
      */
     @NotNull
@@ -43,19 +50,20 @@ public class AnnotationDTO extends AbstractAuditingDTO {
     @ApiModelProperty(value = "Note about annotation.")
     private String note;
 
-    /**
-     * Type of this annotation.
-     */
-    @NotNull
-    @ApiModelProperty(value = "Type of this annotation.", required = true)
-    private Long annotationTypeId;
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getTextId() {
+        return textId;
+    }
+
+    public void setTextId(Long textId) {
+        this.textId = textId;
     }
 
     public Long getAnnotationTypeId() {
@@ -88,14 +96,6 @@ public class AnnotationDTO extends AbstractAuditingDTO {
 
     public void setNote(String note) {
         this.note = note;
-    }
-
-    public Long getTextId() {
-        return textId;
-    }
-
-    public void setTextId(Long textId) {
-        this.textId = textId;
     }
 
     @Override

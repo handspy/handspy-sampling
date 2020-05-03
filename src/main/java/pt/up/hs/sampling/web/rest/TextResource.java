@@ -5,7 +5,6 @@ import org.springframework.web.multipart.MultipartFile;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.TextService;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
-import pt.up.hs.sampling.service.dto.ProtocolDTO;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 import pt.up.hs.sampling.service.dto.TextDTO;
 import pt.up.hs.sampling.service.dto.TextCriteria;

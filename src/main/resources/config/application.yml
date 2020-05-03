@@ -148,8 +148,10 @@ spring:
     ansi:
       console-available: true
   batch:
+    initialize-schema: never
     job:
-      enabled: false
+      enabled: true
+
 security:
   oauth2:
     client:
@@ -191,18 +193,18 @@ jhipster:
   #     allow-credentials: true
   #     max-age: 1800
   mail:
-    from: sampling@localhost
+    from: support@handspy.up.pt
   swagger:
     default-include-pattern: /api/.*
-    title: sampling API
-    description: sampling API documentation
+    title: HandSpy Sampling Microservice API
+    description: HandSpy Sampling Microservice API documentation
     version: 0.0.1
-    terms-of-service-url:
-    contact-name:
-    contact-url:
-    contact-email:
-    license:
-    license-url:
+    terms-of-service-url: https://handspy.up.pt/terms-of-service
+    contact-name: HandSpy Support Team
+    contact-url: https://handspy.up.pt/contact
+    contact-email: support@handspy.up.pt
+    license: GNU GPLv3
+    license-url: https://www.gnu.org/licenses/gpl-3.0.html
 kafka:
   bootstrap-servers: localhost:9092
   consumer:

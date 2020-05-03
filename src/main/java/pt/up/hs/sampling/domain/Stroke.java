@@ -48,7 +48,7 @@ public class Stroke implements Serializable {
      */
     @NotNull
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "protocol_id", referencedColumnName = "id"/*, updatable = false*/)
+    @JoinColumn(name = "protocol_id", referencedColumnName = "id")
     @JsonIgnoreProperties("strokes")
     private Protocol protocol;
 

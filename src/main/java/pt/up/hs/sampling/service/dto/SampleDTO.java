@@ -39,17 +39,16 @@ public class SampleDTO extends AbstractAuditingDTO {
     private Long participant;
 
     /**
-     * Timestamp of collection of the sample
+     * Timestamp of collection of the sample.
      */
     @ApiModelProperty(value = "Timestamp of collection of the sample")
     private Instant timestamp;
 
     /**
-     * Language of the sample
+     * Language of the sample.
      */
     @ApiModelProperty(value = "Language of the sample")
     private String language;
-
 
     public Long getId() {
         return id;

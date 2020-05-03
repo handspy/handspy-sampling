@@ -7,12 +7,12 @@ import pt.up.hs.sampling.processing.preview.BatchProtocolPreviewGenerationJobLau
 import pt.up.hs.sampling.repository.ProtocolRepository;
 
 @Component
-public class ProtocolPreviewGenerationRunner implements CommandLineRunner {
+public class CleanupProtocolPreviewRunner implements CommandLineRunner {
 
     private final ProtocolRepository protocolRepository;
     private final BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher;
 
-    public ProtocolPreviewGenerationRunner(
+    public CleanupProtocolPreviewRunner(
         ProtocolRepository protocolRepository,
         BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher
     ) {
@@ -24,6 +24,6 @@ public class ProtocolPreviewGenerationRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         protocolRepository.markAllForPreviewRegenerate();
-        previewGenerationJobLauncher.newExecution();
+        /*previewGenerationJobLauncher.newExecution();*/
     }
 }
