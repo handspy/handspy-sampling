@@ -14,7 +14,10 @@ import pt.up.hs.sampling.SamplingApp;
 import pt.up.hs.sampling.config.ApplicationProperties;
 import pt.up.hs.sampling.domain.Protocol;
 import pt.up.hs.sampling.processing.BatchTestConfiguration;
+import pt.up.hs.sampling.repository.ProtocolDataRepository;
 import pt.up.hs.sampling.repository.ProtocolRepository;
+import pt.up.hs.sampling.service.ProtocolService;
+import pt.up.hs.sampling.service.mapper.ProtocolDataMapper;
 import pt.up.hs.sampling.service.mapper.ProtocolMapper;
 import pt.up.hs.sampling.service.mapper.UhcPageMapper;
 import pt.up.hs.sampling.web.rest.TestUtil;
@@ -49,15 +52,22 @@ public class BatchProtocolPreviewGenerationConfigIT {
     ApplicationProperties properties;
 
     @Autowired
+    private ProtocolService protocolService;
+
+    @Autowired
     private UhcPageMapper uhcPageMapper;
     @Autowired
     private ProtocolMapper protocolMapper;
+    @Autowired
+    private ProtocolDataMapper protocolDataMapper;
 
     @Autowired
     private EntityManager em;
 
     @Autowired
     private ProtocolRepository protocolRepository;
+    @Autowired
+    private ProtocolDataRepository protocolDataRepository;
 
     private List<Protocol> protocols;
 
@@ -68,21 +78,25 @@ public class BatchProtocolPreviewGenerationConfigIT {
             .file("data/protocols/page_full.data", new ByteArrayInputStream(TestUtil.readFileFromResourcesFolder("data/protocols/page_full.data")))
             .file("data/protocols/page_empty.data", new ByteArrayInputStream(TestUtil.readFileFromResourcesFolder("data/protocols/page_empty.data")))
             .getPages()
-            .parallelStream()
-            .map(uhcPageMapper::uhcPageToProtocolDto)
-            .peek(protocolDTO -> protocolDTO.setProjectId(DEFAULT_PROJECT_ID))
-            .map(protocolMapper::toEntity)
+            .stream()
+            .map(uhcPageMapper::uhcPageToProtocolData)
+            .map(pd -> {
+                Protocol protocol = new Protocol().projectId(DEFAULT_PROJECT_ID);
+
+                pd.setProtocol(protocol);
+                protocolDataRepository.saveAndFlush(pd);
+
+                return pd.getProtocol();
+            })
             .collect(Collectors.toList());
-        for (Protocol protocol: protocols) {
-            protocolRepository.saveAndFlush(protocol);
-        }
     }
 
     @AfterEach
     @Transactional
     public void cleanup() {
         for (Protocol protocol: protocols) {
-            protocolRepository.delete(protocol);
+            protocolDataRepository.deleteById(protocol.getId());
+            protocolRepository.deleteByProjectIdAndId(protocol.getProjectId(), protocol.getId());
         }
         deleteFolder(Paths.get(
             properties.getPreview().getPath(), DEFAULT_PROJECT_ID.toString()).toFile());

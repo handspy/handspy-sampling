@@ -1,11 +1,11 @@
-id;text;project_id;created_by
-1;target 1080p;41087;system
-2;morph;59709;system
-3;support azure maroon;4695;system
-4;Producer New York;76680;system
-5;Coordinator;8609;system
-6;Granite Iowa;69016;system
-7;bypass maroon Creative;82458;system
-8;online magenta;89738;system
-9;parsing Turnpike SCSI;89067;system
-10;secondary Bike RSS;65447;system
+id;project_id;text;language;task_id;participant_id;created_by
+1;1;target 1080p;en-GB;1;1;system
+2;1;morph;en-GB;1;1;system
+3;1;support azure maroon;en-GB;1;1;system
+4;1;Producer New York;en-GB;;;system
+5;1;Coordinator;en-GB;;;system
+6;1;Granite Iowa;en-GB;;;system
+7;1;bypass maroon Creative;en-GB;;;system
+8;1;online magenta;en-GB;;;system
+9;1;parsing Turnpike SCSI;en-GB;;;system
+10;1;secondary Bike RSS;en-GB;;;system

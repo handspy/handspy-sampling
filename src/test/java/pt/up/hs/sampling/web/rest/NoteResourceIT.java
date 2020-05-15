@@ -43,6 +43,12 @@ public class NoteResourceIT {
     private static final Long DEFAULT_PROJECT_ID = 1L;
     private static final Long OTHER_PROJECT_ID = 2L;
 
+    private static final Long DEFAULT_TASK_ID = 1001L;
+    private static final Long OTHER_TASK_ID = 1002L;
+
+    private static final Long DEFAULT_PARTICIPANT_ID = 10001L;
+    private static final Long OTHER_PARTICIPANT_ID = 10002L;
+
     private static final String DEFAULT_TEXT = "AAAAAAAAAA";
     private static final String UPDATED_TEXT = "BBBBBBBBBB";
 
@@ -78,8 +84,6 @@ public class NoteResourceIT {
 
     private MockMvc restNoteMockMvc;
 
-    private static Sample defaultSample;
-
     private Note note;
 
     @BeforeEach
@@ -102,9 +106,11 @@ public class NoteResourceIT {
      */
     public static Note createEntity(EntityManager em) {
         return new Note()
+            .projectId(DEFAULT_PROJECT_ID)
+            .taskId(DEFAULT_TASK_ID)
+            .participantId(DEFAULT_PARTICIPANT_ID)
             .text(DEFAULT_TEXT)
-            .self(DEFAULT_SELF)
-            .sample(defaultSample);
+            .self(DEFAULT_SELF);
     }
 
     /**
@@ -115,32 +121,15 @@ public class NoteResourceIT {
      */
     public static Note createUpdatedEntity(EntityManager em) {
         return new Note()
+            .projectId(DEFAULT_PROJECT_ID)
+            .taskId(OTHER_TASK_ID)
+            .participantId(OTHER_PARTICIPANT_ID)
             .text(UPDATED_TEXT)
-            .self(UPDATED_SELF)
-            .sample(defaultSample);
-    }
-
-    /**
-     * Get sample to link note.
-     *
-     * @param em {@link EntityManager} entity manager.
-     * @return {@link Sample} sample.
-     */
-    public static Sample getSample(EntityManager em) {
-        Sample sample;
-        if (TestUtil.findAll(em, Sample.class).isEmpty()) {
-            sample = SampleResourceIT.createEntity(em);
-            em.persist(sample);
-            em.flush();
-        } else {
-            sample = TestUtil.findAll(em, Sample.class).get(0);
-        }
-        return sample;
+            .self(UPDATED_SELF);
     }
 
     @BeforeEach
     public void initTest() {
-        defaultSample = getSample(em);
         note = createEntity(em);
     }
 
@@ -151,7 +140,7 @@ public class NoteResourceIT {
 
         // Create the Note
         NoteDTO noteDTO = noteMapper.toDto(note);
-        restNoteMockMvc.perform(post("/api/projects/{projectId}/samples/{sampleId}/notes", DEFAULT_PROJECT_ID, defaultSample.getId())
+        restNoteMockMvc.perform(post("/api/projects/{projectId}/notes", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(noteDTO)))
             .andExpect(status().isCreated());
@@ -174,7 +163,7 @@ public class NoteResourceIT {
         NoteDTO noteDTO = noteMapper.toDto(note);
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restNoteMockMvc.perform(post("/api/projects/{projectId}/samples/{sampleId}/notes", DEFAULT_PROJECT_ID, defaultSample.getId())
+        restNoteMockMvc.perform(post("/api/projects/{projectId}/notes", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(noteDTO)))
             .andExpect(status().isBadRequest());
@@ -192,7 +181,7 @@ public class NoteResourceIT {
         noteRepository.saveAndFlush(note);
 
         // Get all the noteList
-        restNoteMockMvc.perform(get("/api/projects/{projectId}/samples/{sampleId}/notes?sort=id,desc", DEFAULT_PROJECT_ID, defaultSample.getId()))
+        restNoteMockMvc.perform(get("/api/projects/{projectId}/notes?sort=id,desc", DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(note.getId().intValue())))
@@ -207,7 +196,7 @@ public class NoteResourceIT {
         noteRepository.saveAndFlush(note);
 
         // Get the note
-        restNoteMockMvc.perform(get("/api/projects/{projectId}/samples/{sampleId}/notes/{id}", DEFAULT_PROJECT_ID, defaultSample.getId(), note.getId()))
+        restNoteMockMvc.perform(get("/api/projects/{projectId}/notes/{id}", DEFAULT_PROJECT_ID, note.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(note.getId().intValue()))
@@ -370,7 +359,7 @@ public class NoteResourceIT {
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultNoteShouldBeFound(String filter) throws Exception {
-        restNoteMockMvc.perform(get("/api/projects/{projectId}/samples/{sampleId}/notes?sort=id,desc&" + filter, DEFAULT_PROJECT_ID, defaultSample.getId()))
+        restNoteMockMvc.perform(get("/api/projects/{projectId}/notes?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(note.getId().intValue())))
@@ -378,7 +367,7 @@ public class NoteResourceIT {
             .andExpect(jsonPath("$.[*].self").value(hasItem(DEFAULT_SELF)));
 
         // Check, that the count call also returns 1
-        restNoteMockMvc.perform(get("/api/projects/{projectId}/samples/{sampleId}/notes/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID, defaultSample.getId()))
+        restNoteMockMvc.perform(get("/api/projects/{projectId}/notes/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -388,14 +377,14 @@ public class NoteResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultNoteShouldNotBeFound(String filter) throws Exception {
-        restNoteMockMvc.perform(get("/api/projects/{projectId}/samples/{sampleId}/notes?sort=id,desc&" + filter, DEFAULT_PROJECT_ID, defaultSample.getId()))
+        restNoteMockMvc.perform(get("/api/projects/{projectId}/notes?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restNoteMockMvc.perform(get("/api/projects/{projectId}/samples/{sampleId}/notes/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID, defaultSample.getId()))
+        restNoteMockMvc.perform(get("/api/projects/{projectId}/notes/count?sort=id,desc&" + filter, DEFAULT_PROJECT_ID))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -406,7 +395,7 @@ public class NoteResourceIT {
     @Transactional
     public void getNonExistingNote() throws Exception {
         // Get the note
-        restNoteMockMvc.perform(get("/api/projects/{projectId}/samples/{sampleId}/notes/{id}", DEFAULT_PROJECT_ID, defaultSample.getId(), Long.MAX_VALUE))
+        restNoteMockMvc.perform(get("/api/projects/{projectId}/notes/{id}", DEFAULT_PROJECT_ID, Long.MAX_VALUE))
             .andExpect(status().isNotFound());
     }
 
@@ -427,7 +416,7 @@ public class NoteResourceIT {
             .self(UPDATED_SELF);
         NoteDTO noteDTO = noteMapper.toDto(updatedNote);
 
-        restNoteMockMvc.perform(put("/api/projects/{projectId}/samples/{sampleId}/notes", DEFAULT_PROJECT_ID, defaultSample.getId())
+        restNoteMockMvc.perform(put("/api/projects/{projectId}/notes", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(noteDTO)))
             .andExpect(status().isOk());
@@ -449,7 +438,7 @@ public class NoteResourceIT {
         NoteDTO noteDTO = noteMapper.toDto(note);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restNoteMockMvc.perform(put("/api/projects/{projectId}/samples/{sampleId}/notes", DEFAULT_PROJECT_ID, defaultSample.getId())
+        restNoteMockMvc.perform(put("/api/projects/{projectId}/notes", DEFAULT_PROJECT_ID)
             .contentType(TestUtil.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(noteDTO)))
             .andExpect(status().isBadRequest());
@@ -468,7 +457,7 @@ public class NoteResourceIT {
         int databaseSizeBeforeDelete = noteRepository.findAll().size();
 
         // Delete the note
-        restNoteMockMvc.perform(delete("/api/projects/{projectId}/samples/{sampleId}/notes/{id}", DEFAULT_PROJECT_ID, defaultSample.getId(), note.getId())
+        restNoteMockMvc.perform(delete("/api/projects/{projectId}/notes/{id}", DEFAULT_PROJECT_ID, note.getId())
             .accept(TestUtil.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 

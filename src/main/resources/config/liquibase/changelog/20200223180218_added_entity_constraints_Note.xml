@@ -7,12 +7,6 @@
         Added the constraints for entity Note.
     -->
     <changeSet id="20200223180218-2" author="jhipster">
-        
-        <addForeignKeyConstraint baseColumnNames="sample_id"
-                                 baseTableName="note"
-                                 constraintName="fk_note_sample_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="sample"/>
 
     </changeSet>
 </databaseChangeLog>

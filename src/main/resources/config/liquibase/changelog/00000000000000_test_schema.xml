@@ -3,10 +3,8 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
-    <!--
-        Added the constraints for entity Protocol.
-    -->
-    <changeSet id="20200223180318-2" author="jhipster">
 
+    <changeSet id="h2-fixes" author="jcpaiva" dbms="h2">
+        <modifyDataType tableName="protocol_data" columnName="strokes" newDataType="other" />
     </changeSet>
 </databaseChangeLog>

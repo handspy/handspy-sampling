@@ -4,7 +4,9 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 import pt.up.hs.sampling.domain.Protocol;
+import pt.up.hs.sampling.domain.ProtocolData;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
+import pt.up.hs.sampling.service.dto.ProtocolDataDTO;
 import pt.up.hs.sampling.service.mapper.UhcPageMapper;
 import pt.up.hs.uhc.models.Page;
 
@@ -17,7 +19,7 @@ import javax.annotation.Nonnull;
  */
 @Component
 @StepScope
-public class ProtocolPreviewGenerationProcessor implements ItemProcessor<ProtocolDTO, Page> {
+public class ProtocolPreviewGenerationProcessor implements ItemProcessor<ProtocolData, Page> {
 
     private final UhcPageMapper uhcPageMapper;
 
@@ -26,7 +28,7 @@ public class ProtocolPreviewGenerationProcessor implements ItemProcessor<Protoco
     }
 
     @Override
-    public Page process(@Nonnull ProtocolDTO protocolDTO) throws Exception {
-        return uhcPageMapper.protocolDtoToUhcPage(protocolDTO);
+    public Page process(@Nonnull ProtocolData pd) throws Exception {
+        return uhcPageMapper.protocolDataToUhcPage(pd);
     }
 }

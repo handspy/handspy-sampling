@@ -31,6 +31,8 @@ public interface TextRepository extends JpaRepository<Text, Long>, JpaSpecificat
 
     Optional<Text> findByProjectIdAndId(@NotNull Long projectId, @NotNull Long id);
 
+    Optional<Text> findByProjectIdAndTaskIdAndParticipantId(@NotNull Long projectId, Long taskId, Long participantId);
+
     @Nonnull <S extends Text> List<S> saveAll(@Nonnull Iterable<S> entities);
 
     void deleteAllByProjectIdAndId(@NotNull Long projectId, @NotNull Long id);

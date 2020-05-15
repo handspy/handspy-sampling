@@ -7,16 +7,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.zalando.problem.Status;
 import pt.up.hs.sampling.config.ApplicationProperties;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.constants.ErrorKeys;
 import pt.up.hs.sampling.domain.Protocol;
+import pt.up.hs.sampling.domain.ProtocolData;
 import pt.up.hs.sampling.processing.preview.BatchProtocolPreviewGenerationJobLauncher;
+import pt.up.hs.sampling.repository.ProtocolDataRepository;
 import pt.up.hs.sampling.repository.ProtocolRepository;
 import pt.up.hs.sampling.service.ProtocolService;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
+import pt.up.hs.sampling.service.dto.ProtocolDataDTO;
 import pt.up.hs.sampling.service.exceptions.ServiceException;
+import pt.up.hs.sampling.service.mapper.ProtocolDataMapper;
 import pt.up.hs.sampling.service.mapper.ProtocolMapper;
 import pt.up.hs.sampling.service.mapper.UhcPageMapper;
 import pt.up.hs.uhc.UniversalHandwritingConverter;
@@ -46,6 +51,9 @@ public class ProtocolServiceImpl implements ProtocolService {
     private final ProtocolRepository protocolRepository;
     private final ProtocolMapper protocolMapper;
 
+    private final ProtocolDataRepository protocolDataRepository;
+    private final ProtocolDataMapper protocolDataMapper;
+
     private final UhcPageMapper uhcPageMapper;
 
     private final BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher;
@@ -54,12 +62,16 @@ public class ProtocolServiceImpl implements ProtocolService {
         ApplicationProperties properties,
         ProtocolRepository protocolRepository,
         ProtocolMapper protocolMapper,
+        ProtocolDataRepository protocolDataRepository,
+        ProtocolDataMapper protocolDataMapper,
         UhcPageMapper uhcPageMapper,
         BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher
     ) {
         this.properties = properties;
         this.protocolRepository = protocolRepository;
         this.protocolMapper = protocolMapper;
+        this.protocolDataRepository = protocolDataRepository;
+        this.protocolDataMapper = protocolDataMapper;
         this.uhcPageMapper = uhcPageMapper;
         this.previewGenerationJobLauncher = previewGenerationJobLauncher;
     }
@@ -71,40 +83,42 @@ public class ProtocolServiceImpl implements ProtocolService {
      * @param protocolDTO the entity to save.
      * @return the persisted entity.
      */
-    @Override
     public ProtocolDTO save(Long projectId, ProtocolDTO protocolDTO) {
         log.debug("Request to save Protocol {} in project {}", protocolDTO, projectId);
         protocolDTO.setProjectId(projectId);
         Protocol protocol = protocolMapper.toEntity(protocolDTO);
         protocol = protocolRepository.save(protocol);
-        previewGenerationJobLauncher.newExecution();
         return protocolMapper.toDto(protocol);
     }
 
     /**
-     * Save all protocols.
+     * Save a protocol data.
      *
-     * @param projectId    ID of the project to which these protocols belong.
-     * @param protocolDTOs the entities to save.
-     * @return the persisted entities.
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param pdDTO     the data to save.
      */
     @Override
-    public List<ProtocolDTO> saveAll(Long projectId, List<ProtocolDTO> protocolDTOs) {
-        log.debug("Request to save all Protocols in project {}", projectId);
-        List<ProtocolDTO> savedProtocolDTOs = protocolRepository
-            .saveAll(
-                protocolDTOs.parallelStream()
-                    .map(protocolDTO -> {
-                        Protocol protocol = protocolMapper.toEntity(protocolDTO);
-                        protocol.setProjectId(projectId);
-                        return protocol;
-                    })
-                    .collect(Collectors.toList())
-            ).parallelStream()
-            .map(protocolMapper::toDto)
-            .collect(Collectors.toList());
+    public ProtocolDTO saveData(Long projectId, ProtocolDataDTO pdDTO) {
+        log.debug("Request to save Protocol {} data in project {}", pdDTO, projectId);
+        Protocol protocol;
+        if (pdDTO.getProtocolId() != null) {
+            Optional<Protocol> optProtocol = protocolRepository
+                .findByProjectIdAndId(projectId, pdDTO.getProtocolId());
+            if (!optProtocol.isPresent()) {
+                throw new ServiceException(
+                    Status.NOT_FOUND, EntityNames.PROTOCOL, ErrorKeys.ERR_NOT_FOUND,
+                    "Protocol not found"
+                );
+            }
+            protocol = optProtocol.get();
+        } else {
+            protocol = new Protocol().projectId(projectId);
+        }
+        ProtocolData pd = protocolDataMapper.toEntity(pdDTO);
+        pd.setProtocol(protocol);
+        pd = protocolDataRepository.save(pd);
         previewGenerationJobLauncher.newExecution();
-        return savedProtocolDTOs;
+        return protocolMapper.toDto(pd.getProtocol());
     }
 
     /**
@@ -138,6 +152,22 @@ public class ProtocolServiceImpl implements ProtocolService {
     }
 
     /**
+     * Get the "id" protocol's data.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param id        the id of the entity.
+     * @return the entity data.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ProtocolDataDTO> findOneData(Long projectId, Long id) {
+        log.debug("Request to get Protocol {}'s data in project {}", id, projectId);
+        Optional<ProtocolData> pd = protocolDataRepository
+            .findByProtocolProjectIdAndProtocolId(projectId, id);
+        return pd.map(protocolDataMapper::toDto);
+    }
+
+    /**
      * Delete the "id" protocol.
      *
      * @param projectId ID of the project to which this protocol belongs.
@@ -146,12 +176,15 @@ public class ProtocolServiceImpl implements ProtocolService {
     @Override
     public void delete(Long projectId, Long id) {
         log.debug("Request to delete Protocol {} in project {}", id, projectId);
-        protocolRepository.deleteAllByProjectIdAndId(projectId, id);
+        if (protocolDataRepository.existsById(id)) {
+            protocolDataRepository.deleteById(id);
+        }
+        protocolRepository.deleteByProjectIdAndId(projectId, id);
         try {
             Files.deleteIfExists(Paths.get(
                 properties.getPreview().getPath(),
                 projectId.toString(),
-                id.toString() + ".svg"
+                id.toString() + ".png"
             ));
         } catch (IOException e) {
             log.error("Failed to delete protocol preview", e);
@@ -179,7 +212,7 @@ public class ProtocolServiceImpl implements ProtocolService {
 
         List<ProtocolDTO> savedProtocolDTOs = new ArrayList<>();
         int invalid = 0;
-        for (MultipartFile file: files) {
+        for (MultipartFile file : files) {
             List<ProtocolDTO> protocolDTOs;
             try {
                 protocolDTOs = importProtocol(projectId, type, file);
@@ -189,6 +222,8 @@ public class ProtocolServiceImpl implements ProtocolService {
             }
             savedProtocolDTOs.addAll(protocolDTOs);
         }
+
+        previewGenerationJobLauncher.newExecution();
 
         importResult.setProcessingTime(new Date().getTime() - startTime);
         importResult.setInvalid(invalid);
@@ -205,7 +240,7 @@ public class ProtocolServiceImpl implements ProtocolService {
             Path previewPath = Paths.get(
                 properties.getPreview().getPath(),
                 projectId.toString(),
-                id.toString() + ".svg"
+                id.toString() + ".png"
             );
             if (!Files.exists(previewPath)) {
                 return Optional.empty();
@@ -233,6 +268,7 @@ public class ProtocolServiceImpl implements ProtocolService {
     private List<ProtocolDTO> importProtocol(
         Long projectId, String type, MultipartFile file
     ) {
+
         List<pt.up.hs.uhc.models.Page> pages;
         try {
             String filename;
@@ -244,6 +280,8 @@ public class ProtocolServiceImpl implements ProtocolService {
             pages = new UniversalHandwritingConverter()
                 .inputFormat(formatFromString(type))
                 .file(filename, file.getInputStream())
+                .normalize(true, 3)
+                .center()
                 .getPages();
         } catch (IOException e) {
             throw new ServiceException(
@@ -253,11 +291,16 @@ public class ProtocolServiceImpl implements ProtocolService {
             );
         }
 
-        List<ProtocolDTO> protocolDTOs = pages.parallelStream()
-            .map(uhcPageMapper::uhcPageToProtocolDto)
+        List<ProtocolData> pds = pages.parallelStream()
+            .map(uhcPageMapper::uhcPageToProtocolData)
+            .peek(pd -> pd.setProtocol(new Protocol().projectId(projectId)))
             .collect(Collectors.toList());
 
-        return saveAll(projectId, protocolDTOs);
+       pds = protocolDataRepository.saveAll(pds);
+
+        return pds.parallelStream()
+            .map(pd -> protocolMapper.toDto(pd.getProtocol()))
+            .collect(Collectors.toList());
     }
 
     /**

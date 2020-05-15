@@ -248,25 +248,6 @@ public class AnnotationTypeResourceIT {
 
     @Test
     @Transactional
-    public void checkProjectIdIsRequired() throws Exception {
-        int databaseSizeBeforeTest = annotationTypeRepository.findAll().size();
-        // set the field null
-        annotationType.setProjectId(null);
-
-        // Create the AnnotationType, which fails.
-        AnnotationTypeDTO annotationTypeDTO = annotationTypeMapper.toDto(annotationType);
-
-        restAnnotationTypeMockMvc.perform(post("/api/projects/{projectId}/annotation-types", DEFAULT_PROJECT_ID)
-            .contentType(TestUtil.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(annotationTypeDTO)))
-            .andExpect(status().isBadRequest());
-
-        List<AnnotationType> annotationTypeList = annotationTypeRepository.findAll();
-        assertThat(annotationTypeList).hasSize(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     public void getAllAnnotationTypes() throws Exception {
         // Initialize the database
         annotationTypeRepository.saveAndFlush(annotationType);

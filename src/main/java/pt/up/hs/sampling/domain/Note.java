@@ -1,16 +1,16 @@
 package pt.up.hs.sampling.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
 
-import java.io.Serializable;
 
 /**
- * Note taken about a sample by an analyst.\n\n@author José Carlos Paiva
+ * Note taken about a protocol/text by an analyst.
+ *
+ * @author José Carlos Paiva
  */
 @Entity
 @Table(name = "note")
@@ -25,6 +25,27 @@ public class Note extends AbstractAuditingEntity {
     private Long id;
 
     /**
+     * Project (from the Project Microservice) to which this note is attached.
+     */
+    @NotNull
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
+    /**
+     * Task (from the Project Microservice) to which this note is attached.
+     */
+    @NotNull
+    @Column(name = "task_id", nullable = false)
+    private Long taskId;
+
+    /**
+     * Participant (from the Project Microservice) to which this note is attached.
+     */
+    @NotNull
+    @Column(name = "participant_id", nullable = false)
+    private Long participantId;
+
+    /**
      * Text of the note
      */
     @Column(name = "text")
@@ -36,15 +57,6 @@ public class Note extends AbstractAuditingEntity {
     @Column(name = "self")
     private Boolean self;
 
-    /**
-     * A note belongs to a sample.
-     */
-    @NotNull
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "sample_id", updatable = false)
-    @JsonIgnoreProperties("notes")
-    private Sample sample;
-
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
@@ -52,6 +64,45 @@ public class Note extends AbstractAuditingEntity {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public Note projectId(Long projectId) {
+        this.projectId = projectId;
+        return this;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public Note taskId(Long taskId) {
+        this.taskId = taskId;
+        return this;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
+    }
+
+    public Long getParticipantId() {
+        return participantId;
+    }
+
+    public Note participantId(Long participantId) {
+        this.participantId = participantId;
+        return this;
+    }
+
+    public void setParticipantId(Long participantId) {
+        this.participantId = participantId;
     }
 
     public String getText() {
@@ -80,18 +131,6 @@ public class Note extends AbstractAuditingEntity {
         this.self = self;
     }
 
-    public Sample getSample() {
-        return sample;
-    }
-
-    public Note sample(Sample sample) {
-        this.sample = sample;
-        return this;
-    }
-
-    public void setSample(Sample sample) {
-        this.sample = sample;
-    }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
@@ -114,6 +153,9 @@ public class Note extends AbstractAuditingEntity {
     public String toString() {
         return "Note{" +
             "id=" + getId() +
+            ", projectId=" + getProjectId() +
+            ", taskId=" + getTaskId() +
+            ", participantId=" + getParticipantId() +
             ", text='" + getText() + "'" +
             ", self='" + isSelf() + "'" +
             "}";

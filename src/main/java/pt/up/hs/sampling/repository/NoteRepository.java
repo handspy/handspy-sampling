@@ -20,35 +20,30 @@ import java.util.Optional;
 public interface NoteRepository extends JpaRepository<Note, Long>, JpaSpecificationExecutor<Note> {
 
     @Query(
-        value = "select distinct note from Note note where note.sample.id = :sampleId and note.sample.projectId = :projectId",
-        countQuery = "select count(distinct note) from Note note where note.sample.id = :sampleId and note.sample.projectId = :projectId"
+        value = "select distinct note from Note note where note.projectId = :projectId",
+        countQuery = "select count(distinct note) from Note note where note.projectId = :projectId"
     )
-    Page<Note> findAllByProjectIdAndSampleId(
+    Page<Note> findAllByProjectId(
         @Param("projectId") @NotNull Long projectId,
-        @Param("sampleId") @NotNull Long sampleId,
         Pageable pageable
     );
 
-    @Query("select count(distinct note) from Note note where note.sample.id = :sampleId and note.sample.projectId = :projectId")
-    long countByProjectIdAndSampleId(
-        @Param("projectId") @NotNull Long projectId,
-        @Param("sampleId") @NotNull Long sampleId
+    @Query("select count(distinct note) from Note note where note.projectId = :projectId")
+    long countByProjectId(
+        @Param("projectId") @NotNull Long projectId
     );
 
-    Optional<Note> findBySampleProjectIdAndSampleIdAndId(
+    Optional<Note> findByProjectIdAndId(
         @Param("projectId") @NotNull Long projectId,
-        @Param("sampleId") @NotNull Long sampleId,
         @Param("id") @NotNull Long id
     );
 
-    void deleteAllBySampleProjectIdAndSampleIdAndId(
+    void deleteAllByProjectIdAndId(
         @Param("projectId") @NotNull Long projectId,
-        @Param("sampleId") @NotNull Long sampleId,
         @Param("id") @NotNull Long id
     );
 
-    void deleteAllBySampleProjectIdAndSampleId(
-        @Param("projectId") @NotNull Long projectId,
-        @Param("sampleId") @NotNull Long sampleId
+    void deleteAllByProjectId(
+        @Param("projectId") @NotNull Long projectId
     );
 }

@@ -20,7 +20,6 @@ public class AnnotationTypeDTO extends AbstractAuditingDTO {
     /**
      * ID of the project (from Projects microservice).
      */
-    @NotNull
     @ApiModelProperty(value = "ID of the project (from Projects microservice).", required = true)
     private Long projectId;
 

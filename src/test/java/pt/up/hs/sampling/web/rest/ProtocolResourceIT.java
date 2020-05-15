@@ -45,14 +45,6 @@ public class ProtocolResourceIT {
     private static final Long DEFAULT_PROJECT_ID = 1L;
     private static final Long OTHER_PROJECT_ID = 2L;
 
-    private static final Double DEFAULT_WIDTH = 1D;
-    private static final Double UPDATED_WIDTH = 2D;
-    private static final Double SMALLER_WIDTH = 1D - 1D;
-
-    private static final Double DEFAULT_HEIGHT = 1D;
-    private static final Double UPDATED_HEIGHT = 2D;
-    private static final Double SMALLER_HEIGHT = 1D - 1D;
-
     private static final Integer DEFAULT_PAGE_NUMBER = 1;
     private static final Integer UPDATED_PAGE_NUMBER = 2;
     private static final Integer SMALLER_PAGE_NUMBER = 1 - 1;
@@ -111,8 +103,6 @@ public class ProtocolResourceIT {
      */
     public static Protocol createEntity(EntityManager em) {
         return new Protocol()
-            .width(DEFAULT_WIDTH)
-            .height(DEFAULT_HEIGHT)
             .pageNumber(DEFAULT_PAGE_NUMBER)
             .projectId(DEFAULT_PROJECT_ID);
     }
@@ -124,8 +114,6 @@ public class ProtocolResourceIT {
      */
     public static Protocol createUpdatedEntity(EntityManager em) {
         return new Protocol()
-            .width(UPDATED_WIDTH)
-            .height(UPDATED_HEIGHT)
             .pageNumber(UPDATED_PAGE_NUMBER)
             .projectId(OTHER_PROJECT_ID);
     }
@@ -151,8 +139,6 @@ public class ProtocolResourceIT {
         List<Protocol> protocolList = protocolRepository.findAll();
         assertThat(protocolList).hasSize(databaseSizeBeforeCreate + 1);
         Protocol testProtocol = protocolList.get(protocolList.size() - 1);
-        assertThat(testProtocol.getWidth()).isEqualTo(DEFAULT_WIDTH);
-        assertThat(testProtocol.getHeight()).isEqualTo(DEFAULT_HEIGHT);
         assertThat(testProtocol.getPageNumber()).isEqualTo(DEFAULT_PAGE_NUMBER);
         assertThat(testProtocol.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
@@ -177,26 +163,6 @@ public class ProtocolResourceIT {
         assertThat(protocolList).hasSize(databaseSizeBeforeCreate);
     }
 
-
-    @Test
-    @Transactional
-    public void checkProjectIdIsRequired() throws Exception {
-        int databaseSizeBeforeTest = protocolRepository.findAll().size();
-        // set the field null
-        protocol.setProjectId(null);
-
-        // Create the Protocol, which fails.
-        ProtocolDTO protocolDTO = protocolMapper.toDto(protocol);
-
-        restProtocolMockMvc.perform(post("/api/projects/{projectId}/protocols", DEFAULT_PROJECT_ID)
-            .contentType(TestUtil.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(protocolDTO)))
-            .andExpect(status().isBadRequest());
-
-        List<Protocol> protocolList = protocolRepository.findAll();
-        assertThat(protocolList).hasSize(databaseSizeBeforeTest);
-    }
-
     @Test
     @Transactional
     public void getAllProtocols() throws Exception {
@@ -208,8 +174,6 @@ public class ProtocolResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(protocol.getId().intValue())))
-            .andExpect(jsonPath("$.[*].width").value(hasItem(DEFAULT_WIDTH)))
-            .andExpect(jsonPath("$.[*].height").value(hasItem(DEFAULT_HEIGHT)))
             .andExpect(jsonPath("$.[*].pageNumber").value(hasItem(DEFAULT_PAGE_NUMBER)))
             .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
     }
@@ -225,8 +189,6 @@ public class ProtocolResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(protocol.getId().intValue()))
-            .andExpect(jsonPath("$.width").value(DEFAULT_WIDTH))
-            .andExpect(jsonPath("$.height").value(DEFAULT_HEIGHT))
             .andExpect(jsonPath("$.pageNumber").value(DEFAULT_PAGE_NUMBER))
             .andExpect(jsonPath("$.projectId").value(DEFAULT_PROJECT_ID.intValue()));
     }
@@ -248,215 +210,6 @@ public class ProtocolResourceIT {
 
         defaultProtocolShouldBeFound("id.lessThanOrEqual=" + id);
         defaultProtocolShouldNotBeFound("id.lessThan=" + id);
-    }
-
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByWidthIsEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where width equals to DEFAULT_WIDTH
-        defaultProtocolShouldBeFound("width.equals=" + DEFAULT_WIDTH);
-
-        // Get all the protocolList where width equals to UPDATED_WIDTH
-        defaultProtocolShouldNotBeFound("width.equals=" + UPDATED_WIDTH);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByWidthIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where width not equals to DEFAULT_WIDTH
-        defaultProtocolShouldNotBeFound("width.notEquals=" + DEFAULT_WIDTH);
-
-        // Get all the protocolList where width not equals to UPDATED_WIDTH
-        defaultProtocolShouldBeFound("width.notEquals=" + UPDATED_WIDTH);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByWidthIsInShouldWork() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where width in DEFAULT_WIDTH or UPDATED_WIDTH
-        defaultProtocolShouldBeFound("width.in=" + DEFAULT_WIDTH + "," + UPDATED_WIDTH);
-
-        // Get all the protocolList where width equals to UPDATED_WIDTH
-        defaultProtocolShouldNotBeFound("width.in=" + UPDATED_WIDTH);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByWidthIsNullOrNotNull() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where width is not null
-        defaultProtocolShouldBeFound("width.specified=true");
-
-        // Get all the protocolList where width is null
-        defaultProtocolShouldNotBeFound("width.specified=false");
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByWidthIsGreaterThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where width is greater than or equal to DEFAULT_WIDTH
-        defaultProtocolShouldBeFound("width.greaterThanOrEqual=" + DEFAULT_WIDTH);
-
-        // Get all the protocolList where width is greater than or equal to UPDATED_WIDTH
-        defaultProtocolShouldNotBeFound("width.greaterThanOrEqual=" + UPDATED_WIDTH);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByWidthIsLessThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where width is less than or equal to DEFAULT_WIDTH
-        defaultProtocolShouldBeFound("width.lessThanOrEqual=" + DEFAULT_WIDTH);
-
-        // Get all the protocolList where width is less than or equal to SMALLER_WIDTH
-        defaultProtocolShouldNotBeFound("width.lessThanOrEqual=" + SMALLER_WIDTH);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByWidthIsLessThanSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where width is less than DEFAULT_WIDTH
-        defaultProtocolShouldNotBeFound("width.lessThan=" + DEFAULT_WIDTH);
-
-        // Get all the protocolList where width is less than UPDATED_WIDTH
-        defaultProtocolShouldBeFound("width.lessThan=" + UPDATED_WIDTH);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByWidthIsGreaterThanSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where width is greater than DEFAULT_WIDTH
-        defaultProtocolShouldNotBeFound("width.greaterThan=" + DEFAULT_WIDTH);
-
-        // Get all the protocolList where width is greater than SMALLER_WIDTH
-        defaultProtocolShouldBeFound("width.greaterThan=" + SMALLER_WIDTH);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByHeightIsEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where height equals to DEFAULT_HEIGHT
-        defaultProtocolShouldBeFound("height.equals=" + DEFAULT_HEIGHT);
-
-        // Get all the protocolList where height equals to UPDATED_HEIGHT
-        defaultProtocolShouldNotBeFound("height.equals=" + UPDATED_HEIGHT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByHeightIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where height not equals to DEFAULT_HEIGHT
-        defaultProtocolShouldNotBeFound("height.notEquals=" + DEFAULT_HEIGHT);
-
-        // Get all the protocolList where height not equals to UPDATED_HEIGHT
-        defaultProtocolShouldBeFound("height.notEquals=" + UPDATED_HEIGHT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByHeightIsInShouldWork() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where height in DEFAULT_HEIGHT or UPDATED_HEIGHT
-        defaultProtocolShouldBeFound("height.in=" + DEFAULT_HEIGHT + "," + UPDATED_HEIGHT);
-
-        // Get all the protocolList where height equals to UPDATED_HEIGHT
-        defaultProtocolShouldNotBeFound("height.in=" + UPDATED_HEIGHT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByHeightIsNullOrNotNull() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where height is not null
-        defaultProtocolShouldBeFound("height.specified=true");
-
-        // Get all the protocolList where height is null
-        defaultProtocolShouldNotBeFound("height.specified=false");
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByHeightIsGreaterThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where height is greater than or equal to DEFAULT_HEIGHT
-        defaultProtocolShouldBeFound("height.greaterThanOrEqual=" + DEFAULT_HEIGHT);
-
-        // Get all the protocolList where height is greater than or equal to UPDATED_HEIGHT
-        defaultProtocolShouldNotBeFound("height.greaterThanOrEqual=" + UPDATED_HEIGHT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByHeightIsLessThanOrEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where height is less than or equal to DEFAULT_HEIGHT
-        defaultProtocolShouldBeFound("height.lessThanOrEqual=" + DEFAULT_HEIGHT);
-
-        // Get all the protocolList where height is less than or equal to SMALLER_HEIGHT
-        defaultProtocolShouldNotBeFound("height.lessThanOrEqual=" + SMALLER_HEIGHT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByHeightIsLessThanSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where height is less than DEFAULT_HEIGHT
-        defaultProtocolShouldNotBeFound("height.lessThan=" + DEFAULT_HEIGHT);
-
-        // Get all the protocolList where height is less than UPDATED_HEIGHT
-        defaultProtocolShouldBeFound("height.lessThan=" + UPDATED_HEIGHT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllProtocolsByHeightIsGreaterThanSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-
-        // Get all the protocolList where height is greater than DEFAULT_HEIGHT
-        defaultProtocolShouldNotBeFound("height.greaterThan=" + DEFAULT_HEIGHT);
-
-        // Get all the protocolList where height is greater than SMALLER_HEIGHT
-        defaultProtocolShouldBeFound("height.greaterThan=" + SMALLER_HEIGHT);
     }
 
 
@@ -564,25 +317,6 @@ public class ProtocolResourceIT {
         defaultProtocolShouldBeFound("pageNumber.greaterThan=" + SMALLER_PAGE_NUMBER);
     }
 
-    @Test
-    @Transactional
-    public void getAllProtocolsBySampleIsEqualToSomething() throws Exception {
-        // Initialize the database
-        protocolRepository.saveAndFlush(protocol);
-        Sample sample = SampleResourceIT.createEntity(em);
-        em.persist(sample);
-        em.flush();
-        protocol.setSample(sample);
-        protocolRepository.saveAndFlush(protocol);
-        Long sampleId = sample.getId();
-
-        // Get all the protocolList where sample equals to sampleId
-        defaultProtocolShouldBeFound("sampleId.equals=" + sampleId);
-
-        // Get all the protocolList where sample equals to sampleId + 1
-        defaultProtocolShouldNotBeFound("sampleId.equals=" + (sampleId + 1));
-    }
-
     /**
      * Executes the search, and checks that the default entity is returned.
      */
@@ -591,8 +325,6 @@ public class ProtocolResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(protocol.getId().intValue())))
-            .andExpect(jsonPath("$.[*].width").value(hasItem(DEFAULT_WIDTH)))
-            .andExpect(jsonPath("$.[*].height").value(hasItem(DEFAULT_HEIGHT)))
             .andExpect(jsonPath("$.[*].pageNumber").value(hasItem(DEFAULT_PAGE_NUMBER)))
             .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
 
@@ -642,8 +374,6 @@ public class ProtocolResourceIT {
         // Disconnect from session so that the updates on updatedProtocol are not directly saved in db
         em.detach(updatedProtocol);
         updatedProtocol
-            .width(UPDATED_WIDTH)
-            .height(UPDATED_HEIGHT)
             .pageNumber(UPDATED_PAGE_NUMBER)
             .projectId(OTHER_PROJECT_ID);
         ProtocolDTO protocolDTO = protocolMapper.toDto(updatedProtocol);
@@ -657,8 +387,6 @@ public class ProtocolResourceIT {
         List<Protocol> protocolList = protocolRepository.findAll();
         assertThat(protocolList).hasSize(databaseSizeBeforeUpdate);
         Protocol testProtocol = protocolList.get(protocolList.size() - 1);
-        assertThat(testProtocol.getWidth()).isEqualTo(UPDATED_WIDTH);
-        assertThat(testProtocol.getHeight()).isEqualTo(UPDATED_HEIGHT);
         assertThat(testProtocol.getPageNumber()).isEqualTo(UPDATED_PAGE_NUMBER);
         assertThat(testProtocol.getProjectId()).isEqualTo(DEFAULT_PROJECT_ID);
     }
@@ -704,29 +432,29 @@ public class ProtocolResourceIT {
     @Transactional
     public void importProtocol() throws Exception {
         // read file
-        byte[] contentPageEmpty = TestUtil.readFileFromResourcesFolder("data/protocols/page_empty.data");
-        MockMultipartFile filePageEmpty = new MockMultipartFile("file", "page_empty.data", null, contentPageEmpty);
+        byte[] contentPage = TestUtil.readFileFromResourcesFolder("data/protocols/page_full.data");
+        MockMultipartFile filePage = new MockMultipartFile("file", "page_full.data", null, contentPage);
 
         // Import the protocols
         restProtocolMockMvc
             .perform(
                 MockMvcRequestBuilders
                     .multipart("/api/projects/{projectId}/protocols/import", DEFAULT_PROJECT_ID)
-                    .file(filePageEmpty)
+                    .file(filePage)
             )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.total").value(1))
             .andExpect(jsonPath("$.invalid").value(0))
             .andExpect(jsonPath("$.data").value(hasSize(1)))
-            .andExpect(jsonPath("$.data.[0].strokes").value(hasSize(1)))
+            /*.andExpect(jsonPath("$.data.[0].strokes").value(hasSize(643)))
             .andExpect(jsonPath("$.data.[0].strokes[0].startTime").value(isA(Long.class)))
             .andExpect(jsonPath("$.data.[0].strokes[0].endTime").value(isA(Long.class)))
-            .andExpect(jsonPath("$.data.[0].strokes[0].dots").value(hasSize(3)))
+            .andExpect(jsonPath("$.data.[0].strokes[0].dots").value(hasSize(97)))
             .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].x").value(hasItems(isA(Double.class), isA(Double.class), isA(Double.class))))
             .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].y").value(hasItems(isA(Double.class), isA(Double.class), isA(Double.class))))
             .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].timestamp").value(hasItems(isA(Long.class), isA(Long.class), isA(Long.class))))
-            .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].type").value(hasItems("DOWN", "DOWN", "DOWN")));
+            .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].type").value(hasItems("DOWN", "DOWN", "DOWN")))*/;
     }
 
     @Test

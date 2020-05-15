@@ -43,7 +43,6 @@ public class TextResource {
     private String applicationName;
 
     private final TextService textService;
-
     private final TextQueryService textQueryService;
 
     public TextResource(TextService textService, TextQueryService textQueryService) {

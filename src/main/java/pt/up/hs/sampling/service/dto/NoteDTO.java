@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
+
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.Note} entity.
  *
@@ -17,11 +18,24 @@ public class NoteDTO extends AbstractAuditingDTO {
     private Long id;
 
     /**
-     * A note belongs to a sample.
+     * ID of the project (from Projects microservice).
+     */
+    @ApiModelProperty(value = "ID of the project (from Projects microservice).", required = true)
+    private Long projectId;
+
+    /**
+     * Task (from the Project Microservice) to which this note is attached.
      */
     @NotNull
-    @ApiModelProperty(value = "A note belongs to a sample.", required = true)
-    private Long sampleId;
+    @ApiModelProperty(value = "Task (from the Project Microservice) to which this note is attached.", required = true)
+    private Long taskId;
+
+    /**
+     * Participant (from the Project Microservice) to which this note is attached.
+     */
+    @NotNull
+    @ApiModelProperty(value = "Participant (from the Project Microservice) to which this note is attached.", required = true)
+    private Long participantId;
 
     /**
      * Text of the note.
@@ -43,12 +57,28 @@ public class NoteDTO extends AbstractAuditingDTO {
         this.id = id;
     }
 
-    public Long getSampleId() {
-        return sampleId;
+    public Long getProjectId() {
+        return projectId;
     }
 
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
+    }
+
+    public Long getParticipantId() {
+        return participantId;
+    }
+
+    public void setParticipantId(Long participantId) {
+        this.participantId = participantId;
     }
 
     public String getText() {
@@ -92,7 +122,9 @@ public class NoteDTO extends AbstractAuditingDTO {
     public String toString() {
         return "NoteDTO{" +
             "id=" + getId() +
-            ", sampleId=" + getSampleId() +
+            ", projectId=" + getProjectId() +
+            ", taskId=" + getTaskId() +
+            ", participantId=" + getParticipantId() +
             ", text='" + getText() + "'" +
             ", self='" + isSelf() + "'" +
             "}";

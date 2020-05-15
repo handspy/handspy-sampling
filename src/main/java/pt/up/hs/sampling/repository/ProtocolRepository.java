@@ -3,10 +3,12 @@ package pt.up.hs.sampling.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import pt.up.hs.sampling.domain.Protocol;
 
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
+import pt.up.hs.sampling.domain.ProtocolData;
 
 import javax.annotation.Nonnull;
 import javax.validation.constraints.NotNull;
@@ -31,19 +33,6 @@ public interface ProtocolRepository extends JpaRepository<Protocol, Long>, JpaSp
 
     Optional<Protocol> findByProjectIdAndId(@NotNull Long projectId, @NotNull Long id);
 
-    @Nonnull <S extends Protocol> List<S> saveAll(@Nonnull Iterable<S> entities);
-
-    void deleteAllByProjectIdAndId(@NotNull Long projectId, @NotNull Long id);
-
-    @Modifying
-    @Query("update Protocol protocol set protocol.dirtyPreview = false where protocol.projectId = :projectId and protocol.id = :id")
-    void cleanPreview(@Param("projectId") @NotNull Long projectId, @Param("id") @NotNull Long id);
-
-    @Modifying
-    @Query("update Protocol protocol set protocol.dirtyPreview = true")
-    void markAllForPreviewRegenerate();
-
-    Optional<Protocol> findFirstByDirtyPreviewTrue();
-
-    Page<Protocol> findAllByDirtyPreviewTrue(Pageable pageable);
+    @Transactional
+    void deleteByProjectIdAndId(@NotNull Long projectId, @NotNull Long id);
 }

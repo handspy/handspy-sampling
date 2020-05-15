@@ -4,15 +4,14 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
     <!--
-        Added the constraints for entity Stroke.
+        Added the constraints for entity ProtocolData.
     -->
-    <changeSet id="20200223180418-2" author="jhipster">
+    <changeSet id="20200223180318-4" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="protocol_id"
-                                 baseTableName="stroke"
-                                 constraintName="fk_stroke_protocol_id"
+                                 baseTableName="protocol_data"
+                                 constraintName="fk_protocol_data_protocol_id"
                                  referencedColumnNames="id"
                                  referencedTableName="protocol"/>
-
     </changeSet>
 </databaseChangeLog>

@@ -7,12 +7,6 @@
         Added the constraints for entity Text.
     -->
     <changeSet id="20200223180518-2" author="jhipster">
-        
-        <addForeignKeyConstraint baseColumnNames="sample_id"
-                                 baseTableName="text"
-                                 constraintName="fk_text_sample_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="sample"/>
 
     </changeSet>
 </databaseChangeLog>

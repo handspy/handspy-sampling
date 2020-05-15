@@ -174,26 +174,6 @@ public class TextResourceIT {
         assertThat(textList).hasSize(databaseSizeBeforeCreate);
     }
 
-
-    @Test
-    @Transactional
-    public void checkProjectIdIsRequired() throws Exception {
-        int databaseSizeBeforeTest = textRepository.findAll().size();
-        // set the field null
-        text.setProjectId(null);
-
-        // Create the Text, which fails.
-        TextDTO textDTO = textMapper.toDto(text);
-
-        restTextMockMvc.perform(post("/api/projects/{projectId}/texts", DEFAULT_PROJECT_ID)
-            .contentType(TestUtil.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(textDTO)))
-            .andExpect(status().isBadRequest());
-
-        List<Text> textList = textRepository.findAll();
-        assertThat(textList).hasSize(databaseSizeBeforeTest);
-    }
-
     @Test
     @Transactional
     public void getAllTexts() throws Exception {
@@ -243,103 +223,6 @@ public class TextResourceIT {
         defaultTextShouldNotBeFound("id.lessThan=" + id);
     }
 
-
-    @Test
-    @Transactional
-    public void getAllTextsByTextIsEqualToSomething() throws Exception {
-        // Initialize the database
-        textRepository.saveAndFlush(text);
-
-        // Get all the textList where text equals to DEFAULT_TEXT
-        defaultTextShouldBeFound("text.equals=" + DEFAULT_TEXT);
-
-        // Get all the textList where text equals to UPDATED_TEXT
-        defaultTextShouldNotBeFound("text.equals=" + UPDATED_TEXT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllTextsByTextIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        textRepository.saveAndFlush(text);
-
-        // Get all the textList where text not equals to DEFAULT_TEXT
-        defaultTextShouldNotBeFound("text.notEquals=" + DEFAULT_TEXT);
-
-        // Get all the textList where text not equals to UPDATED_TEXT
-        defaultTextShouldBeFound("text.notEquals=" + UPDATED_TEXT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllTextsByTextIsInShouldWork() throws Exception {
-        // Initialize the database
-        textRepository.saveAndFlush(text);
-
-        // Get all the textList where text in DEFAULT_TEXT or UPDATED_TEXT
-        defaultTextShouldBeFound("text.in=" + DEFAULT_TEXT + "," + UPDATED_TEXT);
-
-        // Get all the textList where text equals to UPDATED_TEXT
-        defaultTextShouldNotBeFound("text.in=" + UPDATED_TEXT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllTextsByTextIsNullOrNotNull() throws Exception {
-        // Initialize the database
-        textRepository.saveAndFlush(text);
-
-        // Get all the textList where text is not null
-        defaultTextShouldBeFound("text.specified=true");
-
-        // Get all the textList where text is null
-        defaultTextShouldNotBeFound("text.specified=false");
-    }
-                @Test
-    @Transactional
-    public void getAllTextsByTextContainsSomething() throws Exception {
-        // Initialize the database
-        textRepository.saveAndFlush(text);
-
-        // Get all the textList where text contains DEFAULT_TEXT
-        defaultTextShouldBeFound("text.contains=" + DEFAULT_TEXT);
-
-        // Get all the textList where text contains UPDATED_TEXT
-        defaultTextShouldNotBeFound("text.contains=" + UPDATED_TEXT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllTextsByTextNotContainsSomething() throws Exception {
-        // Initialize the database
-        textRepository.saveAndFlush(text);
-
-        // Get all the textList where text does not contain DEFAULT_TEXT
-        defaultTextShouldNotBeFound("text.doesNotContain=" + DEFAULT_TEXT);
-
-        // Get all the textList where text does not contain UPDATED_TEXT
-        defaultTextShouldBeFound("text.doesNotContain=" + UPDATED_TEXT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllTextsBySampleIsEqualToSomething() throws Exception {
-        // Initialize the database
-        textRepository.saveAndFlush(text);
-        Sample sample = SampleResourceIT.createEntity(em);
-        em.persist(sample);
-        em.flush();
-        text.setSample(sample);
-        textRepository.saveAndFlush(text);
-        Long sampleId = sample.getId();
-
-        // Get all the textList where sample equals to sampleId
-        defaultTextShouldBeFound("sampleId.equals=" + sampleId);
-
-        // Get all the textList where sample equals to sampleId + 1
-        defaultTextShouldNotBeFound("sampleId.equals=" + (sampleId + 1));
-    }
-
     /**
      * Executes the search, and checks that the default entity is returned.
      */
@@ -348,7 +231,6 @@ public class TextResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(text.getId().intValue())))
-            .andExpect(jsonPath("$.[*].text").value(hasItem(DEFAULT_TEXT)))
             .andExpect(jsonPath("$.[*].projectId").value(hasItem(DEFAULT_PROJECT_ID.intValue())));
 
         // Check, that the count call also returns 1

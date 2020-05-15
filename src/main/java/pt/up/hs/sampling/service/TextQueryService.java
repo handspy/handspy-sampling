@@ -1,9 +1,6 @@
 package pt.up.hs.sampling.service;
 
-import java.util.List;
-
-import javax.persistence.criteria.JoinType;
-
+import io.github.jhipster.service.QueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -11,15 +8,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import io.github.jhipster.service.QueryService;
-
 import pt.up.hs.sampling.domain.Text;
-import pt.up.hs.sampling.domain.*; // for static metamodels
+import pt.up.hs.sampling.domain.Text_;
 import pt.up.hs.sampling.repository.TextRepository;
 import pt.up.hs.sampling.service.dto.TextCriteria;
 import pt.up.hs.sampling.service.dto.TextDTO;
 import pt.up.hs.sampling.service.mapper.TextMapper;
+
+import java.util.List;
 
 /**
  * Service for executing complex queries for {@link Text} entities in the database.
@@ -99,12 +95,14 @@ public class TextQueryService extends QueryService<Text> {
             if (criteria.getId() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getId(), Text_.id));
             }
-            if (criteria.getText() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getText(), Text_.text));
+            if (criteria.getTaskId() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getTaskId(), Text_.taskId));
             }
-            if (criteria.getSampleId() != null) {
-                specification = specification.and(buildSpecification(criteria.getSampleId(),
-                    root -> root.join(Text_.sample, JoinType.LEFT).get(Sample_.id)));
+            if (criteria.getParticipantId() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getParticipantId(), Text_.participantId));
+            }
+            if (criteria.getLanguage() != null) {
+                specification = specification.and(buildStringSpecification(criteria.getLanguage(), Text_.language));
             }
         }
         return specification;

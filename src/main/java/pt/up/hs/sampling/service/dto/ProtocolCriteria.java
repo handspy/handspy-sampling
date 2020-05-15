@@ -1,10 +1,7 @@
 package pt.up.hs.sampling.service.dto;
 
 import io.github.jhipster.service.Criteria;
-import io.github.jhipster.service.filter.DoubleFilter;
-import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.IntegerFilter;
-import io.github.jhipster.service.filter.LongFilter;
+import io.github.jhipster.service.filter.*;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -30,7 +27,11 @@ public class ProtocolCriteria implements Serializable, Criteria {
 
     private IntegerFilter pageNumber;
 
-    private LongFilter sampleId;
+    private LongFilter taskId;
+
+    private LongFilter participantId;
+
+    private StringFilter language;
 
     public ProtocolCriteria() {
     }
@@ -40,7 +41,9 @@ public class ProtocolCriteria implements Serializable, Criteria {
         this.width = other.width == null ? null : other.width.copy();
         this.height = other.height == null ? null : other.height.copy();
         this.pageNumber = other.pageNumber == null ? null : other.pageNumber.copy();
-        this.sampleId = other.sampleId == null ? null : other.sampleId.copy();
+        this.taskId = other.taskId == null ? null : other.taskId.copy();
+        this.participantId = other.participantId == null ? null : other.participantId.copy();
+        this.language = other.language == null ? null : other.language.copy();
     }
 
     @Override
@@ -80,14 +83,29 @@ public class ProtocolCriteria implements Serializable, Criteria {
         this.pageNumber = pageNumber;
     }
 
-    public LongFilter getSampleId() {
-        return sampleId;
+    public LongFilter getTaskId() {
+        return taskId;
     }
 
-    public void setSampleId(LongFilter sampleId) {
-        this.sampleId = sampleId;
+    public void setTaskId(LongFilter taskId) {
+        this.taskId = taskId;
     }
 
+    public LongFilter getParticipantId() {
+        return participantId;
+    }
+
+    public void setParticipantId(LongFilter participantId) {
+        this.participantId = participantId;
+    }
+
+    public StringFilter getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(StringFilter language) {
+        this.language = language;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -103,7 +121,9 @@ public class ProtocolCriteria implements Serializable, Criteria {
             Objects.equals(width, that.width) &&
             Objects.equals(height, that.height) &&
             Objects.equals(pageNumber, that.pageNumber) &&
-            Objects.equals(sampleId, that.sampleId);
+            Objects.equals(taskId, that.taskId) &&
+            Objects.equals(participantId, that.participantId) &&
+            Objects.equals(language, that.language);
     }
 
     @Override
@@ -113,7 +133,9 @@ public class ProtocolCriteria implements Serializable, Criteria {
             width,
             height,
             pageNumber,
-            sampleId
+            taskId,
+            participantId,
+            language
         );
     }
 
@@ -124,7 +146,9 @@ public class ProtocolCriteria implements Serializable, Criteria {
                 (width != null ? "width=" + width + ", " : "") +
                 (height != null ? "height=" + height + ", " : "") +
                 (pageNumber != null ? "pageNumber=" + pageNumber + ", " : "") +
-                (sampleId != null ? "sampleId=" + sampleId + ", " : "") +
+                (taskId != null ? "taskId=" + taskId + ", " : "") +
+                (participantId != null ? "participantId=" + participantId + ", " : "") +
+                (language != null ? "language=" + language + ", " : "") +
             "}";
     }
 }

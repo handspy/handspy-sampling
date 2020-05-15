@@ -4,26 +4,26 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import pt.up.hs.sampling.processing.preview.BatchProtocolPreviewGenerationJobLauncher;
-import pt.up.hs.sampling.repository.ProtocolRepository;
+import pt.up.hs.sampling.repository.ProtocolDataRepository;
 
 @Component
 public class CleanupProtocolPreviewRunner implements CommandLineRunner {
 
-    private final ProtocolRepository protocolRepository;
+    private final ProtocolDataRepository protocolDataRepository;
     private final BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher;
 
     public CleanupProtocolPreviewRunner(
-        ProtocolRepository protocolRepository,
+        ProtocolDataRepository protocolDataRepository,
         BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher
     ) {
-        this.protocolRepository = protocolRepository;
+        this.protocolDataRepository = protocolDataRepository;
         this.previewGenerationJobLauncher = previewGenerationJobLauncher;
     }
 
     @Transactional
     @Override
     public void run(String... args) {
-        protocolRepository.markAllForPreviewRegenerate();
-        /*previewGenerationJobLauncher.newExecution();*/
+        protocolDataRepository.markAllForPreviewRegenerate();
+        previewGenerationJobLauncher.newExecution();
     }
 }

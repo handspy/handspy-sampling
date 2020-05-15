@@ -1,14 +1,13 @@
 package pt.up.hs.sampling.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import pt.up.hs.sampling.service.dto.ProtocolDataDTO;
 
 import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,13 +25,13 @@ public interface ProtocolService {
     ProtocolDTO save(Long projectId, ProtocolDTO protocolDTO);
 
     /**
-     * Save all protocols.
+     * Save a protocol data.
      *
-     * @param projectId    ID of the project to which these protocols belong.
-     * @param protocolDTOs the entities to save.
-     * @return the persisted entities.
+     * @param projectId       ID of the project to which this protocol belongs.
+     * @param protocolDataDTO the data to save.
+     * @return the persisted entity's envelope.
      */
-    List<ProtocolDTO> saveAll(Long projectId, List<ProtocolDTO> protocolDTOs);
+    ProtocolDTO saveData(Long projectId, ProtocolDataDTO protocolDataDTO);
 
     /**
      * Get all the protocols.
@@ -44,13 +43,22 @@ public interface ProtocolService {
     Page<ProtocolDTO> findAll(Long projectId, Pageable pageable);
 
     /**
-     * Get the "id" protocol.
+     * Get the "protocolId" protocol.
+     *
+     * @param projectId  ID of the project to which this protocol belongs.
+     * @param id ID of the protocol.
+     * @return the data.
+     */
+    Optional<ProtocolDTO> findOne(Long projectId, Long id);
+
+    /**
+     * Get the "id" protocol's data.
      *
      * @param projectId ID of the project to which this protocol belongs.
      * @param id        the id of the entity.
      * @return the entity.
      */
-    Optional<ProtocolDTO> findOne(Long projectId, Long id);
+    Optional<ProtocolDataDTO> findOneData(Long projectId, Long id);
 
     /**
      * Delete the "id" protocol.

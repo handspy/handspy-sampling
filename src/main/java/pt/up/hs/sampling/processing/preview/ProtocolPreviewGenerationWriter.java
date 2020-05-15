@@ -10,8 +10,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 import pt.up.hs.sampling.config.ApplicationProperties;
-import pt.up.hs.sampling.domain.Protocol;
-import pt.up.hs.sampling.repository.ProtocolRepository;
+import pt.up.hs.sampling.repository.ProtocolDataRepository;
 import pt.up.hs.uhc.UniversalHandwritingConverter;
 import pt.up.hs.uhc.models.Format;
 import pt.up.hs.uhc.models.Page;
@@ -29,7 +28,7 @@ import java.util.List;
 import static pt.up.hs.sampling.processing.preview.ProtocolPreviewGenerationConstants.*;
 
 /**
- * Generate preview for a single {@link Protocol}.
+ * Generate preview for a single {@link pt.up.hs.sampling.domain.ProtocolData}.
  *
  * @author José Carlos Paiva
  */
@@ -38,16 +37,16 @@ import static pt.up.hs.sampling.processing.preview.ProtocolPreviewGenerationCons
 public class ProtocolPreviewGenerationWriter implements ItemWriter<Page> {
 
     private final ApplicationProperties properties;
-    private final ProtocolRepository protocolRepository;
+    private final ProtocolDataRepository protocolDataRepository;
 
     private StepExecution stepExecution;
 
     public ProtocolPreviewGenerationWriter(
         ApplicationProperties properties,
-        ProtocolRepository protocolRepository
+        ProtocolDataRepository protocolDataRepository
     ) {
         this.properties = properties;
-        this.protocolRepository = protocolRepository;
+        this.protocolDataRepository = protocolDataRepository;
     }
 
     @BeforeStep
@@ -102,7 +101,7 @@ public class ProtocolPreviewGenerationWriter implements ItemWriter<Page> {
             );
         }
 
-        protocolRepository.cleanPreview(projectId, id);
+        protocolDataRepository.cleanPreview(id);
     }
 
     private void transcodeToPng(
@@ -119,7 +118,6 @@ public class ProtocolPreviewGenerationWriter implements ItemWriter<Page> {
         t.addTranscodingHint(PNGTranscoder.KEY_FORCE_TRANSPARENT_WHITE, true);
 
         TranscoderInput transcoderInput = new TranscoderInput(is);
-
         TranscoderOutput transcoderOutput = new TranscoderOutput(os);
 
         // Save the image.

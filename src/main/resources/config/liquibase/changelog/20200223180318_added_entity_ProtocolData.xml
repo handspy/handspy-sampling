@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+
+    <!--
+        Added the entity ProtocolData.
+    -->
+    <changeSet id="20200223180318-3" author="jhipster">
+        <createTable tableName="protocol_data" remarks="Handwritten data collected using a smartpen for analysis (part of the sample).">
+            <column name="protocol_id" type="bigint" remarks="ID of the protocol.">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="width" type="double" remarks="Width of the layout in which the protocol has been written.">
+                <constraints nullable="false" />
+            </column>
+            <column name="height" type="double" remarks="Height of the layout in which the protocol has been written.">
+                <constraints nullable="false" />
+            </column>
+            <column name="strokes" type="jsonb" remarks="Strokes captured by the smartpen.">
+                <constraints nullable="true" />
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="dirty_preview" type="boolean"/>
+            <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here, do not remove-->
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20200223180318-3-relations" author="jhipster">
+
+    </changeSet>
+    <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here, do not remove-->
+
+</databaseChangeLog>

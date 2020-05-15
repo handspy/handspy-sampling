@@ -1,14 +1,14 @@
 package pt.up.hs.sampling.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.io.Serializable;
+import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
+
 
 /**
  * Typewritten data collected for analysis (part of the sample). It may be a
@@ -37,14 +37,29 @@ public class Text extends AbstractAuditingEntity {
     private Long projectId;
 
     /**
+     * Task (from the Project Microservice) to which this text was written.
+     */
+    @Column(name = "task_id")
+    private Long taskId;
+
+    /**
+     * Participant (from the Project Microservice) who wrote this text.
+     */
+    @Column(name = "participant_id")
+    private Long participantId;
+
+    /**
      * Typewritten text collected
      */
     @Column(name = "text")
     private String text;
 
-    @ManyToOne
-    @JsonIgnoreProperties("texts")
-    private Sample sample;
+    /**
+     * Language of the text.
+     */
+    @Size(max = 5)
+    @Column(name = "language", length = 5)
+    private String language;
 
     @OneToMany(
         mappedBy = "text",
@@ -90,17 +105,43 @@ public class Text extends AbstractAuditingEntity {
         this.projectId = projectId;
     }
 
-    public Sample getSample() {
-        return sample;
+    public Long getTaskId() {
+        return taskId;
     }
 
-    public Text sample(Sample sample) {
-        this.sample = sample;
+    public Text taskId(Long taskId) {
+        this.taskId = taskId;
         return this;
     }
 
-    public void setSample(Sample sample) {
-        this.sample = sample;
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
+    }
+
+    public Long getParticipantId() {
+        return participantId;
+    }
+
+    public Text participantId(Long participantId) {
+        this.participantId = participantId;
+        return this;
+    }
+
+    public void setParticipantId(Long participantId) {
+        this.participantId = participantId;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public Text language(String language) {
+        this.language = language;
+        return this;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public Set<Annotation> getAnnotations() {
@@ -145,7 +186,10 @@ public class Text extends AbstractAuditingEntity {
         return "Text{" +
             "id=" + getId() +
             ", text='" + getText() + "'" +
+            ", taskId=" + getTaskId() +
+            ", participantId=" + getParticipantId() +
             ", projectId=" + getProjectId() +
+            ", language='" + getLanguage() + "'" +
             "}";
     }
 }

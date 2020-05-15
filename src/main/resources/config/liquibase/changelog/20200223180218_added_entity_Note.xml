@@ -11,18 +11,24 @@
         Added the entity Note.
     -->
     <changeSet id="20200223180218-1" author="jhipster">
-        <createTable tableName="note" remarks="Note taken about a sample by an analyst.\n\n@author José Carlos Paiva">
+        <createTable tableName="note" remarks="Note taken about a task/participant pair by an analyst.\n\n@author José Carlos Paiva">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="bigint" remarks="ID of the project to which this note belongs.">
+                <constraints nullable="false" />
+            </column>
+            <column name="task_id" type="bigint" remarks="ID of the task in which this note is attached.">
+                <constraints nullable="false" />
+            </column>
+            <column name="participant_id" type="bigint" remarks="ID of the participant in which this note is attached.">
+                <constraints nullable="false" />
             </column>
             <column name="text" type="varchar(255)" remarks="Text of the note">
                 <constraints nullable="true" />
             </column>
             <column name="self" type="boolean" remarks="Is this note private">
                 <constraints nullable="true" />
-            </column>
-            <column name="sample_id" type="bigint">
-                <constraints nullable="false" />
             </column>
             <column name="created_by" type="varchar(50)">
                 <constraints nullable="false"/>
@@ -53,9 +59,12 @@
                   separator=";"
                   tableName="note">
             <column name="id" type="numeric"/>
+            <column name="project_id" type="numeric"/>
+            <column name="task_id" type="numeric"/>
+            <column name="participant_id" type="numeric"/>
             <column name="text" type="string"/>
             <column name="self" type="boolean"/>
-            <column name="sample_id" type="numeric"/>
+            <column name="created_by" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here, do not remove-->
         </loadData>
     </changeSet>

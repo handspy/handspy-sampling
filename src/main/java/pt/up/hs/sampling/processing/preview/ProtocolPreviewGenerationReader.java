@@ -5,33 +5,35 @@ import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.stereotype.Component;
-import pt.up.hs.sampling.repository.ProtocolRepository;
-import pt.up.hs.sampling.service.dto.ProtocolDTO;
-import pt.up.hs.sampling.service.mapper.ProtocolMapper;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import pt.up.hs.sampling.domain.ProtocolData;
+import pt.up.hs.sampling.repository.ProtocolDataRepository;
+import pt.up.hs.sampling.service.mapper.ProtocolDataMapper;
 
 import static pt.up.hs.sampling.processing.preview.ProtocolPreviewGenerationConstants.PROTOCOL_PREVIEW_GENERATION_ID_PARAMETER;
 import static pt.up.hs.sampling.processing.preview.ProtocolPreviewGenerationConstants.PROTOCOL_PREVIEW_GENERATION_PROJECT_ID_PARAMETER;
 
 /**
- * Read {@link ProtocolDTO} protocols requiring preview generation from database.
+ * Read {@link ProtocolData} protocols' data requiring preview generation from database.
  *
  * @author José Carlos Paiva
  */
 @Component
 @StepScope
-public class ProtocolPreviewGenerationReader implements ItemReader<ProtocolDTO> {
+public class ProtocolPreviewGenerationReader implements ItemReader<ProtocolData> {
 
-    private final ProtocolRepository protocolRepository;
-    private final ProtocolMapper protocolMapper;
+    private final ProtocolDataRepository protocolDataRepository;
+    private final ProtocolDataMapper protocolDataMapper;
 
     private StepExecution stepExecution;
 
     public ProtocolPreviewGenerationReader(
-        ProtocolRepository protocolRepository,
-        ProtocolMapper protocolMapper
+        ProtocolDataRepository protocolDataRepository,
+        ProtocolDataMapper protocolDataMapper
     ) {
-        this.protocolRepository = protocolRepository;
-        this.protocolMapper = protocolMapper;
+        this.protocolDataRepository = protocolDataRepository;
+        this.protocolDataMapper = protocolDataMapper;
     }
 
     @BeforeStep
@@ -39,23 +41,28 @@ public class ProtocolPreviewGenerationReader implements ItemReader<ProtocolDTO> 
         this.stepExecution = stepExecution;
     }
 
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public ProtocolDTO read() {
-        ProtocolDTO protocolDTO = protocolRepository
+    public ProtocolData read() {
+
+        ProtocolData pd = protocolDataRepository
             .findFirstByDirtyPreviewTrue()
-            .map(protocolMapper::toDto)
             .orElse(null);
-        if (protocolDTO == null) {
+
+        if (pd == null) {
             return null;
         }
+
         stepExecution
             .getJobExecution()
             .getExecutionContext()
-            .put(PROTOCOL_PREVIEW_GENERATION_PROJECT_ID_PARAMETER, protocolDTO.getProjectId());
+            .put(PROTOCOL_PREVIEW_GENERATION_PROJECT_ID_PARAMETER, pd.getProtocol().getProjectId());
+
         stepExecution
             .getJobExecution()
             .getExecutionContext()
-            .put(PROTOCOL_PREVIEW_GENERATION_ID_PARAMETER, protocolDTO.getId());
-        return protocolDTO;
+            .put(PROTOCOL_PREVIEW_GENERATION_ID_PARAMETER, pd.getProtocolId());
+
+        return pd;
     }
 }

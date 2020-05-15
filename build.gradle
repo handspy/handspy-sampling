@@ -272,6 +272,7 @@ dependencies {
     implementation "org.apache.tika:tika-parsers:${apache_tika_version}"
     implementation "org.apache.xmlgraphics:batik-transcoder:${apache_batik_version}"
     implementation "org.apache.xmlgraphics:batik-codec:${apache_batik_version}"
+    implementation "com.vladmihalcea:hibernate-types-52:${hibernate_types_version}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstruct_version}"
     annotationProcessor "org.hibernate:hibernate-jpamodelgen:${hibernate_version}"
     annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxb_runtime_version}"

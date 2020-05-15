@@ -7,7 +7,7 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pt.up.hs.sampling.service.dto.ProtocolDTO;
+import pt.up.hs.sampling.domain.ProtocolData;
 import pt.up.hs.uhc.models.Page;
 
 import static pt.up.hs.sampling.processing.preview.ProtocolPreviewGenerationConstants.PROTOCOL_PREVIEW_GENERATION_JOB;
@@ -43,7 +43,7 @@ public class BatchProtocolPreviewGenerationConfig {
     @Bean
     public Step step() {
         return stepBuilderFactory.get(PROTOCOL_PREVIEW_GENERATION_STEP)
-            .<ProtocolDTO, Page>chunk(1)
+            .<ProtocolData, Page>chunk(1)
             .reader(reader)
             .processor(processor)
             .writer(writer)

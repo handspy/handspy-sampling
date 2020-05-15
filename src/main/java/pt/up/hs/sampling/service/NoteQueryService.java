@@ -45,16 +45,14 @@ public class NoteQueryService extends QueryService<Note> {
      * Return a {@link List} of {@link NoteDTO} which matches the criteria from the database.
      *
      * @param projectId ID of the project to which the notes belong.
-     * @param sampleId  ID of the sample to which the notes belong.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public List<NoteDTO> findByCriteria(Long projectId, Long sampleId, NoteCriteria criteria) {
+    public List<NoteDTO> findByCriteria(Long projectId, NoteCriteria criteria) {
         log.debug("find by criteria : {}", criteria);
         final Specification<Note> specification = createSpecification(criteria)
-            .and(equalsSpecification(root -> root.join("sample", JoinType.LEFT).get("projectId"), projectId))
-            .and(equalsSpecification(root -> root.join("sample", JoinType.LEFT).get("id"), sampleId));
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return noteMapper.toDto(noteRepository.findAll(specification));
     }
 
@@ -62,17 +60,15 @@ public class NoteQueryService extends QueryService<Note> {
      * Return a {@link Page} of {@link NoteDTO} which matches the criteria from the database.
      *
      * @param projectId ID of the project to which the notes belong.
-     * @param sampleId  ID of the sample to which the notes belong.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
      */
     @Transactional(readOnly = true)
-    public Page<NoteDTO> findByCriteria(Long projectId, Long sampleId, NoteCriteria criteria, Pageable page) {
+    public Page<NoteDTO> findByCriteria(Long projectId, NoteCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<Note> specification = createSpecification(criteria)
-            .and(equalsSpecification(root -> root.join("sample", JoinType.LEFT).get("projectId"), projectId))
-            .and(equalsSpecification(root -> root.join("sample", JoinType.LEFT).get("id"), sampleId));
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return noteRepository.findAll(specification, page)
             .map(noteMapper::toDto);
     }
@@ -81,16 +77,14 @@ public class NoteQueryService extends QueryService<Note> {
      * Return the number of matching entities in the database.
      *
      * @param projectId ID of the project to which the notes belong.
-     * @param sampleId  ID of the sample to which the notes belong.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the number of matching entities.
      */
     @Transactional(readOnly = true)
-    public long countByCriteria(Long projectId, Long sampleId, NoteCriteria criteria) {
+    public long countByCriteria(Long projectId, NoteCriteria criteria) {
         log.debug("count by criteria : {}", criteria);
         final Specification<Note> specification = createSpecification(criteria)
-            .and(equalsSpecification(root -> root.join("sample", JoinType.LEFT).get("projectId"), projectId))
-            .and(equalsSpecification(root -> root.join("sample", JoinType.LEFT).get("id"), sampleId));
+            .and(equalsSpecification(root -> root.get("projectId"), projectId));
         return noteRepository.count(specification);
     }
 
@@ -110,6 +104,12 @@ public class NoteQueryService extends QueryService<Note> {
             }
             if (criteria.getSelf() != null) {
                 specification = specification.and(buildSpecification(criteria.getSelf(), Note_.self));
+            }
+            if (criteria.getTaskId() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getTaskId(), Note_.taskId));
+            }
+            if (criteria.getParticipantId() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getParticipantId(), Note_.participantId));
             }
         }
         return specification;

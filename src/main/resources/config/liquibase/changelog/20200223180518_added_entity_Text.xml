@@ -15,13 +15,19 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="text" type="varchar(255)" remarks="Typewritten text collected">
-                <constraints nullable="true" />
-            </column>
-            <column name="project_id" type="bigint">
+            <column name="project_id" type="bigint" remarks="ID of the project to which this project belongs.">
                 <constraints nullable="false" />
             </column>
-            <column name="sample_id" type="bigint">
+            <column name="text" type="varchar(255)" remarks="Typewritten text collected.">
+                <constraints nullable="true" />
+            </column>
+            <column name="language" type="varchar(5)" remarks="Language of the text.">
+                <constraints nullable="true" />
+            </column>
+            <column name="task_id" type="bigint" remarks="ID of the task to which this text was written.">
+                <constraints nullable="true" />
+            </column>
+            <column name="participant_id" type="bigint" remarks="ID of the participant who wrote this text.">
                 <constraints nullable="true" />
             </column>
             <column name="created_by" type="varchar(50)">
@@ -53,8 +59,12 @@
                   separator=";"
                   tableName="text">
             <column name="id" type="numeric"/>
-            <column name="text" type="string"/>
             <column name="project_id" type="numeric"/>
+            <column name="text" type="string"/>
+            <column name="language" type="string"/>
+            <column name="task_id" type="numeric"/>
+            <column name="participant_id" type="numeric"/>
+            <column name="created_by" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here, do not remove-->
         </loadData>
     </changeSet>

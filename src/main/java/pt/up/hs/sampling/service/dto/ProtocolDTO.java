@@ -3,9 +3,7 @@ package pt.up.hs.sampling.service.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 
 /**
@@ -13,8 +11,8 @@ import java.util.Objects;
  *
  * @author José Carlos Paiva
  */
-@ApiModel(description = "Handwritten data collected using a smartpen for ana" +
-    "lysis (part of the sample).")
+@ApiModel(description = "Envelope wrapping handwritten data collected using " +
+    "a smartpen for analysis (part of the sample).")
 public class ProtocolDTO extends AbstractAuditingDTO {
 
     private Long id;
@@ -22,39 +20,33 @@ public class ProtocolDTO extends AbstractAuditingDTO {
     /**
      * ID of the project (from Projects microservice).
      */
-    @NotNull
     @ApiModelProperty(value = "ID of the project (from Projects microservice).")
     private Long projectId;
 
     /**
-     * ID of the sample to which this text is linked (if any).
+     * Task (from the Project Microservice) to which this protocol was written.
      */
-    @ApiModelProperty(value = "ID of the sample to which this text is linked" +
-        " (if any).")
-    private Long sampleId;
+    @ApiModelProperty(value = "Task (from the Project Microservice) to which this protocol was written.")
+    private Long taskId;
 
     /**
-     * Width of the layout in which the protocol has been written.
+     * Participant (from the Project Microservice) who wrote this protocol.
      */
-    @ApiModelProperty(value = "Width of the layout in which the protocol has" +
-        " been written.")
-    private Double width;
-
-    /**
-     * Height of the layout in which the protocol has been written.
-     */
-    @ApiModelProperty(value = "Height of the layout in which the protocol ha" +
-        "s been written.")
-    private Double height;
+    @ApiModelProperty(value = "Participant (from the Project Microservice) who wrote this protocol.")
+    private Long participantId;
 
     /**
      * Number of the page (if the protocol contains multiple pages)
      */
-    @ApiModelProperty(value = "Number of the page (if the protocol contains multiple pages)")
+    @ApiModelProperty(value = "Number of the page (if the protocol contains multiple pages).")
     private Integer pageNumber;
 
-    private List<StrokeDTO> strokes = new ArrayList<>();
-
+    /**
+     * Language of the protocol.
+     */
+    @ApiModelProperty(value = "Language of the protocol.")
+    @Size(max = 5)
+    private String language;
 
     public Long getId() {
         return id;
@@ -72,30 +64,6 @@ public class ProtocolDTO extends AbstractAuditingDTO {
         this.projectId = projectId;
     }
 
-    public Long getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
-    }
-
-    public Double getWidth() {
-        return width;
-    }
-
-    public void setWidth(Double width) {
-        this.width = width;
-    }
-
-    public Double getHeight() {
-        return height;
-    }
-
-    public void setHeight(Double height) {
-        this.height = height;
-    }
-
     public Integer getPageNumber() {
         return pageNumber;
     }
@@ -104,13 +72,30 @@ public class ProtocolDTO extends AbstractAuditingDTO {
         this.pageNumber = pageNumber;
     }
 
-    public List<StrokeDTO> getStrokes() {
-        return strokes;
+    public Long getTaskId() {
+        return taskId;
     }
 
-    public void setStrokes(List<StrokeDTO> strokes) {
-        this.strokes = strokes;
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
+
+    public Long getParticipantId() {
+        return participantId;
+    }
+
+    public void setParticipantId(Long participantId) {
+        this.participantId = participantId;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -138,10 +123,10 @@ public class ProtocolDTO extends AbstractAuditingDTO {
         return "ProtocolDTO{" +
             "id=" + getId() +
             ", projectId=" + getProjectId() +
-            ", sampleId=" + getSampleId() +
-            ", width=" + getWidth() +
-            ", height=" + getHeight() +
+            ", taskId=" + getTaskId() +
+            ", participantId=" + getParticipantId() +
             ", pageNumber=" + getPageNumber() +
+            ", language=" + getLanguage() +
             "}";
     }
 }

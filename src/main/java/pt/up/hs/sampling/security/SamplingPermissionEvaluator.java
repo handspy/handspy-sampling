@@ -6,7 +6,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import pt.up.hs.sampling.domain.*;
 import pt.up.hs.sampling.repository.PermissionRepository;
-import pt.up.hs.sampling.repository.SampleRepository;
 import pt.up.hs.sampling.repository.TextRepository;
 
 import java.io.Serializable;
@@ -16,18 +15,15 @@ import java.util.Optional;
 @Component
 public class SamplingPermissionEvaluator implements PermissionEvaluator {
 
-    private final SampleRepository sampleRepository;
     private final TextRepository textRepository;
 
     private final PermissionRepository permissionRepository;
 
     @Autowired
     public SamplingPermissionEvaluator(
-        SampleRepository sampleRepository,
         TextRepository textRepository,
         PermissionRepository permissionRepository
     ) {
-        this.sampleRepository = sampleRepository;
         this.textRepository = textRepository;
         this.permissionRepository = permissionRepository;
     }
@@ -50,12 +46,8 @@ public class SamplingPermissionEvaluator implements PermissionEvaluator {
             projectId = ((Annotation) targetDomainObject).getText().getProjectId();
         } else if (targetDomainObject instanceof AnnotationType) {
             projectId = ((AnnotationType) targetDomainObject).getProjectId();
-        } else if (targetDomainObject instanceof Dot) {
-            projectId = ((Dot) targetDomainObject).getStroke().getProtocol().getProjectId();
-        } else if (targetDomainObject instanceof Stroke) {
-            projectId = ((Stroke) targetDomainObject).getProtocol().getProjectId();
         } else if (targetDomainObject instanceof Note) {
-            projectId = ((Note) targetDomainObject).getSample().getProjectId();
+            projectId = ((Note) targetDomainObject).getProjectId();
         } else if (targetDomainObject instanceof Protocol) {
             projectId = ((Protocol) targetDomainObject).getProjectId();
         } else if (targetDomainObject instanceof Sample) {
@@ -119,15 +111,10 @@ public class SamplingPermissionEvaluator implements PermissionEvaluator {
         return true;
     }
 
-    private Long getProjectIdFromSample(Long id) {
-        Optional<Sample> sampleOptional = sampleRepository.findById(id);
-        return sampleOptional.map(Sample::getProjectId).orElse(null);
-    }
-
     private Long getProjectIdFromText(Long id) {
         Optional<Text> textOptional = textRepository.findById(id);
         return textOptional
-            .map(text -> text.getSample().getProjectId())
+            .map(Text::getProjectId)
             .orElse(null);
     }
 }

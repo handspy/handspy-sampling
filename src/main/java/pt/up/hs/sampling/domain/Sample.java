@@ -34,14 +34,14 @@ public class Sample extends AbstractAuditingEntity {
     private Long projectId;
 
     /**
-     * Task from the Project Microservice in which this sample is inserted.
+     * Task (from the Project Microservice) in which this sample is inserted.
      */
     @NotNull
     @Column(name = "task", nullable = false)
     private Long task;
 
     /**
-     * Participant from the Project Microservice to which this sample belongs.
+     * Participant (from the Project Microservice) to which this sample belongs.
      */
     @NotNull
     @Column(name = "participant", nullable = false)

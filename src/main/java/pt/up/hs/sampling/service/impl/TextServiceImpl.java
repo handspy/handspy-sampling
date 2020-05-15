@@ -9,8 +9,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.zalando.problem.Status;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.constants.ErrorKeys;
+import pt.up.hs.sampling.domain.Protocol;
 import pt.up.hs.sampling.domain.Text;
 import pt.up.hs.sampling.repository.TextRepository;
 import pt.up.hs.sampling.service.TextService;
@@ -36,10 +38,12 @@ public class TextServiceImpl implements TextService {
     private final Logger log = LoggerFactory.getLogger(TextServiceImpl.class);
 
     private final TextRepository textRepository;
-
     private final TextMapper textMapper;
 
-    public TextServiceImpl(TextRepository textRepository, TextMapper textMapper) {
+    public TextServiceImpl(
+        TextRepository textRepository,
+        TextMapper textMapper
+    ) {
         this.textRepository = textRepository;
         this.textMapper = textMapper;
     }
@@ -55,6 +59,15 @@ public class TextServiceImpl implements TextService {
     public TextDTO save(Long projectId, TextDTO textDTO) {
         log.debug("Request to save Text {} in project {}", textDTO, projectId);
         textDTO.setProjectId(projectId);
+        if (textDTO.getTaskId() != null && textDTO.getParticipantId() != null) {
+            Optional<Text> textOptional = textRepository
+                .findByProjectIdAndTaskIdAndParticipantId(projectId, textDTO.getTaskId(), textDTO.getParticipantId());
+            if (textOptional.isPresent()) {
+                if (!textOptional.get().getId().equals(textDTO.getId())) {
+                    throw new ServiceException(Status.BAD_REQUEST, EntityNames.TEXT, ErrorKeys.ERR_EXISTS, "A text for this participant in this task already exists.");
+                }
+            }
+        }
         Text text = textMapper.toEntity(textDTO);
         text = textRepository.save(text);
         return textMapper.toDto(text);

@@ -3,7 +3,7 @@ package pt.up.hs.sampling.service.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -13,10 +13,10 @@ import java.util.Set;
  *
  * @author José Carlos Paiva
  */
-@ApiModel(description = "Typewritten data collected for analysis (part of th" +
-    "e sample). It may be a transcription of the protocol (automatic or manu" +
-    "ally entered by an analyst) or text typed by a participant using a typi" +
-    "ng device.")
+@ApiModel(description = "Envelope wrapping typewritten data collected for an" +
+    "alysis (part of the sample). It may be a transcription of the protocol " +
+    "(automatic or manually entered by an analyst) or text typed by a partic" +
+    "ipant using a typing device.")
 public class TextDTO extends AbstractAuditingDTO {
 
     private Long id;
@@ -24,22 +24,33 @@ public class TextDTO extends AbstractAuditingDTO {
     /**
      * ID of the project (from Projects microservice).
      */
-    @NotNull
     @ApiModelProperty(value = "ID of the project (from Projects microservice).")
     private Long projectId;
 
     /**
-     * ID of the sample to which this text is linked (if any).
+     * Task (from the Project Microservice) to which this text was written.
      */
-    @ApiModelProperty(value = "ID of the sample to which this text is linked" +
-        " (if any).")
-    private Long sampleId;
+    @ApiModelProperty(value = "Task (from the Project Microservice) to which this text was written.")
+    private Long taskId;
+
+    /**
+     * Participant (from the Project Microservice) who wrote this text.
+     */
+    @ApiModelProperty(value = "Participant (from the Project Microservice) who wrote this text.")
+    private Long participantId;
 
     /**
      * Typewritten text collected.
      */
     @ApiModelProperty(value = "Typewritten text collected")
     private String text;
+
+    /**
+     * Language of the text.
+     */
+    @ApiModelProperty(value = "Language of the text.")
+    @Size(max = 5)
+    private String language;
 
     private Set<AnnotationDTO> annotations = new HashSet<>();
 
@@ -59,20 +70,36 @@ public class TextDTO extends AbstractAuditingDTO {
         this.projectId = projectId;
     }
 
-    public Long getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
-    }
-
     public String getText() {
         return text;
     }
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
+    }
+
+    public Long getParticipantId() {
+        return participantId;
+    }
+
+    public void setParticipantId(Long participantId) {
+        this.participantId = participantId;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public Set<AnnotationDTO> getAnnotations() {
@@ -109,8 +136,9 @@ public class TextDTO extends AbstractAuditingDTO {
         return "TextDTO{" +
             "id=" + getId() +
             ", projectId=" + getProjectId() +
-            ", sampleId=" + getSampleId() +
-            ", text='" + getText() + "'" +
+            ", taskId=" + getTaskId() +
+            ", participantId=" + getParticipantId() +
+            ", language=" + getLanguage() +
             "}";
     }
 }

@@ -23,17 +23,20 @@ public class TextCriteria implements Serializable, Criteria {
 
     private LongFilter id;
 
-    private StringFilter text;
+    private LongFilter taskId;
 
-    private LongFilter sampleId;
+    private LongFilter participantId;
+
+    private StringFilter language;
 
     public TextCriteria() {
     }
 
     public TextCriteria(TextCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
-        this.text = other.text == null ? null : other.text.copy();
-        this.sampleId = other.sampleId == null ? null : other.sampleId.copy();
+        this.taskId = other.taskId == null ? null : other.taskId.copy();
+        this.participantId = other.participantId == null ? null : other.participantId.copy();
+        this.language = other.language == null ? null : other.language.copy();
     }
 
     @Override
@@ -49,22 +52,29 @@ public class TextCriteria implements Serializable, Criteria {
         this.id = id;
     }
 
-    public StringFilter getText() {
-        return text;
+    public LongFilter getTaskId() {
+        return taskId;
     }
 
-    public void setText(StringFilter text) {
-        this.text = text;
+    public void setTaskId(LongFilter taskId) {
+        this.taskId = taskId;
     }
 
-    public LongFilter getSampleId() {
-        return sampleId;
+    public LongFilter getParticipantId() {
+        return participantId;
     }
 
-    public void setSampleId(LongFilter sampleId) {
-        this.sampleId = sampleId;
+    public void setParticipantId(LongFilter participantId) {
+        this.participantId = participantId;
     }
 
+    public StringFilter getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(StringFilter language) {
+        this.language = language;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -77,16 +87,18 @@ public class TextCriteria implements Serializable, Criteria {
         final TextCriteria that = (TextCriteria) o;
         return
             Objects.equals(id, that.id) &&
-            Objects.equals(text, that.text) &&
-            Objects.equals(sampleId, that.sampleId);
+            Objects.equals(taskId, that.taskId) &&
+            Objects.equals(participantId, that.participantId) &&
+            Objects.equals(language, that.language);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-        id,
-        text,
-        sampleId
+            id,
+            taskId,
+            participantId,
+            language
         );
     }
 
@@ -94,8 +106,9 @@ public class TextCriteria implements Serializable, Criteria {
     public String toString() {
         return "TextCriteria{" +
                 (id != null ? "id=" + id + ", " : "") +
-                (text != null ? "text=" + text + ", " : "") +
-                (sampleId != null ? "sampleId=" + sampleId + ", " : "") +
+                (taskId != null ? "taskId=" + taskId + ", " : "") +
+                (participantId != null ? "participantId=" + participantId + ", " : "") +
+                (language != null ? "language=" + language + ", " : "") +
             "}";
     }
 }

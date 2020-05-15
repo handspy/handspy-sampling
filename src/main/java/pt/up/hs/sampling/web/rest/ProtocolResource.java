@@ -21,6 +21,7 @@ import pt.up.hs.sampling.service.ProtocolService;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
 import pt.up.hs.sampling.service.dto.ProtocolCriteria;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
+import pt.up.hs.sampling.service.dto.ProtocolDataDTO;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 import pt.up.hs.sampling.constants.ErrorKeys;
 
@@ -121,6 +122,30 @@ public class ProtocolResource {
     }
 
     /**
+     * {@code POST  /protocols/:id/data} : Updates an existing protocol's data.
+     *
+     * @param projectId   ID of the project to which this protocol belongs.
+     * @param pdDTO the protocolDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated protocolDTO,
+     * or with status {@code 400 (Bad Request)} if the protocolDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the protocolDTO couldn't be updated.
+     */
+    @PostMapping("/protocols/{id}/data")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+        "hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
+    public ResponseEntity<ProtocolDTO> updateProtocol(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("id") Long id,
+        @Valid @RequestBody ProtocolDataDTO pdDTO
+    ) {
+        log.debug("REST request to update Protocol {}'s data in project {}", id, projectId);
+        ProtocolDTO result = protocolService.saveData(projectId, pdDTO);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, EntityNames.PROTOCOL_DATA, pdDTO.getProtocolId().toString()))
+            .body(result);
+    }
+
+    /**
      * {@code GET  /protocols} : get all the protocols.
      *
      * @param projectId ID of the project to which the protocols belong.
@@ -177,6 +202,24 @@ public class ProtocolResource {
     }
 
     /**
+     * {@code GET  /protocols/:id/strokes} : get the "id" protocol's strokes.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param id        the id of the protocolDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the protocolDTO, or with status {@code 404 (Not Found)}.
+     */
+    @GetMapping("/protocols/{id}/data")
+    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
+    public ResponseEntity<ProtocolDataDTO> getProtocolData(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable Long id
+    ) {
+        log.debug("REST request to get Protocol {} data in project {}", id, projectId);
+        Optional<ProtocolDataDTO> pdDTO = protocolService.findOneData(projectId, id);
+        return ResponseUtil.wrapOrNotFound(pdDTO);
+    }
+
+    /**
      * {@code GET  /protocols/:id/preview} : get the "id" protocol's preview.
      *
      * @param projectId ID of the project to which this protocol belongs.
@@ -184,7 +227,7 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the protocolDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping(value = "/protocols/{id}/preview", produces = {
-        "image/svg+xml",
+        MediaType.IMAGE_PNG_VALUE,
         MediaType.APPLICATION_OCTET_STREAM_VALUE
     })
     @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")

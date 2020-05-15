@@ -99,18 +99,17 @@ public class ProtocolQueryService extends QueryService<Protocol> {
             if (criteria.getId() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getId(), Protocol_.id));
             }
-            if (criteria.getWidth() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getWidth(), Protocol_.width));
-            }
-            if (criteria.getHeight() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getHeight(), Protocol_.height));
-            }
             if (criteria.getPageNumber() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getPageNumber(), Protocol_.pageNumber));
             }
-            if (criteria.getSampleId() != null) {
-                specification = specification.and(buildSpecification(criteria.getSampleId(),
-                    root -> root.join(Protocol_.sample, JoinType.LEFT).get(Sample_.id)));
+            if (criteria.getTaskId() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getTaskId(), Protocol_.taskId));
+            }
+            if (criteria.getParticipantId() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getParticipantId(), Protocol_.participantId));
+            }
+            if (criteria.getLanguage() != null) {
+                specification = specification.and(buildStringSpecification(criteria.getLanguage(), Protocol_.language));
             }
         }
         return specification;

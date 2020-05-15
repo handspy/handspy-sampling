@@ -1,19 +1,15 @@
 package pt.up.hs.sampling.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.Size;
 
 /**
- * Handwritten data collected using a smartpen for analysis (part of the
- * sample).
+ * Header for handwritten data collected using a smartpen for analysis (part of
+ * the sample).
  *
  * @author José Carlos Paiva
  */
@@ -37,40 +33,29 @@ public class Protocol extends AbstractAuditingEntity {
     private Long projectId;
 
     /**
-     * Width of the layout in which the protocol has been written.
-     */
-    @Column(name = "width", nullable = false)
-    private Double width;
-
-    /**
-     * Height of the layout in which the protocol has been written.
-     */
-    @Column(name = "height", nullable = false)
-    private Double height;
-
-    /**
      * Number of the page (if the protocol contains multiple pages)
      */
     @Column(name = "page_number")
     private Integer pageNumber;
 
-    @OneToMany(
-        mappedBy = "protocol",
-        cascade = CascadeType.ALL,
-        fetch = FetchType.LAZY,
-        orphanRemoval = true
-    )
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    @JsonIgnoreProperties("protocol")
-    private List<Stroke> strokes = new ArrayList<>();
+    /**
+     * Task (from the Project Microservice) to which this protocol was written.
+     */
+    @Column(name = "task_id")
+    private Long taskId;
 
-    @ManyToOne
-    @JsonIgnoreProperties("protocols")
-    private Sample sample;
+    /**
+     * Participant (from the Project Microservice) who wrote this protocol.
+     */
+    @Column(name = "participant_id")
+    private Long participantId;
 
-    @Column(name = "dirty_preview")
-    @JsonIgnore
-    private boolean dirtyPreview = true;
+    /**
+     * Language of the protocol.
+     */
+    @Size(max = 5)
+    @Column(name = "language", length = 5)
+    private String language;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -94,32 +79,6 @@ public class Protocol extends AbstractAuditingEntity {
         this.projectId = projectId;
     }
 
-    public Double getWidth() {
-        return width;
-    }
-
-    public Protocol width(Double width) {
-        this.width = width;
-        return this;
-    }
-
-    public void setWidth(Double width) {
-        this.width = width;
-    }
-
-    public Double getHeight() {
-        return height;
-    }
-
-    public Protocol height(Double height) {
-        this.height = height;
-        return this;
-    }
-
-    public void setHeight(Double height) {
-        this.height = height;
-    }
-
     public Integer getPageNumber() {
         return pageNumber;
     }
@@ -133,49 +92,43 @@ public class Protocol extends AbstractAuditingEntity {
         this.pageNumber = pageNumber;
     }
 
-    public List<Stroke> getStrokes() {
-        return strokes;
+    public Long getTaskId() {
+        return taskId;
     }
 
-    public Protocol strokes(List<Stroke> strokes) {
-        this.strokes = strokes;
+    public Protocol taskId(Long taskId) {
+        this.taskId = taskId;
         return this;
     }
 
-    public Protocol addStroke(Stroke stroke) {
-        this.strokes.add(stroke);
-        stroke.setProtocol(this);
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
+    }
+
+    public Long getParticipantId() {
+        return participantId;
+    }
+
+    public Protocol participantId(Long participantId) {
+        this.participantId = participantId;
         return this;
     }
 
-    public void setStrokes(List<Stroke> strokes) {
-        this.strokes = strokes;
+    public void setParticipantId(Long participantId) {
+        this.participantId = participantId;
     }
 
-    public Sample getSample() {
-        return sample;
+    public String getLanguage() {
+        return language;
     }
 
-    public Protocol sample(Sample sample) {
-        this.sample = sample;
+    public Protocol language(String language) {
+        this.language = language;
         return this;
     }
 
-    public void setSample(Sample sample) {
-        this.sample = sample;
-    }
-
-    public boolean isDirtyPreview() {
-        return dirtyPreview;
-    }
-
-    public Protocol dirtyPreview(boolean dirtyPreview) {
-        this.dirtyPreview = dirtyPreview;
-        return this;
-    }
-
-    public void setDirtyPreview(boolean dirtyPreview) {
-        this.dirtyPreview = dirtyPreview;
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
@@ -201,9 +154,8 @@ public class Protocol extends AbstractAuditingEntity {
         return "Protocol{" +
             "id=" + getId() +
             ", projectId=" + getProjectId() +
-            ", width=" + getWidth() +
-            ", height=" + getHeight() +
             ", pageNumber=" + getPageNumber() +
+            ", language='" + getLanguage() + "'" +
             "}";
     }
 }
