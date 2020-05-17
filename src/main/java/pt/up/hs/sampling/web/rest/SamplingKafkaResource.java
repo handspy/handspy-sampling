@@ -20,8 +20,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@RestController
-@RequestMapping("/api/sampling-kafka")
+/*@RestController
+@RequestMapping("/api/sampling-kafka")*/
 public class SamplingKafkaResource {
 
     private final Logger log = LoggerFactory.getLogger(SamplingKafkaResource.class);
