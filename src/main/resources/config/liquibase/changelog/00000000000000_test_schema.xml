@@ -6,5 +6,6 @@
 
     <changeSet id="h2-fixes" author="jcpaiva" dbms="h2">
         <modifyDataType tableName="protocol_data" columnName="strokes" newDataType="other" />
+        <modifyDataType tableName="text" columnName="text" newDataType="varchar" />
     </changeSet>
 </databaseChangeLog>

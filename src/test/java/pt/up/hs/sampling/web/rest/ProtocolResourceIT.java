@@ -459,6 +459,27 @@ public class ProtocolResourceIT {
 
     @Test
     @Transactional
+    public void importProtocolLegacy() throws Exception {
+        // read file
+        byte[] contentPage = TestUtil.readFileFromResourcesFolder("data/protocols/sample-filled.xml");
+        MockMultipartFile filePage = new MockMultipartFile("file", "sample-filled.xml", null, contentPage);
+
+        // Import the protocols
+        restProtocolMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/protocols/import", DEFAULT_PROJECT_ID)
+                    .file(filePage)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.total").value(1))
+            .andExpect(jsonPath("$.invalid").value(0))
+            .andExpect(jsonPath("$.data").value(hasSize(1)));
+    }
+
+    @Test
+    @Transactional
     public void bulkImportProtocol() throws Exception {
         // read file
         byte[] contentPageEmpty = TestUtil.readFileFromResourcesFolder("data/protocols/page_empty.data");

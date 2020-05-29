@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:protocol xmlns:ns2="protocol" code="000">
+    <header>
+        <subject>
+            <Birthdate/>
+        </subject>
+        <school/>
+        <layout Layout="A" Page="1"/>
+    </header>
+    <strokes start="0" stop="5000">
+        <stroke X="2" Y="4" Time="500"/>
+        <stroke X="4" Y="7" Time="1000"/>
+        <stroke X="10" Y="13" Time="1500"/>
+        <stroke X="12" Y="14" Time="2000"/>
+        <stroke X="15" Y="17" Time="2500"/>
+        <stroke X="16" Y="18" Time="3000"/>
+        <stroke X="20" Y="22" Time="3500"/>
+        <stroke X="20" Y="24" Time="4000"/>
+        <stroke X="20" Y="27" Time="4500"/>
+        <stroke X="20" Y="28" Time="5000"/>
+    </strokes>
+    <strokes start="5000" stop="10000">
+        <stroke X="30" Y="40" Time="5500"/>
+        <stroke X="31" Y="40" Time="6000"/>
+        <stroke X="32" Y="40" Time="6500"/>
+        <stroke X="33" Y="40" Time="7000"/>
+        <stroke X="34" Y="40" Time="7500"/>
+        <stroke X="35" Y="40" Time="8000"/>
+        <stroke X="36" Y="40" Time="8500"/>
+        <stroke X="37" Y="40" Time="9000"/>
+        <stroke X="38" Y="40" Time="9500"/>
+        <stroke X="39" Y="40" Time="10000"/>
+    </strokes>
+</ns2:protocol>
