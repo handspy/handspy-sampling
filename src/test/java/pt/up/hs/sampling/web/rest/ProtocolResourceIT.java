@@ -1,19 +1,6 @@
 package pt.up.hs.sampling.web.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import pt.up.hs.sampling.SamplingApp;
-import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
-import pt.up.hs.sampling.domain.Protocol;
-import pt.up.hs.sampling.domain.Sample;
-import pt.up.hs.sampling.repository.ProtocolRepository;
-import pt.up.hs.sampling.service.ProtocolService;
-import pt.up.hs.sampling.service.dto.ProtocolDTO;
-import pt.up.hs.sampling.service.mapper.ProtocolMapper;
-import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
-import pt.up.hs.sampling.service.ProtocolQueryService;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -22,19 +9,30 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
+import pt.up.hs.sampling.SamplingApp;
+import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
+import pt.up.hs.sampling.domain.Protocol;
+import pt.up.hs.sampling.repository.ProtocolRepository;
+import pt.up.hs.sampling.service.ProtocolQueryService;
+import pt.up.hs.sampling.service.ProtocolService;
+import pt.up.hs.sampling.service.dto.ProtocolDTO;
+import pt.up.hs.sampling.service.mapper.ProtocolMapper;
+import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
 
 import javax.persistence.EntityManager;
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
-import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
 
 /**
  * Integration tests for the {@link ProtocolResource} REST controller.
@@ -446,15 +444,7 @@ public class ProtocolResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.total").value(1))
             .andExpect(jsonPath("$.invalid").value(0))
-            .andExpect(jsonPath("$.data").value(hasSize(1)))
-            /*.andExpect(jsonPath("$.data.[0].strokes").value(hasSize(643)))
-            .andExpect(jsonPath("$.data.[0].strokes[0].startTime").value(isA(Long.class)))
-            .andExpect(jsonPath("$.data.[0].strokes[0].endTime").value(isA(Long.class)))
-            .andExpect(jsonPath("$.data.[0].strokes[0].dots").value(hasSize(97)))
-            .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].x").value(hasItems(isA(Double.class), isA(Double.class), isA(Double.class))))
-            .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].y").value(hasItems(isA(Double.class), isA(Double.class), isA(Double.class))))
-            .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].timestamp").value(hasItems(isA(Long.class), isA(Long.class), isA(Long.class))))
-            .andExpect(jsonPath("$.data.[0].strokes[0].dots.[*].type").value(hasItems("DOWN", "DOWN", "DOWN")))*/;
+            .andExpect(jsonPath("$.data").value(hasSize(1)));
     }
 
     @Test
@@ -476,6 +466,27 @@ public class ProtocolResourceIT {
             .andExpect(jsonPath("$.total").value(1))
             .andExpect(jsonPath("$.invalid").value(0))
             .andExpect(jsonPath("$.data").value(hasSize(1)));
+    }
+
+    @Test
+    @Transactional
+    public void importProtocolPdf() throws Exception {
+        // read file
+        byte[] contentPage = TestUtil.readFileFromResourcesFolder("data/protocols/2-pages.pdf");
+        MockMultipartFile filePage = new MockMultipartFile("file", "data/protocols/2-pages.pdf", null, contentPage);
+
+        // Import the protocols
+        restProtocolMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/protocols/import", DEFAULT_PROJECT_ID)
+                    .file(filePage)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.total").value(1))
+            .andExpect(jsonPath("$.invalid").value(0))
+            .andExpect(jsonPath("$.data").value(hasSize(2)));
     }
 
     @Test

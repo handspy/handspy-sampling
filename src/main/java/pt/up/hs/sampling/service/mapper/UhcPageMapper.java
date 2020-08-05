@@ -18,6 +18,5 @@ public interface UhcPageMapper {
     @Mapping(target = "dirtyPreview", constant = "true")
     ProtocolData uhcPageToProtocolData(Page page);
 
-    @Mapping(target = "metadata", ignore = true)
     Page protocolDataToUhcPage(ProtocolData pd);
 }

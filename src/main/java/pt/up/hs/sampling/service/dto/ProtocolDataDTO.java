@@ -4,9 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import pt.up.hs.sampling.domain.pojo.Stroke;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A DTO for the {@link pt.up.hs.sampling.domain.ProtocolData} entity.
@@ -38,6 +36,12 @@ public class ProtocolDataDTO extends AbstractAuditingDTO {
     private Double height;
 
     /**
+     * Metadata of the capture.
+     */
+    @ApiModelProperty(value = "Metadata of the capture.")
+    private Map<String, Object> metadata = new HashMap<>();
+
+    /**
      * Strokes captured by the smartpen.
      */
     @ApiModelProperty(value = "Strokes captured by the smartpen.")
@@ -66,6 +70,14 @@ public class ProtocolDataDTO extends AbstractAuditingDTO {
 
     public void setHeight(Double height) {
         this.height = height;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
     }
 
     public List<Stroke> getStrokes() {

@@ -10,9 +10,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Handwritten data collected using a smartpen for analysis (part of the
@@ -48,6 +46,16 @@ public class ProtocolData extends AbstractAuditingEntity {
     @Column(name = "height", nullable = false)
     private Double height;
 
+    /**
+     * Metadata of the capture.
+     */
+    // @Column(name = "metadata")
+    @Type(type = "jsonb")
+    private Map<String, Object> metadata = new HashMap<>();
+
+    /**
+     * Strokes captured.
+     */
     @NotNull
     @Type(type = "jsonb")
     // @Column(columnDefinition = "jsonb")
@@ -119,6 +127,24 @@ public class ProtocolData extends AbstractAuditingEntity {
 
     public void setStrokes(List<Stroke> strokes) {
         this.strokes = strokes;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public ProtocolData metadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+        return this;
+    }
+
+    public ProtocolData addMetadata(String key, Object value) {
+        this.metadata.put(key, value);
+        return this;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
     }
 
     public boolean isDirtyPreview() {

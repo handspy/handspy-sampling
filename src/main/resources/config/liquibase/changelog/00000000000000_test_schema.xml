@@ -5,6 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
 
     <changeSet id="h2-fixes" author="jcpaiva" dbms="h2">
+        <modifyDataType tableName="protocol_data" columnName="metadata" newDataType="other" />
         <modifyDataType tableName="protocol_data" columnName="strokes" newDataType="other" />
         <modifyDataType tableName="text" columnName="text" newDataType="varchar" />
     </changeSet>
