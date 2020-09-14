@@ -1,17 +1,5 @@
 package pt.up.hs.sampling.web.rest;
 
-import pt.up.hs.sampling.SamplingApp;
-import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
-import pt.up.hs.sampling.domain.Note;
-import pt.up.hs.sampling.domain.Sample;
-import pt.up.hs.sampling.repository.NoteRepository;
-import pt.up.hs.sampling.service.NoteService;
-import pt.up.hs.sampling.service.dto.NoteDTO;
-import pt.up.hs.sampling.service.mapper.NoteMapper;
-import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
-import pt.up.hs.sampling.service.dto.NoteCriteria;
-import pt.up.hs.sampling.service.NoteQueryService;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -24,21 +12,34 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
+import pt.up.hs.sampling.SamplingApp;
+import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
+import pt.up.hs.sampling.domain.Note;
+import pt.up.hs.sampling.repository.NoteRepository;
+import pt.up.hs.sampling.service.NoteQueryService;
+import pt.up.hs.sampling.service.NoteService;
+import pt.up.hs.sampling.service.dto.NoteDTO;
+import pt.up.hs.sampling.service.mapper.NoteMapper;
+import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
+import pt.up.hs.sampling.web.rest.users.WithMockCustomUser;
 
 import javax.persistence.EntityManager;
 import java.util.List;
 
-import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static pt.up.hs.sampling.web.rest.NoteResourceIT.TEST_USER_LOGIN;
+import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
 
 /**
  * Integration tests for the {@link NoteResource} REST controller.
  */
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
+@WithMockCustomUser(username = TEST_USER_LOGIN)
 public class NoteResourceIT {
+    static final String TEST_USER_LOGIN = "test_user";
 
     private static final Long DEFAULT_PROJECT_ID = 1L;
     private static final Long OTHER_PROJECT_ID = 2L;

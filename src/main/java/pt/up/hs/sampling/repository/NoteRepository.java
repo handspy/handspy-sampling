@@ -20,30 +20,26 @@ import java.util.Optional;
 public interface NoteRepository extends JpaRepository<Note, Long>, JpaSpecificationExecutor<Note> {
 
     @Query(
-        value = "select distinct note from Note note where note.projectId = :projectId",
-        countQuery = "select count(distinct note) from Note note where note.projectId = :projectId"
+        value = "select distinct note from Note note where note.projectId = :projectId and (note.createdBy = ?#{principal} or note.self = false)",
+        countProjection = "distinct note.id"
     )
     Page<Note> findAllByProjectId(
         @Param("projectId") @NotNull Long projectId,
         Pageable pageable
     );
 
-    @Query("select count(distinct note) from Note note where note.projectId = :projectId")
+    @Query(
+        "select count(distinct note) from Note note where note.projectId = :projectId and (note.createdBy = ?#{principal} or note.self = false)"
+    )
     long countByProjectId(
         @Param("projectId") @NotNull Long projectId
     );
 
+    @Query(
+        value = "select note from Note note where note.projectId = :projectId and note.id = :id and (note.createdBy = ?#{principal} or note.self = false)"
+    )
     Optional<Note> findByProjectIdAndId(
         @Param("projectId") @NotNull Long projectId,
         @Param("id") @NotNull Long id
-    );
-
-    void deleteAllByProjectIdAndId(
-        @Param("projectId") @NotNull Long projectId,
-        @Param("id") @NotNull Long id
-    );
-
-    void deleteAllByProjectId(
-        @Param("projectId") @NotNull Long projectId
     );
 }

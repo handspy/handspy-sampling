@@ -1,5 +1,6 @@
 package pt.up.hs.sampling.web.rest;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.NoteService;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
@@ -40,7 +41,6 @@ public class NoteResource {
     private String applicationName;
 
     private final NoteService noteService;
-
     private final NoteQueryService noteQueryService;
 
     public NoteResource(NoteService noteService, NoteQueryService noteQueryService) {
@@ -57,6 +57,10 @@ public class NoteResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/notes")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<NoteDTO> createNote(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody NoteDTO noteDTO
@@ -81,6 +85,10 @@ public class NoteResource {
      * or with status {@code 500 (Internal Server Error)} if the noteDTO couldn't be updated.
      */
     @PutMapping("/notes")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<NoteDTO> updateNote(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody NoteDTO noteDTO
@@ -104,6 +112,10 @@ public class NoteResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of notes in body.
      */
     @GetMapping("/notes")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<List<NoteDTO>> getAllNotes(
         @PathVariable("projectId") Long projectId,
         NoteCriteria criteria,
@@ -123,6 +135,10 @@ public class NoteResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/notes/count")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<Long> countNotes(
         @PathVariable("projectId") Long projectId,
         NoteCriteria criteria
@@ -139,6 +155,10 @@ public class NoteResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the noteDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/notes/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<NoteDTO> getNote(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id
@@ -156,6 +176,10 @@ public class NoteResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/notes/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<Void> deleteNote(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id

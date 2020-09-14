@@ -87,6 +87,7 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public void delete(Long projectId, Long id) {
         log.debug("Request to delete Note {} of project {}", id, projectId);
-        noteRepository.deleteAllByProjectIdAndId(projectId, id);
+        Optional<Note> note = noteRepository.findByProjectIdAndId(projectId, id);
+        note.ifPresent(noteRepository::delete);
     }
 }

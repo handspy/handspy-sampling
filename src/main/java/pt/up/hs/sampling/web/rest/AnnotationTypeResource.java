@@ -1,5 +1,6 @@
 package pt.up.hs.sampling.web.rest;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.AnnotationTypeService;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
@@ -59,6 +60,10 @@ public class AnnotationTypeResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/annotation-types")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'MANAGE')"
+    )
     public ResponseEntity<AnnotationTypeDTO> createAnnotationType(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody AnnotationTypeDTO annotationTypeDTO
@@ -83,6 +88,10 @@ public class AnnotationTypeResource {
      * or with status {@code 500 (Internal Server Error)} if the annotationTypeDTO couldn't be updated.
      */
     @PutMapping("/annotation-types")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'MANAGE')"
+    )
     public ResponseEntity<AnnotationTypeDTO> updateAnnotationType(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody AnnotationTypeDTO annotationTypeDTO
@@ -106,6 +115,10 @@ public class AnnotationTypeResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of annotationTypes in body.
      */
     @GetMapping("/annotation-types")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<List<AnnotationTypeDTO>> getAllAnnotationTypes(
         @PathVariable("projectId") Long projectId,
         AnnotationTypeCriteria criteria,
@@ -125,6 +138,10 @@ public class AnnotationTypeResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/annotation-types/count")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<Long> countAnnotationTypes(
         @PathVariable("projectId") Long projectId,
         AnnotationTypeCriteria criteria
@@ -141,6 +158,10 @@ public class AnnotationTypeResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the annotationTypeDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/annotation-types/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<AnnotationTypeDTO> getAnnotationType(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id
@@ -158,6 +179,10 @@ public class AnnotationTypeResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/annotation-types/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'MANAGE')"
+    )
     public ResponseEntity<Void> deleteAnnotationType(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id

@@ -5,6 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.TextService;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
+import pt.up.hs.sampling.service.dto.ProtocolDTO;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 import pt.up.hs.sampling.service.dto.TextDTO;
 import pt.up.hs.sampling.service.dto.TextCriteria;
@@ -61,6 +62,10 @@ public class TextResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/texts")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<TextDTO> createText(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody TextDTO textDTO
@@ -84,7 +89,10 @@ public class TextResource {
      * body the {@link BulkImportResultDTO}.
      */
     @PostMapping(value = "/texts/import", consumes = "multipart/form-data")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Text', 'WRITE')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<BulkImportResultDTO<TextDTO>> importTexts(
         @PathVariable("projectId") Long projectId,
         @RequestParam("file") MultipartFile[] files
@@ -104,6 +112,10 @@ public class TextResource {
      * or with status {@code 500 (Internal Server Error)} if the textDTO couldn't be updated.
      */
     @PutMapping("/texts")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<TextDTO> updateText(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody TextDTO textDTO
@@ -127,14 +139,24 @@ public class TextResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of texts in body.
      */
     @GetMapping("/texts")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<List<TextDTO>> getAllTexts(
         @PathVariable("projectId") Long projectId,
         TextCriteria criteria, Pageable pageable
     ) {
         log.debug("REST request to get Texts by criteria {} in project {}", criteria, projectId);
-        Page<TextDTO> page = textQueryService.findByCriteria(projectId, criteria, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
+        /*Page<TextDTO> page = textQueryService.findByCriteria(projectId, criteria, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(
+            ServletUriComponentsBuilder.fromCurrentRequest(), page
+        );
+        return ResponseEntity.ok()
+            .headers(headers)
+            .body(page.getContent());*/
+        List<TextDTO> textDTOs = textQueryService.findByCriteria(projectId, criteria);
+        return ResponseEntity.ok().body(textDTOs);
     }
 
     /**
@@ -145,6 +167,10 @@ public class TextResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/texts/count")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<Long> countTexts(
         @PathVariable("projectId") Long projectId,
         TextCriteria criteria
@@ -161,6 +187,10 @@ public class TextResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the textDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/texts/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<TextDTO> getText(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id
@@ -178,6 +208,10 @@ public class TextResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/texts/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'MANAGE')"
+    )
     public ResponseEntity<Void> deleteText(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id

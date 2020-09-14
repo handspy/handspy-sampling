@@ -6,7 +6,7 @@ import org.springframework.security.data.repository.query.SecurityEvaluationCont
 import org.springframework.security.oauth2.provider.expression.OAuth2MethodSecurityExpressionHandler;
 import pt.up.hs.sampling.config.oauth2.OAuth2JwtAccessTokenConverter;
 import pt.up.hs.sampling.config.oauth2.OAuth2Properties;
-import pt.up.hs.sampling.security.SamplingPermissionEvaluator;
+import pt.up.hs.sampling.security.ProjectPermissionEvaluator;
 import pt.up.hs.sampling.security.oauth2.OAuth2SignatureVerifierClient;
 import pt.up.hs.sampling.security.AuthoritiesConstants;
 
@@ -29,14 +29,14 @@ import org.springframework.web.client.RestTemplate;
 public class SecurityConfiguration extends ResourceServerConfigurerAdapter {
 
     private final OAuth2Properties oAuth2Properties;
-    private final SamplingPermissionEvaluator samplingPermissionEvaluator;
+    private final ProjectPermissionEvaluator projectPermissionEvaluator;
 
     public SecurityConfiguration(
         OAuth2Properties oAuth2Properties,
-        SamplingPermissionEvaluator samplingPermissionEvaluator
+        ProjectPermissionEvaluator projectPermissionEvaluator
     ) {
         this.oAuth2Properties = oAuth2Properties;
-        this.samplingPermissionEvaluator = samplingPermissionEvaluator;
+        this.projectPermissionEvaluator = projectPermissionEvaluator;
     }
 
     @Override
@@ -85,13 +85,13 @@ public class SecurityConfiguration extends ResourceServerConfigurerAdapter {
 
     @Bean
     public PermissionEvaluator createPermissionEvaluator() {
-        return samplingPermissionEvaluator;
+        return projectPermissionEvaluator;
     }
 
     @Bean
     public OAuth2MethodSecurityExpressionHandler createExpressionHandler() {
         OAuth2MethodSecurityExpressionHandler expressionHandler = new OAuth2MethodSecurityExpressionHandler();
-        expressionHandler.setPermissionEvaluator(samplingPermissionEvaluator);
+        expressionHandler.setPermissionEvaluator(projectPermissionEvaluator);
         return expressionHandler;
     }
 

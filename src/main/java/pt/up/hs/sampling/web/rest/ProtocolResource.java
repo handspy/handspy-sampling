@@ -60,7 +60,10 @@ public class ProtocolResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/protocols")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<ProtocolDTO> createProtocol(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody ProtocolDTO protocolDTO
@@ -85,7 +88,10 @@ public class ProtocolResource {
      * body the {@link BulkImportResultDTO}.
      */
     @PostMapping(value = "/protocols/import", consumes = "multipart/form-data")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<BulkImportResultDTO<ProtocolDTO>> importProtocols(
         @PathVariable("projectId") Long projectId,
         @RequestParam(value = "type", required = false) String type,
@@ -106,7 +112,10 @@ public class ProtocolResource {
      * or with status {@code 500 (Internal Server Error)} if the protocolDTO couldn't be updated.
      */
     @PutMapping("/protocols")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<ProtocolDTO> updateProtocol(
         @PathVariable("projectId") Long projectId,
         @Valid @RequestBody ProtocolDTO protocolDTO
@@ -131,8 +140,10 @@ public class ProtocolResource {
      * or with status {@code 500 (Internal Server Error)} if the protocolDTO couldn't be updated.
      */
     @PostMapping("/protocols/{id}/data")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
-        "hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'WRITE')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<ProtocolDTO> updateProtocol(
         @PathVariable("projectId") Long projectId,
         @PathVariable("id") Long id,
@@ -154,16 +165,21 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of protocols in body.
      */
     @GetMapping("/protocols")
-    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<List<ProtocolDTO>> getAllProtocols(
         @PathVariable("projectId") Long projectId,
         ProtocolCriteria criteria,
         Pageable pageable
     ) {
         log.debug("REST request to get Protocols by criteria {} in project {}", criteria, projectId);
-        Page<ProtocolDTO> page = protocolQueryService.findByCriteria(projectId, criteria, pageable);
+        /*Page<ProtocolDTO> page = protocolQueryService.findByCriteria(projectId, criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
+        return ResponseEntity.ok().headers(headers).body(page.getContent());*/
+        List<ProtocolDTO> protocolDTOs = protocolQueryService.findByCriteria(projectId, criteria);
+        return ResponseEntity.ok().body(protocolDTOs);
     }
 
     /**
@@ -174,7 +190,10 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/protocols/count")
-    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<Long> countProtocols(
         @PathVariable("projectId") Long projectId,
         ProtocolCriteria criteria
@@ -191,7 +210,10 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the protocolDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/protocols/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<ProtocolDTO> getProtocol(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id
@@ -209,7 +231,10 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the protocolDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/protocols/{id}/data")
-    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<ProtocolDataDTO> getProtocolData(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id
@@ -230,7 +255,10 @@ public class ProtocolResource {
         MediaType.IMAGE_PNG_VALUE,
         MediaType.APPLICATION_OCTET_STREAM_VALUE
     })
-    @PreAuthorize("hasAnyRole('ROLE_GUEST', 'ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'READ')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<byte[]> getProtocolPreview(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id
@@ -247,7 +275,10 @@ public class ProtocolResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/protocols/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and hasPermission(#projectId, 'pt.up.hs.sampling.domain.Protocol', 'MANAGE')")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'MANAGE')"
+    )
     public ResponseEntity<Void> deleteProtocol(
         @PathVariable("projectId") Long projectId,
         @PathVariable Long id

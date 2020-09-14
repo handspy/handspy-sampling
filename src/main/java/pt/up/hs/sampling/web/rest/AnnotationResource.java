@@ -1,5 +1,6 @@
 package pt.up.hs.sampling.web.rest;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.AnnotationService;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
@@ -57,6 +58,10 @@ public class AnnotationResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/annotations")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+        "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<AnnotationDTO> createAnnotation(
         @PathVariable("projectId") Long projectId,
         @PathVariable("textId") Long textId,
@@ -85,6 +90,10 @@ public class AnnotationResource {
      * or with status {@code 500 (Internal Server Error)} if the annotationDTO couldn't be updated.
      */
     @PutMapping("/annotations")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+        "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<AnnotationDTO> updateAnnotation(
         @PathVariable("projectId") Long projectId,
         @PathVariable("textId") Long textId,
@@ -110,6 +119,10 @@ public class AnnotationResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of annotations in body.
      */
     @GetMapping("/annotations")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<List<AnnotationDTO>> getAllAnnotations(
         @PathVariable("projectId") Long projectId,
         @PathVariable("textId") Long textId,
@@ -131,6 +144,10 @@ public class AnnotationResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/annotations/count")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<Long> countAnnotations(
         @PathVariable("projectId") Long projectId,
         @PathVariable("textId") Long textId,
@@ -149,6 +166,10 @@ public class AnnotationResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the annotationDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/annotations/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ')"
+    )
     public ResponseEntity<AnnotationDTO> getAnnotation(
         @PathVariable("projectId") Long projectId,
         @PathVariable("textId") Long textId,
@@ -168,6 +189,10 @@ public class AnnotationResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/annotations/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+        "hasPermission(#projectId, 'Project', 'WRITE')"
+    )
     public ResponseEntity<Void> deleteAnnotation(
         @PathVariable("projectId") Long projectId,
         @PathVariable("textId") Long textId,

@@ -1,5 +1,6 @@
 package pt.up.hs.sampling.web.rest;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.LayoutService;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
@@ -56,6 +57,7 @@ public class LayoutResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/layouts")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<LayoutDTO> createLayout(@Valid @RequestBody LayoutDTO layoutDTO) throws URISyntaxException {
         log.debug("REST request to save Layout : {}", layoutDTO);
         if (layoutDTO.getId() != null) {
@@ -76,6 +78,7 @@ public class LayoutResource {
      * or with status {@code 500 (Internal Server Error)} if the layoutDTO couldn't be updated.
      */
     @PutMapping("/layouts")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<LayoutDTO> updateLayout(@Valid @RequestBody LayoutDTO layoutDTO) {
         log.debug("REST request to update Layout : {}", layoutDTO);
         if (layoutDTO.getId() == null) {
@@ -95,6 +98,9 @@ public class LayoutResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of layouts in body.
      */
     @GetMapping("/layouts")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN')"
+    )
     public ResponseEntity<List<LayoutDTO>> getAllLayouts(LayoutCriteria criteria, Pageable pageable) {
         log.debug("REST request to get Layouts by criteria: {}", criteria);
         Page<LayoutDTO> page = layoutQueryService.findByCriteria(criteria, pageable);
@@ -109,6 +115,9 @@ public class LayoutResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/layouts/count")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN')"
+    )
     public ResponseEntity<Long> countLayouts(LayoutCriteria criteria) {
         log.debug("REST request to count Layouts by criteria: {}", criteria);
         return ResponseEntity.ok().body(layoutQueryService.countByCriteria(criteria));
@@ -121,6 +130,9 @@ public class LayoutResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the layoutDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/layouts/{id}")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN')"
+    )
     public ResponseEntity<LayoutDTO> getLayout(@PathVariable Long id) {
         log.debug("REST request to get Layout : {}", id);
         Optional<LayoutDTO> layoutDTO = layoutService.findOne(id);
@@ -134,6 +146,7 @@ public class LayoutResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/layouts/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteLayout(@PathVariable Long id) {
         log.debug("REST request to delete Layout : {}", id);
         layoutService.delete(id);

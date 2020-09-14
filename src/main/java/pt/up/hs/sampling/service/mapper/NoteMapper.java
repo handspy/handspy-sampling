@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Note} and its DTO {@link NoteDTO}.
  */
-@Mapper(componentModel = "spring", uses = {SampleMapper.class})
+@Mapper(componentModel = "spring", uses = {})
 public interface NoteMapper extends EntityMapper<NoteDTO, Note> {
 
     NoteDTO toDto(Note note);

@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
 import pt.up.hs.sampling.SamplingApp;
 import pt.up.hs.sampling.config.SecurityBeanOverrideConfiguration;
-import pt.up.hs.sampling.domain.Sample;
 import pt.up.hs.sampling.domain.Text;
 import pt.up.hs.sampling.repository.TextRepository;
 import pt.up.hs.sampling.service.TextQueryService;
@@ -30,7 +29,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.isA;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
