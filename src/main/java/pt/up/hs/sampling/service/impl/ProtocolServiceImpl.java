@@ -297,6 +297,7 @@ public class ProtocolServiceImpl implements ProtocolService {
             .collect(Collectors.toList());
 
        pds = protocolDataRepository.saveAll(pds);
+       protocolDataRepository.flush();
 
         return pds.parallelStream()
             .map(pd -> protocolMapper.toDto(pd.getProtocol()))

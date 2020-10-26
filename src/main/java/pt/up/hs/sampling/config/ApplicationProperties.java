@@ -18,8 +18,17 @@ public class ApplicationProperties {
     }
 
     public static class Preview {
+        private boolean cleanOnStartup = false;
         private String cron = "0 0 * * * *";
         private String path = "previews/";
+
+        public boolean isCleanOnStartup() {
+            return cleanOnStartup;
+        }
+
+        public void setCleanOnStartup(boolean cleanOnStartup) {
+            this.cleanOnStartup = cleanOnStartup;
+        }
 
         public String getPath() {
             return path;

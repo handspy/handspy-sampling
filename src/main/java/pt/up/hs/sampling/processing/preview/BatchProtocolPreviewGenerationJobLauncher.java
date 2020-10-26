@@ -15,12 +15,12 @@ import static pt.up.hs.sampling.processing.preview.ProtocolPreviewGenerationCons
 
 @Component
 public class BatchProtocolPreviewGenerationJobLauncher {
-    private static final long EXECUTION_DELAY = 5000;
+    private static final long EXECUTION_DELAY = 20000;
+
+    private static final ScheduledExecutorService executorService =
+        Executors.newSingleThreadScheduledExecutor();
 
     private final Logger log = LoggerFactory.getLogger(BatchProtocolPreviewGenerationJobLauncher.class);
-
-    private final ScheduledExecutorService executorService =
-        Executors.newSingleThreadScheduledExecutor();
 
     private final JobLauncher jobLauncher;
     private final BatchProtocolPreviewGenerationConfig config;
@@ -33,7 +33,7 @@ public class BatchProtocolPreviewGenerationJobLauncher {
         this.config = config;
     }
 
-    @Scheduled(cron = "#{'${application.preview.cron:-}'}")
+    @Scheduled(cron = "${application.preview.cron:-}")
     public void schedule() {
         newExecution();
     }

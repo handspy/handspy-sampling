@@ -131,6 +131,9 @@ spring:
   mvc:
     favicon:
       enabled: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
   task:
     execution:
       thread-name-prefix: sampling-task-
@@ -225,4 +228,7 @@ kafka:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  preview:
+    clean-on-startup: true
+    path: /previews

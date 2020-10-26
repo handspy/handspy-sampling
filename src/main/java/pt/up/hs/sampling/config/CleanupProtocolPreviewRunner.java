@@ -9,13 +9,16 @@ import pt.up.hs.sampling.repository.ProtocolDataRepository;
 @Component
 public class CleanupProtocolPreviewRunner implements CommandLineRunner {
 
+    private final ApplicationProperties applicationProperties;
     private final ProtocolDataRepository protocolDataRepository;
     private final BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher;
 
     public CleanupProtocolPreviewRunner(
+        ApplicationProperties applicationProperties,
         ProtocolDataRepository protocolDataRepository,
         BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher
     ) {
+        this.applicationProperties = applicationProperties;
         this.protocolDataRepository = protocolDataRepository;
         this.previewGenerationJobLauncher = previewGenerationJobLauncher;
     }
@@ -23,7 +26,9 @@ public class CleanupProtocolPreviewRunner implements CommandLineRunner {
     @Transactional
     @Override
     public void run(String... args) {
-        protocolDataRepository.markAllForPreviewRegenerate();
+        if (applicationProperties.getPreview().isCleanOnStartup()) {
+            protocolDataRepository.markAllForPreviewRegenerate();
+        }
         previewGenerationJobLauncher.newExecution();
     }
 }

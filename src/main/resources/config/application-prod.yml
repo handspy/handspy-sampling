@@ -185,4 +185,3 @@ oauth2:
 application:
   preview:
     cron: 0 0 */2 * * *
-    path: tmp/previews/
