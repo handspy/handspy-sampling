@@ -31,10 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -189,6 +186,31 @@ public class ProtocolServiceImpl implements ProtocolService {
         } catch (IOException e) {
             log.error("Failed to delete protocol preview", e);
             // ignore errors
+        }
+    }
+
+    /**
+     * Delete many protocols.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param ids       the ids of the entities to remove.
+     */
+    @Override
+    public void deleteMany(Long projectId, Long[] ids) {
+        log.debug("Request to delete all protocols {} in project {}", ids, projectId);
+        protocolDataRepository.deleteAllByProtocolIdIn(Arrays.asList(ids));
+        protocolRepository.deleteAllByProjectIdAndIdIn(projectId, Arrays.asList(ids));
+        for (Long id: ids) {
+            try {
+                Files.deleteIfExists(Paths.get(
+                    properties.getPreview().getPath(),
+                    projectId.toString(),
+                    id.toString() + ".png"
+                ));
+            } catch (IOException e) {
+                log.error("Failed to delete protocol preview", e);
+                // ignore errors
+            }
         }
     }
 

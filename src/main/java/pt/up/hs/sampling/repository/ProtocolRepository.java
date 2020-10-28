@@ -35,4 +35,6 @@ public interface ProtocolRepository extends JpaRepository<Protocol, Long>, JpaSp
 
     @Transactional
     void deleteByProjectIdAndId(@NotNull Long projectId, @NotNull Long id);
+
+    void deleteAllByProjectIdAndIdIn(@NotNull Long projectId, @NotNull List<Long> ids);
 }

@@ -60,6 +60,14 @@ public interface TextService {
     void delete(Long projectId, Long id);
 
     /**
+     * Delete many texts.
+     *
+     * @param projectId ID of the project to which this text belongs.
+     * @param ids       the ids of the texts to remove.
+     */
+    void deleteMany(Long projectId, Long[] ids);
+
+    /**
      * Upload and import texts in bulk.
      *
      * @param projectId ID of the project to which this text belongs.

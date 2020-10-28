@@ -36,4 +36,6 @@ public interface TextRepository extends JpaRepository<Text, Long>, JpaSpecificat
     @Nonnull <S extends Text> List<S> saveAll(@Nonnull Iterable<S> entities);
 
     void deleteAllByProjectIdAndId(@NotNull Long projectId, @NotNull Long id);
+
+    void deleteAllByProjectIdAndIdIn(@NotNull Long projectId, @NotNull List<Long> ids);
 }

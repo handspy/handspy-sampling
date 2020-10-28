@@ -230,5 +230,5 @@ kafka:
 
 application:
   preview:
-    clean-on-startup: true
+    clean-on-startup: false
     path: /previews

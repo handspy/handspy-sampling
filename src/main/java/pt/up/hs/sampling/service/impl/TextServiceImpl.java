@@ -22,10 +22,7 @@ import pt.up.hs.sampling.service.exceptions.ServiceException;
 import pt.up.hs.sampling.service.mapper.TextMapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -137,6 +134,18 @@ public class TextServiceImpl implements TextService {
     public void delete(Long projectId, Long id) {
         log.debug("Request to delete Text {} in project {}", id, projectId);
         textRepository.deleteAllByProjectIdAndId(projectId, id);
+    }
+
+    /**
+     * Delete many texts.
+     *
+     * @param projectId ID of the project to which this text belongs.
+     * @param ids       the ids of the texts to remove.
+     */
+    @Override
+    public void deleteMany(Long projectId, Long[] ids) {
+        log.debug("Request to delete all texts {} in project {}", ids, projectId);
+        textRepository.deleteAllByProjectIdAndIdIn(projectId, Arrays.asList(ids));
     }
 
     /**

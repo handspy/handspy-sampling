@@ -22,10 +22,13 @@ import pt.up.hs.sampling.service.dto.ProtocolDataDTO;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
 
 import javax.validation.Valid;
+import javax.ws.rs.QueryParam;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for managing {@link pt.up.hs.sampling.domain.Protocol}.
@@ -283,6 +286,29 @@ public class ProtocolResource {
         protocolService.delete(projectId, id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, EntityNames.PROTOCOL, id.toString()))
+            .build();
+    }
+
+    /**
+     * {@code DELETE  /protocols} : delete many protocols.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param ids       the id of the protocols to delete.
+     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     */
+    @DeleteMapping("/protocols")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'MANAGE')"
+    )
+    public ResponseEntity<Void> deleteProtocol(
+        @PathVariable("projectId") Long projectId,
+        @RequestParam("ids") Long[] ids
+    ) {
+        log.debug("REST request to delete Protocols {} in project {}", ids, projectId);
+        protocolService.deleteMany(projectId, ids);
+        return ResponseEntity.noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, EntityNames.PROTOCOL, Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(","))))
             .build();
     }
 }

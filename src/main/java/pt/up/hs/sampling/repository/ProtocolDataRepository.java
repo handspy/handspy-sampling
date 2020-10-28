@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import pt.up.hs.sampling.domain.ProtocolData;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -33,4 +34,6 @@ public interface ProtocolDataRepository extends JpaRepository<ProtocolData, Long
     @Modifying(clearAutomatically = true)
     @Query("update ProtocolData pd set pd.dirtyPreview = true")
     void markAllForPreviewRegenerate();
+
+    void deleteAllByProtocolIdIn(@NotNull List<Long> ids);
 }

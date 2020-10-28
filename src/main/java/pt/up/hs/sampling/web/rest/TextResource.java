@@ -28,8 +28,10 @@ import pt.up.hs.sampling.constants.ErrorKeys;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for managing {@link pt.up.hs.sampling.domain.Text}.
@@ -220,6 +222,29 @@ public class TextResource {
         textService.delete(projectId, id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, EntityNames.TEXT, id.toString()))
+            .build();
+    }
+
+    /**
+     * {@code DELETE  /texts} : delete many texts.
+     *
+     * @param projectId ID of the project to which this text belongs.
+     * @param ids       the id of the texts to delete.
+     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     */
+    @DeleteMapping("/texts")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'MANAGE')"
+    )
+    public ResponseEntity<Void> deleteProtocol(
+        @PathVariable("projectId") Long projectId,
+        @RequestParam("ids") Long[] ids
+    ) {
+        log.debug("REST request to delete Texts {} in project {}", ids, projectId);
+        textService.deleteMany(projectId, ids);
+        return ResponseEntity.noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, EntityNames.TEXT, Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(","))))
             .build();
     }
 }

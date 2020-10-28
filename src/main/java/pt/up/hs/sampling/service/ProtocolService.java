@@ -69,6 +69,14 @@ public interface ProtocolService {
     void delete(Long projectId, Long id);
 
     /**
+     * Delete many protocols.
+     *
+     * @param projectId ID of the project to which this protocol belongs.
+     * @param ids       the ids of the entities to remove.
+     */
+    void deleteMany(Long projectId, Long[] ids);
+
+    /**
      * Upload and import protocols in bulk.
      *
      * @param projectId ID of the project to which this protocol belongs.
