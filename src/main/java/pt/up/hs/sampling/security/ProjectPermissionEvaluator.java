@@ -6,8 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import pt.up.hs.sampling.client.project.PermissionFeignClient;
-import pt.up.hs.sampling.client.project.dto.ProjectPermissionsDTO;
+import pt.up.hs.sampling.client.project.ProjectMicroService;
 import pt.up.hs.sampling.domain.*;
 
 import java.io.Serializable;
@@ -19,13 +18,13 @@ public class ProjectPermissionEvaluator implements PermissionEvaluator {
 
     private final Logger log = LoggerFactory.getLogger(ProjectPermissionEvaluator.class);
 
-    private final PermissionFeignClient permissionFeignClient;
+    private final ProjectMicroService projectMicroService;
 
     @Autowired
     public ProjectPermissionEvaluator(
-        PermissionFeignClient permissionFeignClient
+        ProjectMicroService projectMicroService
     ) {
-        this.permissionFeignClient = permissionFeignClient;
+        this.projectMicroService = projectMicroService;
     }
 
     @Override
@@ -59,12 +58,8 @@ public class ProjectPermissionEvaluator implements PermissionEvaluator {
         }
 
         // permission check is only available for projects
-        ProjectPermissionsDTO projectPermissions = permissionFeignClient
-            .getUserPermissionsInProject(
-                projectId, userLogin.get()
-            );
-
-        return projectPermissions.getPermissions().parallelStream()
+        return projectMicroService.permissions(userLogin.get(), projectId)
+            .parallelStream()
             .anyMatch(projectPermission ->
                 projectPermission.equals(permission.toString())
             );
@@ -84,14 +79,8 @@ public class ProjectPermissionEvaluator implements PermissionEvaluator {
 
         if (targetType.equals(TARGET_TYPE_PROJECT)) {
             // permission check is only available for projects
-            log.warn(targetId + " " + userLogin.get());
-            ProjectPermissionsDTO projectPermissions = permissionFeignClient
-                .getUserPermissionsInProject(
-                    (Long) targetId,
-                    userLogin.get()
-                );
-
-            return projectPermissions.getPermissions().parallelStream()
+            return projectMicroService.permissions(userLogin.get(), (Long) targetId)
+                .parallelStream()
                 .anyMatch(projectPermission ->
                     projectPermission.equals(permission.toString())
                 );

@@ -106,6 +106,9 @@ public class CacheConfiguration {
         // Full reference is available at: http://docs.hazelcast.org/docs/management-center/3.9/manual/html/Deploying_and_Starting.html
         config.setManagementCenterConfig(initializeDefaultManagementCenterConfig(jHipsterProperties));
         config.getMapConfigs().put("pt.up.hs.sampling.domain.*", initializeDomainMapConfig(jHipsterProperties));
+
+        config.getMapConfigs().put("project.permissions", initializeProjectPermissionMapConfig());
+
         return Hazelcast.newHazelcastInstance(config);
     }
 
@@ -150,6 +153,12 @@ public class CacheConfiguration {
     private MapConfig initializeDomainMapConfig(JHipsterProperties jHipsterProperties) {
         MapConfig mapConfig = new MapConfig();
         mapConfig.setTimeToLiveSeconds(jHipsterProperties.getCache().getHazelcast().getTimeToLiveSeconds());
+        return mapConfig;
+    }
+
+    private MapConfig initializeProjectPermissionMapConfig() {
+        MapConfig mapConfig = new MapConfig();
+        mapConfig.setTimeToLiveSeconds(600);
         return mapConfig;
     }
 
