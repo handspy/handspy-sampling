@@ -12,9 +12,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ApplicationProperties {
 
     private final Preview preview = new Preview();
+    private final Importing importing = new Importing();
 
     public Preview getPreview() {
         return preview;
+    }
+
+    public Importing getImporting() {
+        return importing;
     }
 
     public static class Preview {
@@ -45,6 +50,19 @@ public class ApplicationProperties {
 
         public Preview setCron(String cron) {
             this.cron = cron;
+            return this;
+        }
+    }
+
+    public static class Importing {
+        private String path = "importing/";
+
+        public String getPath() {
+            return path;
+        }
+
+        public Importing setPath(String path) {
+            this.path = path;
             return this;
         }
     }

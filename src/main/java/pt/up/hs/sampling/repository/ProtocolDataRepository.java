@@ -1,7 +1,5 @@
 package pt.up.hs.sampling.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +16,7 @@ import java.util.Optional;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface ProtocolDataRepository extends JpaRepository<ProtocolData, Long> {
+public interface ProtocolDataRepository extends JpaRepository<ProtocolData, Long>, CustomProtocolDataRepository {
 
     Optional<ProtocolData> findByProtocolProjectIdAndProtocolId(
         @NotNull Long projectId,

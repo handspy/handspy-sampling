@@ -117,8 +117,9 @@ spring:
     open-in-view: false
     properties:
       hibernate.jdbc.time_zone: UTC
-      hibernate.batch_size: 20
+      hibernate.jdbc.batch_size: 25
       hibernate.order_inserts: true
+      hibernate.order_updates: true
     hibernate:
       ddl-auto: none
       naming:
@@ -232,3 +233,5 @@ application:
   preview:
     clean-on-startup: false
     path: /previews
+  importing:
+    path: importing/

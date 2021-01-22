@@ -24,6 +24,7 @@ import pt.up.hs.sampling.service.ProtocolService;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
 import pt.up.hs.sampling.service.mapper.ProtocolMapper;
 import pt.up.hs.sampling.web.rest.errors.ExceptionTranslator;
+import pt.up.hs.sampling.web.rest.users.WithMockCustomUser;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -32,12 +33,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static pt.up.hs.sampling.web.rest.NoteResourceIT.TEST_USER_LOGIN;
 import static pt.up.hs.sampling.web.rest.TestUtil.createFormattingConversionService;
 
 /**
  * Integration tests for the {@link ProtocolResource} REST controller.
  */
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, SamplingApp.class})
+@WithMockCustomUser(username = TEST_USER_LOGIN)
 public class ProtocolResourceIT {
 
     private static final Long DEFAULT_PROJECT_ID = 1L;
@@ -90,7 +93,8 @@ public class ProtocolResourceIT {
             .setControllerAdvice(exceptionTranslator)
             .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter)
-            .setValidator(validator).build();
+            .setValidator(validator)
+            .build();
     }
 
     /**
@@ -487,6 +491,48 @@ public class ProtocolResourceIT {
             .andExpect(jsonPath("$.total").value(1))
             .andExpect(jsonPath("$.invalid").value(0))
             .andExpect(jsonPath("$.data").value(hasSize(2)));
+    }
+
+    @Test
+    @Transactional
+    public void importProtocolsNeonotesArchive() throws Exception {
+        // read file
+        byte[] contentPage = TestUtil.readFileFromResourcesFolder("data/protocols/fat-archive.neonotes.zip");
+        MockMultipartFile filePage = new MockMultipartFile("file", "data/protocols/fat-archive.neonotes.zip", null, contentPage);
+
+        // Import the protocols
+        restProtocolMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/protocols/import", DEFAULT_PROJECT_ID)
+                    .file(filePage)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.total").value(1))
+            .andExpect(jsonPath("$.invalid").value(0))
+            .andExpect(jsonPath("$.data").value(hasSize(70)));
+    }
+
+    @Test
+    @Transactional
+    public void importProtocolsNeonotesArchive2() throws Exception {
+        // read file
+        byte[] contentPage = TestUtil.readFileFromResourcesFolder("data/protocols/fat-archive-2.neonotes.zip");
+        MockMultipartFile filePage = new MockMultipartFile("file", "data/protocols/fat-archive-2.neonotes.zip", null, contentPage);
+
+        // Import the protocols
+        restProtocolMockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/api/projects/{projectId}/protocols/import", DEFAULT_PROJECT_ID)
+                    .file(filePage)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.total").value(1))
+            .andExpect(jsonPath("$.invalid").value(0))
+            .andExpect(jsonPath("$.data").value(hasSize(61)));
     }
 
     @Test

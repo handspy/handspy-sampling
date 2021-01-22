@@ -200,7 +200,7 @@ public class ProtocolServiceImpl implements ProtocolService {
         log.debug("Request to delete all protocols {} in project {}", ids, projectId);
         protocolDataRepository.deleteAllByProtocolIdIn(Arrays.asList(ids));
         protocolRepository.deleteAllByProjectIdAndIdIn(projectId, Arrays.asList(ids));
-        for (Long id: ids) {
+        for (Long id : ids) {
             try {
                 Files.deleteIfExists(Paths.get(
                     properties.getPreview().getPath(),
@@ -313,16 +313,26 @@ public class ProtocolServiceImpl implements ProtocolService {
             );
         }
 
-        List<ProtocolData> pds = pages.parallelStream()
+        List<Protocol> protocols = pages.parallelStream()
+            .map(page -> new Protocol().projectId(projectId))
+            .collect(Collectors.toList());
+        protocols = protocolRepository.saveAll(protocols);
+        protocolRepository.flush();
+
+        List<ProtocolData> protocolsData = pages.parallelStream()
             .map(uhcPageMapper::uhcPageToProtocolData)
-            .peek(pd -> pd.setProtocol(new Protocol().projectId(projectId)))
             .collect(Collectors.toList());
 
-       pds = protocolDataRepository.saveAll(pds);
-       protocolDataRepository.flush();
+        for (int i = 0; i < protocolsData.size(); i++) {
+            ProtocolData pd = protocolsData.get(i);
+            pd.setProtocol(protocols.get(i));
+        }
 
-        return pds.parallelStream()
-            .map(pd -> protocolMapper.toDto(pd.getProtocol()))
+        protocolDataRepository.bulkSave(protocolsData);
+        protocolDataRepository.flush();
+
+        return protocols.parallelStream()
+            .map(protocolMapper::toDto)
             .collect(Collectors.toList());
     }
 
