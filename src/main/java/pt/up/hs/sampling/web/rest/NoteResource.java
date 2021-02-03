@@ -1,5 +1,7 @@
 package pt.up.hs.sampling.web.rest;
 
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.service.NoteService;
@@ -107,7 +109,6 @@ public class NoteResource {
      * {@code GET  /notes} : get all the notes.
      *
      * @param projectId ID of the project to which the notes belong.
-     * @param pageable  the pagination information.
      * @param criteria  the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of notes in body.
      */
@@ -116,15 +117,14 @@ public class NoteResource {
         "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
             "hasPermission(#projectId, 'Project', 'READ')"
     )
+    @PostAuthorize("@noteServiceImpl.filterAnonymous(returnObject.getBody())")
     public ResponseEntity<List<NoteDTO>> getAllNotes(
         @PathVariable("projectId") Long projectId,
-        NoteCriteria criteria,
-        Pageable pageable
+        NoteCriteria criteria
     ) {
         log.debug("REST request to get Notes by criteria {} of project {}", criteria, projectId);
-        Page<NoteDTO> page = noteQueryService.findByCriteria(projectId, criteria, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
+        List<NoteDTO> notes = noteQueryService.findByCriteria(projectId, criteria);
+        return ResponseEntity.ok().body(notes);
     }
 
     /**

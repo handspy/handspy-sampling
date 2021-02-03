@@ -17,7 +17,7 @@ public class CustomProtocolDataRepositoryImpl implements CustomProtocolDataRepos
     private final Logger log = LoggerFactory.getLogger(CustomProtocolDataRepositoryImpl.class);
 
     @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
-    private int batchSize = 25;
+    private final int batchSize = 25;
 
     @PersistenceContext
     private EntityManager em;
