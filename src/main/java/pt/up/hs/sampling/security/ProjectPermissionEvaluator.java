@@ -12,6 +12,8 @@ import pt.up.hs.sampling.domain.*;
 import java.io.Serializable;
 import java.util.Optional;
 
+import static pt.up.hs.sampling.config.Constants.INTERNAL_CLIENT_ID;
+
 @Component
 public class ProjectPermissionEvaluator implements PermissionEvaluator {
     private static final String TARGET_TYPE_PROJECT = "Project";
@@ -36,8 +38,13 @@ public class ProjectPermissionEvaluator implements PermissionEvaluator {
         }
 
         Optional<String> userLogin = SecurityUtils.getCurrentUserLogin();
+
         if (!userLogin.isPresent()) {
             return false;
+        }
+
+        if (userLogin.get().equals(INTERNAL_CLIENT_ID)) {
+            return true;
         }
 
         Long projectId = null; // permission check is only available for projects
@@ -73,8 +80,13 @@ public class ProjectPermissionEvaluator implements PermissionEvaluator {
         }
 
         Optional<String> userLogin = SecurityUtils.getCurrentUserLogin();
+
         if (!userLogin.isPresent()) {
             return false;
+        }
+
+        if (userLogin.get().equals(INTERNAL_CLIENT_ID)) {
+            return true;
         }
 
         if (targetType.equals(TARGET_TYPE_PROJECT)) {

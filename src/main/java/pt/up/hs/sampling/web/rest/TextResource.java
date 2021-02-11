@@ -1,29 +1,24 @@
 package pt.up.hs.sampling.web.rest;
 
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.multipart.MultipartFile;
-import pt.up.hs.sampling.constants.EntityNames;
-import pt.up.hs.sampling.service.TextService;
-import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
-import pt.up.hs.sampling.service.dto.ProtocolDTO;
-import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
-import pt.up.hs.sampling.service.dto.TextDTO;
-import pt.up.hs.sampling.service.dto.TextCriteria;
-import pt.up.hs.sampling.service.TextQueryService;
-
 import io.github.jhipster.web.util.HeaderUtil;
-import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.constants.ErrorKeys;
+import pt.up.hs.sampling.service.TextQueryService;
+import pt.up.hs.sampling.service.TextService;
+import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
+import pt.up.hs.sampling.service.dto.TextCriteria;
+import pt.up.hs.sampling.service.dto.TextDTO;
+import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
+import pt.up.hs.sampling.web.rest.vm.CopyPayload;
 
 import javax.validation.Valid;
 import java.net.URI;
@@ -246,5 +241,42 @@ public class TextResource {
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, EntityNames.TEXT, Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(","))))
             .build();
+    }
+
+    @PostMapping("/texts/{id}/copy")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ') and " +
+            "(not #payload.move or hasPermission(#projectId, 'Project', 'MANAGE')) and " +
+            "hasPermission(#payload.projectId, 'Project', 'WRITE')"
+    )
+    public ResponseEntity<TextDTO> copy(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("id") Long id,
+        @Valid @RequestBody CopyPayload payload
+    ) throws URISyntaxException {
+        log.debug("REST request to copy Text {} from project {} to project {}", id, projectId, payload.getProjectId());
+        TextDTO result = textService.copy(projectId, id, payload.getProjectId(), payload.isMove(), payload.getTaskMapping(), payload.getParticipantMapping());
+        return ResponseEntity
+            .created(new URI("/api/projects/" + payload.getProjectId() + "/texts/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, EntityNames.TEXT, result.getId().toString()))
+            .body(result);
+    }
+
+    @PostMapping("/texts/copy")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ') and " +
+            "(not #payload.move or hasPermission(#projectId, 'Project', 'MANAGE')) and " +
+            "hasPermission(#payload.projectId, 'Project', 'WRITE')"
+    )
+    public ResponseEntity<Void> bulkCopy(
+        @PathVariable("projectId") Long projectId,
+        @RequestParam("ids") Long[] ids,
+        @Valid @RequestBody CopyPayload payload
+    ) {
+        log.debug("REST request to copy Texts {} from project {} to project {}", ids, projectId, payload.getProjectId());
+        textService.bulkCopy(projectId, ids, payload.getProjectId(), payload.isMove(), payload.getTaskMapping(), payload.getParticipantMapping());
+        return ResponseEntity.ok().build();
     }
 }

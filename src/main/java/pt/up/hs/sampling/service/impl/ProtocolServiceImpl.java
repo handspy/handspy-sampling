@@ -2,8 +2,6 @@ package pt.up.hs.sampling.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +11,7 @@ import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.constants.ErrorKeys;
 import pt.up.hs.sampling.domain.Protocol;
 import pt.up.hs.sampling.domain.ProtocolData;
+import pt.up.hs.sampling.processing.cloner.ProtocolClonerJobLauncher;
 import pt.up.hs.sampling.processing.preview.BatchProtocolPreviewGenerationJobLauncher;
 import pt.up.hs.sampling.repository.ProtocolDataRepository;
 import pt.up.hs.sampling.repository.ProtocolRepository;
@@ -55,6 +54,8 @@ public class ProtocolServiceImpl implements ProtocolService {
 
     private final BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher;
 
+    private final ProtocolClonerJobLauncher protocolClonerJobLauncher;
+
     public ProtocolServiceImpl(
         ApplicationProperties properties,
         ProtocolRepository protocolRepository,
@@ -62,7 +63,8 @@ public class ProtocolServiceImpl implements ProtocolService {
         ProtocolDataRepository protocolDataRepository,
         ProtocolDataMapper protocolDataMapper,
         UhcPageMapper uhcPageMapper,
-        BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher
+        BatchProtocolPreviewGenerationJobLauncher previewGenerationJobLauncher,
+        ProtocolClonerJobLauncher protocolClonerJobLauncher
     ) {
         this.properties = properties;
         this.protocolRepository = protocolRepository;
@@ -71,6 +73,7 @@ public class ProtocolServiceImpl implements ProtocolService {
         this.protocolDataMapper = protocolDataMapper;
         this.uhcPageMapper = uhcPageMapper;
         this.previewGenerationJobLauncher = previewGenerationJobLauncher;
+        this.protocolClonerJobLauncher = protocolClonerJobLauncher;
     }
 
     /**
@@ -122,15 +125,16 @@ public class ProtocolServiceImpl implements ProtocolService {
      * Get all the protocols.
      *
      * @param projectId ID of the project to which the protocols belong.
-     * @param pageable  the pagination information.
      * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<ProtocolDTO> findAll(Long projectId, Pageable pageable) {
+    public List<ProtocolDTO> findAll(Long projectId) {
         log.debug("Request to get all Protocols in project {}", projectId);
-        return protocolRepository.findAllByProjectId(projectId, pageable)
-            .map(protocolMapper::toDto);
+        return protocolRepository.findAllByProjectId(projectId)
+            .parallelStream()
+            .map(protocolMapper::toDto)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -275,6 +279,83 @@ public class ProtocolServiceImpl implements ProtocolService {
                 "Failed to read protocol preview."
             );
         }
+    }
+
+    @Override
+    public ProtocolDTO copy(
+        Long projectId, Long id,
+        Long toProjectId, boolean move,
+        Map<Long, Long> taskMapping, Map<Long, Long> participantMapping
+    ) {
+
+        // find previous protocol
+        ProtocolDTO oldProtocolDTO = findOne(projectId, id).orElse(null);
+        if (oldProtocolDTO == null) {
+            throw new ServiceException(Status.NOT_FOUND, EntityNames.TEXT, ErrorKeys.ERR_NOT_FOUND, "Protocol does not exist");
+        }
+
+        // create new protocol
+        ProtocolDTO protocolDTO = new ProtocolDTO();
+        protocolDTO.setProjectId(toProjectId);
+        protocolDTO.setLanguage(oldProtocolDTO.getLanguage());
+        protocolDTO.setPageNumber(oldProtocolDTO.getPageNumber());
+        if (!projectId.equals(toProjectId)) {
+            if (oldProtocolDTO.getTaskId() != null) {
+                protocolDTO.setTaskId(taskMapping.get(oldProtocolDTO.getTaskId()));
+            }
+            if (oldProtocolDTO.getParticipantId() != null) {
+                protocolDTO.setParticipantId(participantMapping.get(oldProtocolDTO.getParticipantId()));
+            }
+        } else {
+            protocolDTO.setTaskId(oldProtocolDTO.getTaskId());
+            protocolDTO.setParticipantId(oldProtocolDTO.getParticipantId());
+        }
+
+        protocolDTO = save(toProjectId, protocolDTO);
+
+        // protocol data
+        ProtocolData oldProtocolData = protocolDataRepository
+            .findByProtocolProjectIdAndProtocolId(projectId, id)
+            .orElse(null);
+        if (oldProtocolData != null) {
+            ProtocolDataDTO protocolDataDTO = protocolDataMapper
+                .toDto(oldProtocolData);
+            protocolDataDTO.setProtocolId(protocolDTO.getId());
+            saveData(toProjectId, protocolDataDTO);
+        }
+
+        // delete protocol and data
+        if (move) {
+            delete(projectId, id);
+        }
+
+        return protocolDTO;
+    }
+
+    @Override
+    public void bulkCopy(
+        Long projectId, Long[] ids, Long toProjectId,
+        boolean move,
+        Map<Long, Long> taskMapping, Map<Long, Long> participantMapping
+    ) {
+        List<Long> idsList;
+        if (ids == null || ids.length == 0) {
+            List<Protocol> protocols = protocolRepository.findAllByProjectId(projectId);
+            idsList = protocols.parallelStream()
+                .map(Protocol::getId)
+                .collect(Collectors.toList());
+        } else {
+            idsList = Arrays.stream(ids).collect(Collectors.toList());
+        }
+
+        protocolClonerJobLauncher.run(
+            projectId,
+            toProjectId,
+            idsList,
+            move,
+            taskMapping,
+            participantMapping
+        );
     }
 
     /* Helpers */

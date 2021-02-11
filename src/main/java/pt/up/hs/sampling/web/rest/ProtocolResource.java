@@ -5,7 +5,6 @@ import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,9 +19,9 @@ import pt.up.hs.sampling.service.dto.ProtocolCriteria;
 import pt.up.hs.sampling.service.dto.ProtocolDTO;
 import pt.up.hs.sampling.service.dto.ProtocolDataDTO;
 import pt.up.hs.sampling.web.rest.errors.BadRequestAlertException;
+import pt.up.hs.sampling.web.rest.vm.CopyPayload;
 
 import javax.validation.Valid;
-import javax.ws.rs.QueryParam;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -159,7 +158,6 @@ public class ProtocolResource {
      * {@code GET  /protocols} : get all the protocols.
      *
      * @param projectId ID of the project to which the protocols belong.
-     * @param pageable  the pagination information.
      * @param criteria  the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of protocols in body.
      */
@@ -170,8 +168,7 @@ public class ProtocolResource {
     )
     public ResponseEntity<List<ProtocolDTO>> getAllProtocols(
         @PathVariable("projectId") Long projectId,
-        ProtocolCriteria criteria,
-        Pageable pageable
+        ProtocolCriteria criteria
     ) {
         log.debug("REST request to get Protocols by criteria {} in project {}", criteria, projectId);
         /*Page<ProtocolDTO> page = protocolQueryService.findByCriteria(projectId, criteria, pageable);
@@ -310,5 +307,42 @@ public class ProtocolResource {
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, EntityNames.PROTOCOL, Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(","))))
             .build();
+    }
+
+    @PostMapping("/protocols/{id}/copy")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ') and " +
+            "(not #payload.move or hasPermission(#projectId, 'Project', 'MANAGE')) and " +
+            "hasPermission(#payload.projectId, 'Project', 'WRITE')"
+    )
+    public ResponseEntity<ProtocolDTO> copy(
+        @PathVariable("projectId") Long projectId,
+        @PathVariable("id") Long id,
+        @Valid @RequestBody CopyPayload payload
+    ) throws URISyntaxException {
+        log.debug("REST request to copy Protocol {} from project {} to project {}", id, projectId, payload.getProjectId());
+        ProtocolDTO result = protocolService.copy(projectId, id, payload.getProjectId(), payload.isMove(), payload.getTaskMapping(), payload.getParticipantMapping());
+        return ResponseEntity
+            .created(new URI("/api/projects/" + payload.getProjectId() + "/protocols/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, EntityNames.PROTOCOL, result.getId().toString()))
+            .body(result);
+    }
+
+    @PostMapping("/protocols/copy")
+    @PreAuthorize(
+        "hasAnyRole('ROLE_USER', 'ROLE_ADVANCED_USER', 'ROLE_ADMIN') and " +
+            "hasPermission(#projectId, 'Project', 'READ') and " +
+            "(not #payload.move or hasPermission(#projectId, 'Project', 'MANAGE')) and " +
+            "hasPermission(#payload.projectId, 'Project', 'WRITE')"
+    )
+    public ResponseEntity<Void> bulkCopy(
+        @PathVariable("projectId") Long projectId,
+        @RequestParam("ids") Long[] ids,
+        @Valid @RequestBody CopyPayload payload
+    ) {
+        log.debug("REST request to copy Protocols {} from project {} to project {}", ids, projectId, payload.getProjectId());
+        protocolService.bulkCopy(projectId, ids, payload.getProjectId(), payload.isMove(), payload.getTaskMapping(), payload.getParticipantMapping());
+        return ResponseEntity.ok().build();
     }
 }

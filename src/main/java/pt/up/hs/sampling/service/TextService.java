@@ -2,12 +2,14 @@ package pt.up.hs.sampling.service;
 
 import org.springframework.web.multipart.MultipartFile;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
+import pt.up.hs.sampling.service.dto.ProtocolDTO;
 import pt.up.hs.sampling.service.dto.TextDTO;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -37,10 +39,9 @@ public interface TextService {
      * Get all the texts.
      *
      * @param projectId ID of the project to which the texts belong.
-     * @param pageable the pagination information.
      * @return the list of entities.
      */
-    Page<TextDTO> findAll(Long projectId, Pageable pageable);
+    List<TextDTO> findAll(Long projectId);
 
     /**
      * Get the "id" text.
@@ -75,4 +76,37 @@ public interface TextService {
      * @return {@link BulkImportResultDTO} upload summary.
      */
     BulkImportResultDTO<TextDTO> bulkImportTexts(Long projectId, MultipartFile[] files);
+
+    /**
+     * Copy a text from a project to another.
+     *
+     * @param projectId            ID of the project to which the text belongs.
+     * @param id                   ID of the text to copy.
+     * @param toProjectId          ID of the target project to copy the text to.
+     * @param move                 is it a move?
+     * @param taskMapping          map from source tasks to target tasks
+     * @param participantMapping   map from source participants to target tasks
+     * @return the persisted entity.
+     */
+    TextDTO copy(
+        Long projectId, Long id, Long toProjectId,
+        boolean move,
+        Map<Long, Long> taskMapping, Map<Long, Long> participantMapping
+    );
+
+    /**
+     * Bulk copy texts from a project to another.
+     *
+     * @param projectId            ID of the project to which the protocol belongs.
+     * @param ids                  ID of the texts to copy.
+     * @param toProjectId          ID of the target project to copy the protocol to.
+     * @param move                 is it a move?
+     * @param taskMapping          map from source tasks to target tasks
+     * @param participantMapping   map from source participants to target tasks
+     */
+    void bulkCopy(
+        Long projectId, Long[] ids, Long toProjectId,
+        boolean move,
+        Map<Long, Long> taskMapping, Map<Long, Long> participantMapping
+    );
 }

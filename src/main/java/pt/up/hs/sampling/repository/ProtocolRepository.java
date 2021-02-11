@@ -26,7 +26,7 @@ public interface ProtocolRepository extends JpaRepository<Protocol, Long>, JpaSp
         value = "select distinct protocol from Protocol protocol where protocol.projectId = :projectId",
         countQuery = "select count(distinct protocol) from Protocol protocol where protocol.projectId = :projectId"
     )
-    Page<Protocol> findAllByProjectId(@Param("projectId") @NotNull Long projectId, Pageable pageable);
+    List<Protocol> findAllByProjectId(@Param("projectId") @NotNull Long projectId);
 
     @Query("select count(distinct protocol) from Protocol protocol where protocol.projectId = :projectId")
     long countByProjectId(@Param("projectId") @NotNull Long projectId);

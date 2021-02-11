@@ -14,6 +14,8 @@ import pt.up.hs.sampling.constants.EntityNames;
 import pt.up.hs.sampling.constants.ErrorKeys;
 import pt.up.hs.sampling.domain.Protocol;
 import pt.up.hs.sampling.domain.Text;
+import pt.up.hs.sampling.processing.cloner.ProtocolClonerJobLauncher;
+import pt.up.hs.sampling.processing.cloner.TextClonerJobLauncher;
 import pt.up.hs.sampling.repository.TextRepository;
 import pt.up.hs.sampling.service.TextService;
 import pt.up.hs.sampling.service.dto.BulkImportResultDTO;
@@ -37,12 +39,16 @@ public class TextServiceImpl implements TextService {
     private final TextRepository textRepository;
     private final TextMapper textMapper;
 
+    private final TextClonerJobLauncher textClonerJobLauncher;
+
     public TextServiceImpl(
         TextRepository textRepository,
-        TextMapper textMapper
+        TextMapper textMapper,
+        TextClonerJobLauncher textClonerJobLauncher
     ) {
         this.textRepository = textRepository;
         this.textMapper = textMapper;
+        this.textClonerJobLauncher = textClonerJobLauncher;
     }
 
     /**
@@ -98,15 +104,16 @@ public class TextServiceImpl implements TextService {
      * Get all the texts.
      *
      * @param projectId ID of the project to which the texts belong.
-     * @param pageable  the pagination information.
      * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<TextDTO> findAll(Long projectId, Pageable pageable) {
+    public List<TextDTO> findAll(Long projectId) {
         log.debug("Request to get all Texts in project {}", projectId);
-        return textRepository.findAllByProjectId(projectId, pageable)
-            .map(textMapper::toDto);
+        return textRepository.findAllByProjectId(projectId)
+            .parallelStream()
+            .map(textMapper::toDto)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -188,6 +195,65 @@ public class TextServiceImpl implements TextService {
         importResult.setData(textDTOs);
 
         return importResult;
+    }
+
+    @Override
+    public TextDTO copy(
+        Long projectId, Long id,
+        Long toProjectId, boolean move,
+        Map<Long, Long> taskMapping, Map<Long, Long> participantMapping
+    ) {
+
+        // find previous text
+        TextDTO oldTextDTO = findOne(projectId, id).orElse(null);
+        if (oldTextDTO == null) {
+            throw new ServiceException(Status.NOT_FOUND, EntityNames.TEXT, ErrorKeys.ERR_NOT_FOUND, "Text does not exist");
+        }
+
+        // create & save new text
+        TextDTO textDTO = new TextDTO();
+        textDTO.setProjectId(toProjectId);
+        textDTO.setLanguage(oldTextDTO.getLanguage());
+        textDTO.setText(oldTextDTO.getText());
+        if (!projectId.equals(toProjectId)) {
+            if (oldTextDTO.getTaskId() != null) {
+                textDTO.setTaskId(taskMapping.get(oldTextDTO.getTaskId()));
+            }
+            if (oldTextDTO.getParticipantId() != null) {
+                textDTO.setParticipantId(participantMapping.get(oldTextDTO.getParticipantId()));
+            }
+        } else {
+            textDTO.setTaskId(oldTextDTO.getTaskId());
+            textDTO.setParticipantId(oldTextDTO.getParticipantId());
+        }
+        textDTO.setAnnotations(new HashSet<>());
+        textDTO = save(toProjectId, textDTO);
+
+        // delete previous if moving
+        if (move) {
+            delete(projectId, id);
+        }
+
+        return textDTO;
+    }
+
+    @Override
+    public void bulkCopy(
+        Long projectId, Long[] ids, Long toProjectId,
+        boolean move,
+        Map<Long, Long> taskMapping, Map<Long, Long> participantMapping
+    ) {
+        List<Long> idsList;
+        if (ids == null || ids.length == 0) {
+            List<Text> texts = textRepository.findAllByProjectId(projectId);
+            idsList = texts.parallelStream()
+                .map(Text::getId)
+                .collect(Collectors.toList());
+        } else {
+            idsList = Arrays.stream(ids).collect(Collectors.toList());
+        }
+
+        textClonerJobLauncher.run(projectId, toProjectId, idsList, move, taskMapping, participantMapping);
     }
 
     /* Helpers */

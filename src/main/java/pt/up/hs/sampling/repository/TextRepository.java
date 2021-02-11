@@ -1,12 +1,11 @@
 package pt.up.hs.sampling.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pt.up.hs.sampling.domain.Text;
-
-import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
+import pt.up.hs.sampling.domain.Text;
 
 import javax.annotation.Nonnull;
 import javax.validation.constraints.NotNull;
@@ -24,7 +23,7 @@ public interface TextRepository extends JpaRepository<Text, Long>, JpaSpecificat
         value = "select distinct text from Text text where text.projectId = :projectId",
         countQuery = "select count(distinct text) from Text text where text.projectId = :projectId"
     )
-    Page<Text> findAllByProjectId(@Param("projectId") @NotNull Long projectId, Pageable pageable);
+    List<Text> findAllByProjectId(@Param("projectId") @NotNull Long projectId);
 
     @Query("select count(distinct text) from Text text where text.projectId = :projectId")
     long countByProjectId(@Param("projectId") @NotNull Long projectId);

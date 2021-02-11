@@ -154,7 +154,7 @@ spring:
   batch:
     initialize-schema: never
     job:
-      enabled: true
+      enabled: false
 
 security:
   oauth2:
