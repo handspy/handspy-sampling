@@ -269,6 +269,7 @@ public class TextServiceImpl implements TextService {
         String text;
         try {
             Tika tika = new Tika();
+            tika.setMaxStringLength(-1);
             text = tika.parseToString(file.getInputStream()).trim();
             if (text.isEmpty()) {
                 throw new IOException("Unparseable text.");
