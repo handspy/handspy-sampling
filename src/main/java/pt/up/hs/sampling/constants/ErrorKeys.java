@@ -8,5 +8,6 @@ public final class ErrorKeys {
     public static final String ERR_VALIDATION = "error.validation";
     public static final String ERR_UNKNOWN_UPLOAD_TYPE = "error.unknownUploadType";
     public static final String ERR_READ_IMPORT = "error.readImport";
+    public static final String ERR_EXPORT_BULK = "error.readImport";
     public static final String ERR_READING_PREVIEW = "error.readingPreview";
 }
